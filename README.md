@@ -6,11 +6,9 @@
 
 To manage NodeJS versions, we decided to use [`asdf`](https://asdf-vm.com/) over [`volta`](https://docs.volta.sh/guide/getting-started).
 
-The `asdf` utility is a language-agnost version manager. It is akin to python version management utilities like `conda`. We tried using `volta` first, but we kept running into errors when trying to pin a specific NodeJS version to the project.
+The `asdf` utility is a language-agnostic version manager. Unfortunately, `volta` kept running into errors when trying to pin a specific NodeJS version to the project.
 
-As a result, we switched to `asdf`.
-
-If preferred, it is entirely possible to use a system-level NodeJS installation for development. In this case, `npm` or `yarn` or some other *package* manager should be used. 
+It is entirely possible to use a system-level NodeJS installation for development. In this case, `npm` or `yarn` or some other *package* manager should be used.
 
 ## Install `asdf`
 
