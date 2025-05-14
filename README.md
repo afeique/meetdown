@@ -67,11 +67,11 @@ If you haven't already, setup an SSH key on github for pulling and committing,
 and setup a GPG key for signing commits.
 
 1. [Check for existing SSH keys](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/checking-for-existing-ssh-keys)
-1. [Generate a new SSH key if needed and add it to ssh-agent](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent)
+1. [Generate a new SSH key if needed and add it to `ssh-agent`](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent)
 1. [Generate a new GPG key if needed](https://docs.github.com/en/authentication/managing-commit-signature-verification/generating-a-new-gpg-key)
 1. [Add your SSH key to github](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/adding-a-new-ssh-key-to-your-github-account)
 1. [Add your GPG key to github](https://docs.github.com/en/authentication/managing-commit-signature-verification/adding-a-gpg-key-to-your-github-account)
-1. [How to sign commits using -S flag](https://docs.github.com/en/authentication/managing-commit-signature-verification/signing-commits)
+1. [How to sign commits using `-S` flag](https://docs.github.com/en/authentication/managing-commit-signature-verification/signing-commits)
 
 ### Clone Remote Git Repository
 
