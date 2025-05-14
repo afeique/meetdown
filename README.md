@@ -18,11 +18,11 @@ If preferred, it is entirely possible to use a system-level NodeJS installation 
 
 ### macOS and `zsh`
 
-Follow the [`asdf` getting started](https://asdf-vm.com/guide/getting-started.html) guide.  
-1. run `brew install asdf`
+Follow the [asdf getting started guide](https://asdf-vm.com/guide/getting-started.html).  
+1. Run `brew install asdf`
 1. Configure `asdf`
 1. Add to `.zshrc`: `export PATH="${ASDF_DATA_DIR:-$HOME/.asdf}/shims:$PATH"`
-1. Install the [`asdf` plugin for `zsh`](https://github.com/kiurchv/asdf.plugin.zsh)
+1. Install the [asdf plugin for zsh](https://github.com/kiurchv/asdf.plugin.zsh)
 
 **Using `oh-my-zsh` plugin**
 
@@ -43,6 +43,7 @@ Setup `asdf` autocompletion by addin the following lines to the bottom of `.zshr
 ```
 # append completions to fpath
 fpath=(${ASDF_DATA_DIR:-$HOME/.asdf}/completions $fpath)
+
 # initialise completions with ZSH's compinit
 autoload -Uz compinit && compinit
 ```
