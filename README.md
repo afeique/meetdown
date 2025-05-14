@@ -12,8 +12,6 @@ As a result, we switched to `asdf`.
 
 If preferred, it is entirely possible to use a system-level NodeJS installation for development. In this case, `npm` or `yarn` or some other *package* manager should be used. 
 
-**TODO:** instructions for setting up project using system-wide NodeJS.
-
 ## Install `asdf`
 
 ### macOS and `zsh`
@@ -26,10 +24,10 @@ Follow the [asdf getting started guide](https://asdf-vm.com/guide/getting-starte
 
 **Install `oh-my-zsh` plugin**
 
-It's difficult to get the `asdf` plugin working as an antigen bundle. 
-Consequently, the `asdf` plugin for `oh-my-zsh` is used instead.
+There's an `asdf` plugin for antigen, but there were problems getting it to work.
+Consequently, the `oh-my-zsh` plugin is used instead.
 
-Clone the `asdf` plugin repo:  
+Clone the plugin repo:  
 ```
 git clone https://github.com/kiurchv/asdf.plugin.zsh $HOME/.oh-my-zsh/custom/plugins/asdf
 ```
@@ -39,7 +37,7 @@ Then load the plugin in `.zshrc` by adding the following line:
 plugins+=(asdf)
 ```
 
-Setup `asdf` autocompletion by addin the following lines to the bottom of `.zshrc`:  
+Setup `asdf` autocompletion by adding the following lines to the bottom of `.zshrc`:  
 ```
 # append completions to fpath
 fpath=(${ASDF_DATA_DIR:-$HOME/.asdf}/completions $fpath)
@@ -86,18 +84,24 @@ Add github's public key to `~/.ssh/known_hosts` if necessary.
 
 ### Alternative: Use `git pull`
 
-Alternatively, create the project directory, set the remote origin repository
-(via SSH), and pull the latest version from origin:  
+Alternatively,   
 ```
+# Create the project directory
 mkdir ~/projects/meetdown
+
+# Navigate to the project directory
 cd ~/projects/meetdown
+
+# Set the remote origin repository (via SSH)
 git remote add origin git@github.com:afeique/meetdown.git
+
+# Pull the latest version from origin
 git pull
 ```
 
 ### Install NodeJS Using `asdf`
 
-Navigate to the project directory and install the version of NodeJS listed in `.tool_versions`:  
+Navigate to the project directory and install the version of NodeJS listed in `.tool-versions`:  
 ```
 cd ~/projects/meetdown
 asdf install
@@ -107,11 +111,17 @@ We are currently using the latest NodeJS v24.x.x, so that should be installed.
 
 ### Changing NodeJS Versions
 
-Navigate to the project directory, install the desired NodeJS version, and set it in
-`.tool_versions`. In this example, we are changing to the latest version of 22.x.x:  
+In this example, we are changing to the latest version of 22.x.x:  
 ```
+# Navigate to project directory
 cd ~/projects/meetdown
+
+# Install the desired NodeJS version
+# Here we are installing the latest v22.x.x
 asdf install nodejs latest:22
+
+# Set the NodeJS version for the project
+# This writes to .tool-versions
 asdf set nodejs latest:22
 ```
 
@@ -139,13 +149,18 @@ asdf set nodejs latest:24
 npx create-next-app@latest -e with-supabase
 ```
 
-This should create the `~/projects/meetdown` directory. Once that is done,
-add the remote repository via SSH, make the initial (signed `-S`) commit 
-and push it `-u` upstream to branch `main`:  
+This should create the `~/projects/meetdown` directory. Commit and push
+upstream using the following commands:
+
 ```
+# Add the remote repository via SSH
 git remote add origin git@github.com
+
+# Make the initial (signed -S) commit
 git add --all
 git commit -S -m "Initial commit"
+
+# Push -u upstream to branch main
 git push -u origin main
 ```
 
