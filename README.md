@@ -4,7 +4,7 @@
 
 ## Version Manager
 
-To manage NodeJS versions, we decided to use [`asdf`](https://asdf-vm.com/) over `volta`.
+To manage NodeJS versions, we decided to use [`asdf`](https://asdf-vm.com/) over [`volta`](https://docs.volta.sh/guide/getting-started).
 
 The `asdf` utility is a language-agnost version manager. It is akin to python version management utilities like `conda`. We tried using `volta` first, but we kept running into errors when trying to pin a specific NodeJS version to the project.
 
@@ -19,12 +19,12 @@ If preferred, it is entirely possible to use a system-level NodeJS installation 
 ### macOS and `zsh`
 
 Follow the [asdf getting started guide](https://asdf-vm.com/guide/getting-started.html).  
+1. Run `brew upgrade` if necessary
 1. Run `brew install asdf`
-1. Configure `asdf`
 1. Add to `.zshrc`: `export PATH="${ASDF_DATA_DIR:-$HOME/.asdf}/shims:$PATH"`
-1. Install the [asdf plugin for zsh](https://github.com/kiurchv/asdf.plugin.zsh)
+1. Install the [asdf oh-my-zsh plugin](https://github.com/kiurchv/asdf.plugin.zsh)
 
-**Using `oh-my-zsh` plugin**
+**Installing `oh-my-zsh` plugin**
 
 There was difficulty in getting the `asdf` plugin working as an antigen bundle. 
 Consequently, we opted to use the `asdf` plugin for `oh-my-zsh` instead.
@@ -44,27 +44,27 @@ Setup `asdf` autocompletion by addin the following lines to the bottom of `.zshr
 # append completions to fpath
 fpath=(${ASDF_DATA_DIR:-$HOME/.asdf}/completions $fpath)
 
-# initialise completions with ZSH's compinit
+# initialise completions with zsh's compinit
 autoload -Uz compinit && compinit
 ```
 
-### Use NodeJS with `asdf`
+### Use NodeJS With `asdf`
 
 Install the latest NodeJS via the CLI using `asdf`:  
 ```
 # Add plugin to asdf
 asdf plugin add nodejs
 
-# Install the latest available version
-asdf install nodejs latest
+# Install the latest v24.x.x
+asdf install nodejs latest:24
 ```
 
-## Integrate with github repo
+## Integrate With Github Repo
 
 ### Setup SSH and GPG
 
-If you haven't already, setup your SSH key on github for pulling and committing, 
-and setup your GPG key for signing your commits.
+If you haven't already, setup an SSH key on github for pulling and committing, 
+and setup a GPG key for signing commits.
 
 1. [Check for existing SSH keys](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/checking-for-existing-ssh-keys)
 1. [Generate a new SSH key if needed and add it to ssh-agent](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent)
