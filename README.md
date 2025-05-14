@@ -2,7 +2,7 @@
 
 *© 2025 Meetdown, Inc.*
 
-## Version Manager
+## `asdf` Version Manager
 
 To manage NodeJS versions, we decided to use [`asdf`](https://asdf-vm.com/) over [`volta`](https://docs.volta.sh/guide/getting-started).
 
@@ -24,10 +24,10 @@ Follow the [asdf getting started guide](https://asdf-vm.com/guide/getting-starte
 1. Add to `.zshrc`: `export PATH="${ASDF_DATA_DIR:-$HOME/.asdf}/shims:$PATH"`
 1. Install the [asdf oh-my-zsh plugin](https://github.com/kiurchv/asdf.plugin.zsh)
 
-**Installing `oh-my-zsh` plugin**
+**Install `oh-my-zsh` plugin**
 
-There was difficulty in getting the `asdf` plugin working as an antigen bundle. 
-Consequently, we opted to use the `asdf` plugin for `oh-my-zsh` instead.
+It's difficult to get the `asdf` plugin working as an antigen bundle. 
+Consequently, the `asdf` plugin for `oh-my-zsh` is used instead.
 
 Clone the `asdf` plugin repo:  
 ```
@@ -48,7 +48,7 @@ fpath=(${ASDF_DATA_DIR:-$HOME/.asdf}/completions $fpath)
 autoload -Uz compinit && compinit
 ```
 
-### Use NodeJS With `asdf`
+### Use NodeJS with `asdf`
 
 Install the latest NodeJS via the CLI using `asdf`:  
 ```
@@ -59,7 +59,7 @@ asdf plugin add nodejs
 asdf install nodejs latest:24
 ```
 
-## Integrate With Github Repo
+## Integrate with Github
 
 ### Setup SSH and GPG
 
@@ -73,23 +73,23 @@ and setup a GPG key for signing commits.
 1. [Add your GPG key to github](https://docs.github.com/en/authentication/managing-commit-signature-verification/adding-a-gpg-key-to-your-github-account)
 1. [How to sign commits using `-S` flag](https://docs.github.com/en/authentication/managing-commit-signature-verification/signing-commits)
 
-### Clone Remote Git Repository
+### Clone Remote Repository
 
 Github defaults to calling the `master` branch `main`. We will stick with this nomenclature.
 
-Clone the remote repository to a directory of your choice:  
+Clone the remote repository to a directory:  
 ```
 git clone git@github.com/afeique/meetdown.git ~/projects/meetdown
 ```
 
-Add github's public key to your `~/.ssh/known_hosts` if necessary.
+Add github's public key to `~/.ssh/known_hosts` if necessary.
 
-### Alternative: Use Git Pull
+### Alternative: Use `git pull`
 
-Alternatively, you can create your project directory first, set the remote repository
-using SSH, and pull the latest version:  
+Alternatively, create the project directory, set the remote origin repository
+(via SSH), and pull the latest version from origin:  
 ```
-create ~/projects/meetdown
+mkdir ~/projects/meetdown
 cd ~/projects/meetdown
 git remote add origin git@github.com:afeique/meetdown.git
 git pull
@@ -103,7 +103,7 @@ cd ~/projects/meetdown
 asdf install
 ```
 
-We are currently using the latest NodeJS v24.x.x, and that is what should be installed.
+We are currently using the latest NodeJS v24.x.x, so that should be installed.
 
 ### Changing NodeJS Versions
 
