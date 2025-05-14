@@ -59,20 +59,95 @@ asdf plugin add nodejs
 asdf install nodejs latest
 ```
 
+## Integrate with github repo
+
+### Setup SSH and GPG
+
+If you haven't already, setup your SSH key on github for pulling and committing, 
+and setup your GPG key for signing your commits.
+
+1. [Check for existing SSH keys](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/checking-for-existing-ssh-keys)
+1. [Generate a new SSH key if needed and add it to ssh-agent](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent)
+1. [Generate a new GPG key if needed](https://docs.github.com/en/authentication/managing-commit-signature-verification/generating-a-new-gpg-key)
+1. [Add your SSH key to github](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/adding-a-new-ssh-key-to-your-github-account)
+1. [Add your GPG key to github](https://docs.github.com/en/authentication/managing-commit-signature-verification/adding-a-gpg-key-to-your-github-account)
+1. [How to sign commits using -S flag](https://docs.github.com/en/authentication/managing-commit-signature-verification/signing-commits)
+
+### Clone Remote Git Repository
+
+Github defaults to calling the `master` branch `main`. We will stick with this nomenclature.
+
+Clone the remote repository to a directory of your choice:  
+```
+git clone git@github.com/afeique/meetdown.git ~/projects/meetdown
+```
+
+Add github's public key to your `~/.ssh/known_hosts` if necessary.
+
+### Alternative: Use Git Pull
+
+Alternatively, you can create your project directory first, set the remote repository
+using SSH, and pull the latest version:  
+```
+create ~/projects/meetdown
+cd ~/projects/meetdown
+git remote add origin git@github.com:afeique/meetdown.git
+git pull
+```
+
+### Install NodeJS Using `asdf`
+
+Navigate to the project directory and install the version of NodeJS listed in `.tool_versions`:  
+```
+cd ~/projects/meetdown
+asdf install
+```
+
+We are currently using the latest NodeJS v24.x.x, and that is what should be installed.
+
+### Changing NodeJS Versions
+
+Navigate to the project directory, install the desired NodeJS version, and set it in
+`.tool_versions`. In this example, we are changing to the latest version of 22.x.x:  
+```
+cd ~/projects/meetdown
+asdf install nodejs latest:22
+asdf set nodejs latest:22
+```
+
+We can then switch back to using the latest version of NodeJS v24.x.x:  
+```
+asdf set nodejs latest:24
+```
+
+## Project Initialization
+
+These are instructions for setting up a new NextJS project and committing it to github. 
+
+This has already been done, so you shouldn't have to do this. This documentation is 
+included primarily for reference purposes.
+
 Create the meetdown project using `npx`:  
 ```
 # Move into directory where project will be stored
 cd ~/projects
 
-# Set the latest version in .tool-versions of the `current directory`
-asdf set nodejs latest
+# Set NodeJS to latest v24.x.x in .tool-versions of the `current directory`
+asdf set nodejs latest:24
 
-# Create the meetdown project and its corresponding directory using the latest NodeJS
+# Create the meetdown project and its corresponding directory
 npx create-next-app@latest -e with-supabase
 ```
 
-This should create the `~/projects/meetdown` directory.
-
+This should create the `~/projects/meetdown` directory. Once that is done,
+add the remote repository via SSH, make the initial (signed `-S`) commit 
+and push it `-u` upstream to branch `main`:  
+```
+git remote add origin git@github.com
+git add --all
+git commit -S -m "Initial commit"
+git push -u origin main
+```
 
 # NextJS with Supabase
 
