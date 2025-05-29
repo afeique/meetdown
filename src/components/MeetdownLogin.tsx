@@ -75,7 +75,7 @@ const MeetdownLogin = () => {
           <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
             Meetdown
           </h1>
-          <p className="text-gray-600 text-lg">Connect, Meet, Experience</p>
+          <p className="text-gray-600 text-lg">Are you down to meet?</p>
         </div>
 
         {/* Registration Card */}
