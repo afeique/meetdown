@@ -3,18 +3,33 @@ import { useAuth } from "@/contexts/AuthContext";
 import LogoutButton from "@/components/LogoutButton";
 import LocationBar from "@/components/LocationBar";
 import EventsFeed from "@/components/EventsFeed";
+import { Button } from "@/components/ui/button";
+import { User } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const Index = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-      {/* Header with logout button */}
+      {/* Header with logout button and profile link */}
       <div className="flex justify-between items-center p-6">
         <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-600 via-red-500 to-orange-500 bg-clip-text text-transparent">
           meetdown
         </h1>
-        <LogoutButton />
+        <div className="flex items-center gap-3">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => navigate('/profile')}
+            className="flex items-center gap-2"
+          >
+            <User size={16} />
+            Profile
+          </Button>
+          <LogoutButton />
+        </div>
       </div>
 
       {/* Location input bar */}
