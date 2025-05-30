@@ -1,7 +1,8 @@
 
-import { Calendar, MapPin, Users } from 'lucide-react';
+import { Calendar, MapPin, Users, Tag } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 
 interface Event {
   id: string;
@@ -13,6 +14,7 @@ interface Event {
   attendees: number;
   maxAttendees: number;
   distance: string;
+  activity_tags?: string[];
 }
 
 interface EventCardProps {
@@ -49,6 +51,22 @@ const EventCard = ({ event }: EventCardProps) => {
         <div className="text-sm text-gray-600">
           <strong>Location:</strong> {event.location}
         </div>
+
+        {/* Activity Tags */}
+        {event.activity_tags && event.activity_tags.length > 0 && (
+          <div className="flex items-center gap-2 flex-wrap">
+            <Tag size={14} className="text-gray-500" />
+            {event.activity_tags.map((tag) => (
+              <Badge 
+                key={tag} 
+                variant="secondary" 
+                className="text-xs bg-blue-100 text-blue-800"
+              >
+                {tag}
+              </Badge>
+            ))}
+          </div>
+        )}
         
         <Button className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700">
           Join Event
