@@ -1,6 +1,8 @@
 
 import { useAuth } from "@/contexts/AuthContext";
 import LogoutButton from "@/components/LogoutButton";
+import LocationBar from "@/components/LocationBar";
+import EventsFeed from "@/components/EventsFeed";
 
 const Index = () => {
   const { user } = useAuth();
@@ -15,23 +17,23 @@ const Index = () => {
         <LogoutButton />
       </div>
 
-      {/* Main content */}
-      <div className="container mx-auto px-6 py-12">
-        <div className="text-center">
-          <h2 className="text-4xl font-bold text-gray-800 mb-4">
-            Welcome back{user?.email ? `, ${user.email}` : ''}!
+      {/* Location input bar */}
+      <LocationBar />
+
+      {/* Welcome message */}
+      <div className="container mx-auto px-6 py-8">
+        <div className="text-center mb-8">
+          <h2 className="text-3xl font-bold text-gray-800 mb-2">
+            Welcome back{user?.email ? `, ${user.email.split('@')[0]}` : ''}!
           </h2>
-          <p className="text-xl text-gray-600 mb-8">
-            Are you down to meet?
+          <p className="text-lg text-gray-600">
+            Are you down to meet? Check out these events near you.
           </p>
-          <div className="max-w-2xl mx-auto">
-            <p className="text-gray-600">
-              You're now logged in and ready to start connecting with others. 
-              This is your protected dashboard where you can manage your meetdowns.
-            </p>
-          </div>
         </div>
       </div>
+
+      {/* Events feed */}
+      <EventsFeed />
     </div>
   );
 };
