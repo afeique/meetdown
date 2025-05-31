@@ -11,8 +11,13 @@ const mockEvents = [
     time: '10:00 AM',
     location: 'Central Coffee House, Downtown',
     attendees: 8,
-    maxAttendees: 15,
-    distance: '0.5 miles'
+    max_attendees: 15,
+    distance: '0.5 miles',
+    cover_charge: 0,
+    requires_reservation: false,
+    activity_tags: ['Coffee', 'Tech', 'Networking'],
+    is_registered: false,
+    creator_id: 'mock-user-1'
   },
   {
     id: '2',
@@ -22,8 +27,13 @@ const mockEvents = [
     time: '8:00 AM',
     location: 'Mountain View Trail Head',
     attendees: 12,
-    maxAttendees: 20,
-    distance: '2.3 miles'
+    max_attendees: 20,
+    distance: '2.3 miles',
+    cover_charge: 5,
+    requires_reservation: true,
+    activity_tags: ['Hiking', 'Sports', 'Fitness'],
+    is_registered: false,
+    creator_id: 'mock-user-2'
   },
   {
     id: '3',
@@ -33,8 +43,13 @@ const mockEvents = [
     time: '7:00 PM',
     location: 'Game Lounge, Main Street',
     attendees: 6,
-    maxAttendees: 12,
-    distance: '1.1 miles'
+    max_attendees: 12,
+    distance: '1.1 miles',
+    cover_charge: 10,
+    requires_reservation: false,
+    activity_tags: ['Gaming', 'Entertainment'],
+    is_registered: true,
+    creator_id: 'mock-user-3'
   },
   {
     id: '4',
@@ -44,8 +59,13 @@ const mockEvents = [
     time: '6:00 PM',
     location: 'City Park & Gardens',
     attendees: 4,
-    maxAttendees: 10,
-    distance: '0.8 miles'
+    max_attendees: 10,
+    distance: '0.8 miles',
+    cover_charge: 0,
+    requires_reservation: false,
+    activity_tags: ['Photography', 'Art'],
+    is_registered: false,
+    creator_id: 'mock-user-4'
   }
 ];
 
