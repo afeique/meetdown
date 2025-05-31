@@ -4,6 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import EventCard from './EventCard';
+import EventFiltersComponent, { EventFilters } from './EventFilters';
 
 interface Event {
   id: string;
@@ -12,13 +13,16 @@ interface Event {
   date: string;
   time: string;
   location: string;
-  attendees: number;
-  maxAttendees: number;
-  distance: string;
   latitude?: number;
   longitude?: number;
+  max_attendees: number;
+  cover_charge: number;
+  requires_reservation: boolean;
   creator_id: string;
+  attendees?: number;
+  distance?: string;
   activity_tags: string[];
+  is_registered?: boolean;
 }
 
 interface PersonalizedEventsFeedProps {
@@ -31,6 +35,11 @@ const PersonalizedEventsFeed = ({ userLocation }: PersonalizedEventsFeedProps) =
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [userInterests, setUserInterests] = useState<string[]>([]);
+  const [filters, setFilters] = useState<EventFilters>({
+    maxCoverCharge: 50,
+    noReservationRequired: false,
+    freeEventsOnly: false
+  });
 
   useEffect(() => {
     if (user) {
@@ -39,12 +48,8 @@ const PersonalizedEventsFeed = ({ userLocation }: PersonalizedEventsFeedProps) =
   }, [user]);
 
   useEffect(() => {
-    if (userInterests.length > 0) {
-      fetchPersonalizedEvents();
-    } else {
-      fetchAllEvents();
-    }
-  }, [userInterests, userLocation]);
+    fetchEvents();
+  }, [userInterests, userLocation, filters]);
 
   const fetchUserInterests = async () => {
     try {
@@ -66,27 +71,106 @@ const PersonalizedEventsFeed = ({ userLocation }: PersonalizedEventsFeedProps) =
     }
   };
 
-  const fetchPersonalizedEvents = async () => {
+  const calculateDistance = (lat1?: number, lng1?: number, lat2?: number, lng2?: number): string => {
+    if (!lat1 || !lng1 || !lat2 || !lng2) return 'Unknown distance';
+    
+    const R = 3959; // Earth's radius in miles
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLng = (lng2 - lng1) * Math.PI / 180;
+    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+              Math.sin(dLng/2) * Math.sin(dLng/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    const distance = R * c;
+    
+    return `${distance.toFixed(1)} miles`;
+  };
+
+  const fetchEvents = async () => {
     setLoading(true);
     try {
-      // For now, we'll use mock data but filter based on user interests
-      // In a real app, this would query a real events table
-      const mockEvents = getMockEvents();
-      
-      // Filter events based on user interests
-      const personalizedEvents = mockEvents.filter(event => 
-        event.activity_tags.some(tag => userInterests.includes(tag))
-      );
+      // Fetch events with tags and registration counts
+      const { data: eventsData, error: eventsError } = await supabase
+        .from('events')
+        .select(`
+          *,
+          event_tags (
+            activity_tags (
+              name
+            )
+          ),
+          event_registrations (
+            id,
+            user_id
+          )
+        `);
 
-      // Sort by relevance (events matching more interests first)
-      personalizedEvents.sort((a, b) => {
-        const aMatches = a.activity_tags.filter(tag => userInterests.includes(tag)).length;
-        const bMatches = b.activity_tags.filter(tag => userInterests.includes(tag)).length;
-        return bMatches - aMatches;
+      if (eventsError) throw eventsError;
+
+      // Transform the data to match our Event interface
+      const transformedEvents: Event[] = (eventsData || []).map(event => {
+        const tags = event.event_tags?.map((et: any) => et.activity_tags.name) || [];
+        const registrations = event.event_registrations || [];
+        const attendees = registrations.length;
+        const isRegistered = registrations.some((reg: any) => reg.user_id === user?.id);
+        
+        return {
+          id: event.id,
+          title: event.title,
+          description: event.description || '',
+          date: new Date(event.date).toLocaleDateString('en-US', { 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric' 
+          }),
+          time: new Date(`1970-01-01T${event.time}`).toLocaleTimeString('en-US', {
+            hour: 'numeric',
+            minute: '2-digit',
+            hour12: true
+          }),
+          location: event.location,
+          latitude: event.latitude ? parseFloat(event.latitude) : undefined,
+          longitude: event.longitude ? parseFloat(event.longitude) : undefined,
+          max_attendees: event.max_attendees,
+          cover_charge: parseFloat(event.cover_charge) || 0,
+          requires_reservation: event.requires_reservation,
+          creator_id: event.creator_id,
+          attendees,
+          distance: userLocation ? calculateDistance(
+            userLocation.lat, 
+            userLocation.lng, 
+            event.latitude ? parseFloat(event.latitude) : undefined,
+            event.longitude ? parseFloat(event.longitude) : undefined
+          ) : 'Unknown distance',
+          activity_tags: tags,
+          is_registered: isRegistered
+        };
       });
 
-      setEvents(personalizedEvents);
+      // Apply filters
+      let filteredEvents = transformedEvents.filter(event => {
+        if (filters.freeEventsOnly && event.cover_charge > 0) return false;
+        if (!filters.freeEventsOnly && event.cover_charge > filters.maxCoverCharge) return false;
+        if (filters.noReservationRequired && event.requires_reservation) return false;
+        return true;
+      });
+
+      // Sort by personalization if user has interests
+      if (userInterests.length > 0) {
+        filteredEvents = filteredEvents.filter(event => 
+          event.activity_tags.some(tag => userInterests.includes(tag))
+        );
+
+        filteredEvents.sort((a, b) => {
+          const aMatches = a.activity_tags.filter(tag => userInterests.includes(tag)).length;
+          const bMatches = b.activity_tags.filter(tag => userInterests.includes(tag)).length;
+          return bMatches - aMatches;
+        });
+      }
+
+      setEvents(filteredEvents);
     } catch (error: any) {
+      console.error('Error fetching events:', error);
       toast({
         title: "Error loading events",
         description: error.message,
@@ -97,103 +181,71 @@ const PersonalizedEventsFeed = ({ userLocation }: PersonalizedEventsFeedProps) =
     }
   };
 
-  const fetchAllEvents = async () => {
-    setLoading(true);
-    try {
-      // Show all events if user has no interests set
-      const mockEvents = getMockEvents();
-      setEvents(mockEvents);
-    } catch (error: any) {
+  const handleJoinEvent = async (eventId: string) => {
+    if (!user) {
       toast({
-        title: "Error loading events",
+        title: "Authentication required",
+        description: "Please log in to join events.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('event_registrations')
+        .insert({
+          event_id: eventId,
+          user_id: user.id
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: "Successfully joined event!",
+        description: "You've been registered for this event.",
+      });
+
+      // Refresh events to update registration status
+      fetchEvents();
+    } catch (error: any) {
+      console.error('Error joining event:', error);
+      toast({
+        title: "Error joining event",
         description: error.message,
         variant: "destructive",
       });
-    } finally {
-      setLoading(false);
     }
   };
 
-  const getMockEvents = (): Event[] => [
-    {
-      id: '1',
-      title: 'Coffee & Code Meetup',
-      description: 'Join us for a casual coding session with coffee and great conversations.',
-      date: 'June 15, 2024',
-      time: '10:00 AM',
-      location: 'Central Coffee House, Downtown',
-      attendees: 8,
-      maxAttendees: 15,
-      distance: '0.5 miles',
-      creator_id: 'mock-user-1',
-      activity_tags: ['Coffee', 'Tech', 'Networking']
-    },
-    {
-      id: '2',
-      title: 'Weekend Hiking Adventure',
-      description: 'Explore beautiful trails and enjoy nature with fellow hiking enthusiasts.',
-      date: 'June 17, 2024',
-      time: '8:00 AM',
-      location: 'Mountain View Trail Head',
-      attendees: 12,
-      maxAttendees: 20,
-      distance: '2.3 miles',
-      creator_id: 'mock-user-2',
-      activity_tags: ['Hiking', 'Sports', 'Fitness']
-    },
-    {
-      id: '3',
-      title: 'Board Game Night',
-      description: 'Fun evening of board games, snacks, and making new friends.',
-      date: 'June 18, 2024',
-      time: '7:00 PM',
-      location: 'Game Lounge, Main Street',
-      attendees: 6,
-      maxAttendees: 12,
-      distance: '1.1 miles',
-      creator_id: 'mock-user-3',
-      activity_tags: ['Gaming', 'Entertainment']
-    },
-    {
-      id: '4',
-      title: 'Photography Walk',
-      description: 'Capture the beauty of the city while meeting other photography enthusiasts.',
-      date: 'June 20, 2024',
-      time: '6:00 PM',
-      location: 'City Park & Gardens',
-      attendees: 4,
-      maxAttendees: 10,
-      distance: '0.8 miles',
-      creator_id: 'mock-user-4',
-      activity_tags: ['Photography', 'Art', 'Creative']
-    },
-    {
-      id: '5',
-      title: 'Yoga in the Park',
-      description: 'Start your morning with a peaceful yoga session in nature.',
-      date: 'June 21, 2024',
-      time: '7:00 AM',
-      location: 'Riverside Park',
-      attendees: 15,
-      maxAttendees: 25,
-      distance: '1.5 miles',
-      creator_id: 'mock-user-5',
-      activity_tags: ['Yoga', 'Fitness', 'Sports']
-    },
-    {
-      id: '6',
-      title: 'Local Music Jam Session',
-      description: 'Musicians of all levels welcome to jam and share music.',
-      date: 'June 22, 2024',
-      time: '8:00 PM',
-      location: 'Community Center',
-      attendees: 7,
-      maxAttendees: 15,
-      distance: '0.9 miles',
-      creator_id: 'mock-user-6',
-      activity_tags: ['Music', 'Creative']
+  const handleLeaveEvent = async (eventId: string) => {
+    if (!user) return;
+
+    try {
+      const { error } = await supabase
+        .from('event_registrations')
+        .delete()
+        .eq('event_id', eventId)
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Left event",
+        description: "You've been unregistered from this event.",
+      });
+
+      // Refresh events to update registration status
+      fetchEvents();
+    } catch (error: any) {
+      console.error('Error leaving event:', error);
+      toast({
+        title: "Error leaving event",
+        description: error.message,
+        variant: "destructive",
+      });
     }
-  ];
+  };
 
   if (loading) {
     return (
@@ -223,20 +275,27 @@ const PersonalizedEventsFeed = ({ userLocation }: PersonalizedEventsFeedProps) =
           </p>
         )}
       </div>
+
+      <EventFiltersComponent filters={filters} onFiltersChange={setFilters} />
       
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {events.map((event) => (
-          <EventCard key={event.id} event={event} />
+          <EventCard 
+            key={event.id} 
+            event={event} 
+            onJoin={handleJoinEvent}
+            onLeave={handleLeaveEvent}
+          />
         ))}
       </div>
       
       {events.length === 0 && (
         <div className="text-center py-12">
           <p className="text-gray-500 text-lg mb-4">
-            No events found matching your interests.
+            No events found matching your criteria.
           </p>
           <p className="text-gray-400">
-            Try updating your interests in your profile or check back later for new events!
+            Try adjusting your filters or check back later for new events!
           </p>
         </div>
       )}
