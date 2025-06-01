@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -445,7 +444,7 @@ const PersonalizedEventsFeed = ({ userLocation }: PersonalizedEventsFeedProps) =
 
   if (loading) {
     return (
-      <div className="container mx-auto px-6 py-8">
+      <div className="container mx-auto px-4 py-8 max-w-2xl">
         <div className="text-center">
           <div className="text-lg">Loading personalized events...</div>
         </div>
@@ -454,7 +453,7 @@ const PersonalizedEventsFeed = ({ userLocation }: PersonalizedEventsFeedProps) =
   }
 
   return (
-    <div className="container mx-auto px-6 py-8">
+    <div className="container mx-auto px-4 py-8 max-w-2xl">
       <div className="mb-6">
         <h2 className="text-2xl font-bold text-gray-800 mb-2">
           {userInterests.length > 0 ? 'Events For You' : 'Nearby Events'}
@@ -474,7 +473,7 @@ const PersonalizedEventsFeed = ({ userLocation }: PersonalizedEventsFeedProps) =
 
       <EventFiltersComponent filters={filters} onFiltersChange={setFilters} />
       
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <div className="space-y-4">
         {events.map((event) => (
           <EventCard 
             key={event.id} 
