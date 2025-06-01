@@ -1,7 +1,7 @@
 
 import EventCard from './EventCard';
 
-// Mock data for demonstration
+// Mock data for demonstration with banner photos
 const mockEvents = [
   {
     id: '1',
@@ -17,7 +17,8 @@ const mockEvents = [
     requires_reservation: false,
     activity_tags: ['Coffee', 'Tech', 'Networking'],
     is_registered: false,
-    creator_id: 'mock-user-1'
+    creator_id: 'mock-user-1',
+    banner_url: 'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80'
   },
   {
     id: '2',
@@ -33,7 +34,8 @@ const mockEvents = [
     requires_reservation: true,
     activity_tags: ['Hiking', 'Sports', 'Fitness'],
     is_registered: false,
-    creator_id: 'mock-user-2'
+    creator_id: 'mock-user-2',
+    banner_url: 'https://images.unsplash.com/photo-1551632811-561732d1e306?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80'
   },
   {
     id: '3',
@@ -49,7 +51,8 @@ const mockEvents = [
     requires_reservation: false,
     activity_tags: ['Gaming', 'Entertainment'],
     is_registered: true,
-    creator_id: 'mock-user-3'
+    creator_id: 'mock-user-3',
+    banner_url: 'https://images.unsplash.com/photo-1606092195730-5d7b9af1efc5?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80'
   },
   {
     id: '4',
@@ -65,7 +68,8 @@ const mockEvents = [
     requires_reservation: false,
     activity_tags: ['Photography', 'Art'],
     is_registered: false,
-    creator_id: 'mock-user-4'
+    creator_id: 'mock-user-4',
+    banner_url: 'https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80'
   }
 ];
 

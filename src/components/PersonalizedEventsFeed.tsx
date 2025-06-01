@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -17,6 +18,7 @@ interface Event {
   max_attendees: number;
   cover_charge: number;
   requires_reservation: boolean;
+  banner_url?: string;
   creator_id: string;
   attendees?: number;
   distance?: string;
@@ -42,6 +44,7 @@ const mockEvents: Event[] = [
     max_attendees: 15,
     cover_charge: 0,
     requires_reservation: false,
+    banner_url: 'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80',
     creator_id: 'mock-user-1',
     attendees: 8,
     distance: '0.5 miles',
@@ -60,6 +63,7 @@ const mockEvents: Event[] = [
     max_attendees: 20,
     cover_charge: 5,
     requires_reservation: true,
+    banner_url: 'https://images.unsplash.com/photo-1551632811-561732d1e306?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80',
     creator_id: 'mock-user-2',
     attendees: 12,
     distance: '2.3 miles',
@@ -78,6 +82,7 @@ const mockEvents: Event[] = [
     max_attendees: 12,
     cover_charge: 10,
     requires_reservation: false,
+    banner_url: 'https://images.unsplash.com/photo-1606092195730-5d7b9af1efc5?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80',
     creator_id: 'mock-user-3',
     attendees: 6,
     distance: '1.1 miles',
@@ -96,6 +101,7 @@ const mockEvents: Event[] = [
     max_attendees: 10,
     cover_charge: 0,
     requires_reservation: false,
+    banner_url: 'https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80',
     creator_id: 'mock-user-4',
     attendees: 4,
     distance: '0.8 miles',
@@ -114,6 +120,7 @@ const mockEvents: Event[] = [
     max_attendees: 25,
     cover_charge: 15,
     requires_reservation: true,
+    banner_url: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80',
     creator_id: 'mock-user-5',
     attendees: 18,
     distance: '1.5 miles',
@@ -132,6 +139,7 @@ const mockEvents: Event[] = [
     max_attendees: 15,
     cover_charge: 0,
     requires_reservation: false,
+    banner_url: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80',
     creator_id: 'mock-user-6',
     attendees: 10,
     distance: '0.7 miles',
@@ -179,7 +187,6 @@ const PersonalizedEventsFeed = ({ userLocation }: PersonalizedEventsFeedProps) =
       setUserInterests(interests);
     } catch (error: any) {
       console.error('Error fetching user interests:', error);
-      // Continue with empty interests if there's an error
       setUserInterests([]);
     }
   };
@@ -202,79 +209,105 @@ const PersonalizedEventsFeed = ({ userLocation }: PersonalizedEventsFeedProps) =
   const fetchEvents = async () => {
     setLoading(true);
     try {
-      // Try to fetch from database first, fall back to mock data if events table doesn't exist
-      let eventsData = mockEvents;
+      console.log('Attempting to fetch events from database...');
       
-      try {
-        console.log('Attempting to fetch events from database...');
-        // This will fail if the events table doesn't exist yet
-        const { data: dbEvents, error: eventsError } = await supabase
-          .from('events' as any) // Type assertion to bypass TypeScript error
-          .select(`
-            *,
-            event_tags (
-              activity_tags (
-                name
-              )
-            ),
-            event_registrations (
-              id,
-              user_id
+      const { data: dbEvents, error: eventsError } = await supabase
+        .from('events')
+        .select(`
+          *,
+          event_tags (
+            activity_tags (
+              name
             )
-          `);
+          ),
+          event_registrations (
+            id,
+            user_id
+          )
+        `);
 
-        if (eventsError) {
-          console.log('Database query failed, using mock data:', eventsError.message);
-          throw eventsError;
-        }
+      if (eventsError) {
+        console.log('Database query failed, using mock data:', eventsError.message);
+        throw eventsError;
+      }
 
-        if (dbEvents && dbEvents.length > 0) {
-          console.log('Successfully fetched events from database');
-          // Transform database events to match our Event interface
-          eventsData = dbEvents.map((event: any) => {
-            const tags = event.event_tags?.map((et: any) => et.activity_tags.name) || [];
-            const registrations = event.event_registrations || [];
-            const attendees = registrations.length;
-            const isRegistered = registrations.some((reg: any) => reg.user_id === user?.id);
-            
-            return {
-              id: event.id,
-              title: event.title,
-              description: event.description || '',
-              date: new Date(event.date).toLocaleDateString('en-US', { 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric' 
-              }),
-              time: new Date(`1970-01-01T${event.time}`).toLocaleTimeString('en-US', {
-                hour: 'numeric',
-                minute: '2-digit',
-                hour12: true
-              }),
-              location: event.location,
-              latitude: event.latitude ? parseFloat(event.latitude) : undefined,
-              longitude: event.longitude ? parseFloat(event.longitude) : undefined,
-              max_attendees: event.max_attendees,
-              cover_charge: parseFloat(event.cover_charge) || 0,
-              requires_reservation: event.requires_reservation,
-              creator_id: event.creator_id,
-              attendees,
-              distance: userLocation ? calculateDistance(
-                userLocation.lat, 
-                userLocation.lng, 
-                event.latitude ? parseFloat(event.latitude) : undefined,
-                event.longitude ? parseFloat(event.longitude) : undefined
-              ) : 'Unknown distance',
-              activity_tags: tags,
-              is_registered: isRegistered
-            };
+      if (dbEvents && dbEvents.length > 0) {
+        console.log('Successfully fetched events from database');
+        
+        const eventsData = dbEvents.map((event: any) => {
+          const tags = event.event_tags?.map((et: any) => et.activity_tags.name) || [];
+          const registrations = event.event_registrations || [];
+          const attendees = registrations.length;
+          const isRegistered = registrations.some((reg: any) => reg.user_id === user?.id);
+          
+          return {
+            id: event.id,
+            title: event.title,
+            description: event.description || '',
+            date: new Date(event.date).toLocaleDateString('en-US', { 
+              year: 'numeric', 
+              month: 'long', 
+              day: 'numeric' 
+            }),
+            time: new Date(`1970-01-01T${event.time}`).toLocaleTimeString('en-US', {
+              hour: 'numeric',
+              minute: '2-digit',
+              hour12: true
+            }),
+            location: event.location,
+            latitude: event.latitude ? parseFloat(event.latitude) : undefined,
+            longitude: event.longitude ? parseFloat(event.longitude) : undefined,
+            max_attendees: event.max_attendees,
+            cover_charge: parseFloat(event.cover_charge) || 0,
+            requires_reservation: event.requires_reservation,
+            banner_url: event.banner_url,
+            creator_id: event.creator_id,
+            attendees,
+            distance: userLocation ? calculateDistance(
+              userLocation.lat, 
+              userLocation.lng, 
+              event.latitude ? parseFloat(event.latitude) : undefined,
+              event.longitude ? parseFloat(event.longitude) : undefined
+            ) : 'Unknown distance',
+            activity_tags: tags,
+            is_registered: isRegistered
+          };
+        });
+
+        // Apply filters
+        let filteredEvents = eventsData.filter(event => {
+          if (filters.freeEventsOnly && event.cover_charge > 0) return false;
+          if (!filters.freeEventsOnly && event.cover_charge > filters.maxCoverCharge) return false;
+          if (filters.noReservationRequired && event.requires_reservation) return false;
+          return true;
+        });
+
+        // Sort by personalization if user has interests
+        if (userInterests.length > 0) {
+          filteredEvents = filteredEvents.filter(event => 
+            event.activity_tags.some(tag => userInterests.includes(tag))
+          );
+
+          filteredEvents.sort((a, b) => {
+            const aMatches = a.activity_tags.filter(tag => userInterests.includes(tag)).length;
+            const bMatches = b.activity_tags.filter(tag => userInterests.includes(tag)).length;
+            return bMatches - aMatches;
           });
         }
-      } catch (dbError) {
-        console.log('Using mock data due to database error:', dbError);
-        // Update mock data distances if user location is available
+
+        setEvents(filteredEvents);
+      } else {
+        // No events in database, fall back to mock data
+        console.log('No events found in database, using mock data');
+        let filteredMockEvents = mockEvents.filter(event => {
+          if (filters.freeEventsOnly && event.cover_charge > 0) return false;
+          if (!filters.freeEventsOnly && event.cover_charge > filters.maxCoverCharge) return false;
+          if (filters.noReservationRequired && event.requires_reservation) return false;
+          return true;
+        });
+
         if (userLocation) {
-          eventsData = mockEvents.map(event => ({
+          filteredMockEvents = filteredMockEvents.map(event => ({
             ...event,
             distance: calculateDistance(
               userLocation.lat,
@@ -284,30 +317,9 @@ const PersonalizedEventsFeed = ({ userLocation }: PersonalizedEventsFeedProps) =
             )
           }));
         }
+
+        setEvents(filteredMockEvents);
       }
-
-      // Apply filters
-      let filteredEvents = eventsData.filter(event => {
-        if (filters.freeEventsOnly && event.cover_charge > 0) return false;
-        if (!filters.freeEventsOnly && event.cover_charge > filters.maxCoverCharge) return false;
-        if (filters.noReservationRequired && event.requires_reservation) return false;
-        return true;
-      });
-
-      // Sort by personalization if user has interests
-      if (userInterests.length > 0) {
-        filteredEvents = filteredEvents.filter(event => 
-          event.activity_tags.some(tag => userInterests.includes(tag))
-        );
-
-        filteredEvents.sort((a, b) => {
-          const aMatches = a.activity_tags.filter(tag => userInterests.includes(tag)).length;
-          const bMatches = b.activity_tags.filter(tag => userInterests.includes(tag)).length;
-          return bMatches - aMatches;
-        });
-      }
-
-      setEvents(filteredEvents);
     } catch (error: any) {
       console.error('Error in fetchEvents:', error);
       toast({
@@ -341,9 +353,8 @@ const PersonalizedEventsFeed = ({ userLocation }: PersonalizedEventsFeedProps) =
     }
 
     try {
-      // Try to insert into database, but handle gracefully if table doesn't exist
       const { error } = await supabase
-        .from('event_registrations' as any)
+        .from('event_registrations')
         .insert({
           event_id: eventId,
           user_id: user.id
@@ -351,7 +362,6 @@ const PersonalizedEventsFeed = ({ userLocation }: PersonalizedEventsFeedProps) =
 
       if (error) {
         console.log('Database registration failed, updating UI only:', error.message);
-        // Update local state for demo purposes
         setEvents(prevEvents => 
           prevEvents.map(event => 
             event.id === eventId 
@@ -369,12 +379,10 @@ const PersonalizedEventsFeed = ({ userLocation }: PersonalizedEventsFeedProps) =
           title: "Successfully joined event!",
           description: "You've been registered for this event.",
         });
-        // Refresh events to update registration status
         fetchEvents();
       }
     } catch (error: any) {
       console.error('Error joining event:', error);
-      // Update local state for demo purposes
       setEvents(prevEvents => 
         prevEvents.map(event => 
           event.id === eventId 
@@ -394,16 +402,14 @@ const PersonalizedEventsFeed = ({ userLocation }: PersonalizedEventsFeedProps) =
     if (!user) return;
 
     try {
-      // Try to delete from database, but handle gracefully if table doesn't exist
       const { error } = await supabase
-        .from('event_registrations' as any)
+        .from('event_registrations')
         .delete()
         .eq('event_id', eventId)
         .eq('user_id', user.id);
 
       if (error) {
         console.log('Database unregistration failed, updating UI only:', error.message);
-        // Update local state for demo purposes
         setEvents(prevEvents => 
           prevEvents.map(event => 
             event.id === eventId 
@@ -421,12 +427,10 @@ const PersonalizedEventsFeed = ({ userLocation }: PersonalizedEventsFeedProps) =
           title: "Left event",
           description: "You've been unregistered from this event.",
         });
-        // Refresh events to update registration status
         fetchEvents();
       }
     } catch (error: any) {
       console.error('Error leaving event:', error);
-      // Update local state for demo purposes
       setEvents(prevEvents => 
         prevEvents.map(event => 
           event.id === eventId 

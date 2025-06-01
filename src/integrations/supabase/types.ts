@@ -30,6 +30,125 @@ export type Database = {
         }
         Relationships: []
       }
+      event_registrations: {
+        Row: {
+          created_at: string
+          event_id: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          event_id: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          event_id?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_registrations_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      event_tags: {
+        Row: {
+          created_at: string
+          event_id: string
+          id: string
+          tag_id: string
+        }
+        Insert: {
+          created_at?: string
+          event_id: string
+          id?: string
+          tag_id: string
+        }
+        Update: {
+          created_at?: string
+          event_id?: string
+          id?: string
+          tag_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_tags_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_tags_tag_id_fkey"
+            columns: ["tag_id"]
+            isOneToOne: false
+            referencedRelation: "activity_tags"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      events: {
+        Row: {
+          banner_url: string | null
+          cover_charge: number
+          created_at: string
+          creator_id: string
+          date: string
+          description: string | null
+          id: string
+          latitude: number | null
+          location: string
+          longitude: number | null
+          max_attendees: number
+          requires_reservation: boolean
+          time: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          banner_url?: string | null
+          cover_charge?: number
+          created_at?: string
+          creator_id: string
+          date: string
+          description?: string | null
+          id?: string
+          latitude?: number | null
+          location: string
+          longitude?: number | null
+          max_attendees?: number
+          requires_reservation?: boolean
+          time: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          banner_url?: string | null
+          cover_charge?: number
+          created_at?: string
+          creator_id?: string
+          date?: string
+          description?: string | null
+          id?: string
+          latitude?: number | null
+          location?: string
+          longitude?: number | null
+          max_attendees?: number
+          requires_reservation?: boolean
+          time?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null

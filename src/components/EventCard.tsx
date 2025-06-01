@@ -18,6 +18,7 @@ interface Event {
   cover_charge?: number;
   requires_reservation?: boolean;
   is_registered?: boolean;
+  banner_url?: string;
 }
 
 interface EventCardProps {
@@ -38,7 +39,22 @@ const EventCard = ({ event, onJoin, onLeave }: EventCardProps) => {
   const isEventFull = (event.attendees || 0) >= event.max_attendees;
 
   return (
-    <Card className="hover:shadow-lg transition-shadow">
+    <Card className="hover:shadow-lg transition-shadow overflow-hidden">
+      {/* Banner Image */}
+      {event.banner_url && (
+        <div className="w-full h-48 overflow-hidden">
+          <img 
+            src={event.banner_url} 
+            alt={event.title}
+            className="w-full h-full object-cover"
+            onError={(e) => {
+              // Hide image if it fails to load
+              e.currentTarget.style.display = 'none';
+            }}
+          />
+        </div>
+      )}
+      
       <CardHeader>
         <CardTitle className="text-lg font-semibold text-gray-800">
           {event.title}
