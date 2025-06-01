@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -11,13 +10,18 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { MapPin, Plus } from 'lucide-react';
 import CreateEventForm from '@/components/CreateEventForm';
 import LocationBar from '@/components/LocationBar';
-import EventFilters from '@/components/EventFilters';
+import EventFilters, { EventFilters as EventFiltersType } from '@/components/EventFilters';
 import LogoutButton from '@/components/LogoutButton';
 
 const Index = () => {
   const { user } = useAuth();
   const [userProfile, setUserProfile] = useState<any>(null);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [filters, setFilters] = useState<EventFiltersType>({
+    maxCoverCharge: 50,
+    noReservationRequired: false,
+    freeEventsOnly: false
+  });
 
   useEffect(() => {
     const fetchUserProfile = async () => {
@@ -47,6 +51,10 @@ const Index = () => {
 
   const handleEventCreated = () => {
     setRefreshKey(prev => prev + 1);
+  };
+
+  const handleFiltersChange = (newFilters: EventFiltersType) => {
+    setFilters(newFilters);
   };
 
   return (
@@ -97,7 +105,10 @@ const Index = () => {
 
           {/* Sidebar */}
           <div className="space-y-6">
-            <EventFilters />
+            <EventFilters 
+              filters={filters}
+              onFiltersChange={handleFiltersChange}
+            />
           </div>
         </div>
       </div>
