@@ -1,163 +1,106 @@
-import { useState, useEffect } from "react";
-import { useAuth } from "@/contexts/AuthContext";
-import LogoutButton from "@/components/LogoutButton";
-import LocationBar from "@/components/LocationBar";
-import PersonalizedEventsFeed from "@/components/PersonalizedEventsFeed";
-import { Button } from "@/components/ui/button";
-import { User, MapPin } from "lucide-react";
-import { useNavigate } from "react-router-dom";
-import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
-import { capitalizeFirstLetter } from "@/lib/nameUtils";
+
+import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+import EventsFeed from '@/components/EventsFeed';
+import PersonalizedEventsFeed from '@/components/PersonalizedEventsFeed';
+import FollowingEventsFeed from '@/components/FollowingEventsFeed';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { MapPin, Plus } from 'lucide-react';
+import CreateEventForm from '@/components/CreateEventForm';
+import LocationBar from '@/components/LocationBar';
+import EventFilters from '@/components/EventFilters';
+import LogoutButton from '@/components/LogoutButton';
 
 const Index = () => {
   const { user } = useAuth();
-  const navigate = useNavigate();
-  const { toast } = useToast();
-  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
-  const [locationPermission, setLocationPermission] = useState<'granted' | 'denied' | 'prompt'>('prompt');
-  const [userFirstName, setUserFirstName] = useState<string | null>(null);
+  const [userProfile, setUserProfile] = useState<any>(null);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
-    // Check if geolocation is supported and get user's location
-    if (navigator.geolocation) {
-      navigator.permissions.query({ name: 'geolocation' }).then((result) => {
-        setLocationPermission(result.state);
-        if (result.state === 'granted') {
-          getCurrentLocation();
-        }
-      });
-    }
-  }, []);
+    const fetchUserProfile = async () => {
+      if (user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('first_name, email')
+          .eq('id', user.id)
+          .single();
 
-  useEffect(() => {
-    if (user) {
-      fetchUserProfile();
-    }
+        setUserProfile(profile);
+      }
+    };
+
+    fetchUserProfile();
   }, [user]);
 
-  const fetchUserProfile = async () => {
-    try {
-      const { data: profile, error } = await supabase
-        .from('profiles')
-        .select('first_name')
-        .eq('id', user?.id)
-        .single();
-
-      if (error) {
-        console.log('Error fetching profile:', error.message);
-        return;
-      }
-
-      if (profile?.first_name) {
-        setUserFirstName(profile.first_name);
-      }
-    } catch (error) {
-      console.error('Error fetching user profile:', error);
+  const getDisplayName = () => {
+    if (userProfile?.first_name) {
+      return userProfile.first_name.toUpperCase();
     }
+    if (userProfile?.email) {
+      return userProfile.email.split('@')[0].toUpperCase();
+    }
+    return 'FRIEND';
   };
 
-  const getCurrentLocation = () => {
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        setUserLocation({
-          lat: position.coords.latitude,
-          lng: position.coords.longitude
-        });
-        setLocationPermission('granted');
-      },
-      (error) => {
-        console.error('Error getting location:', error);
-        setLocationPermission('denied');
-        toast({
-          title: "Location access denied",
-          description: "Enable location access for better event recommendations.",
-          variant: "default",
-        });
-      }
-    );
-  };
-
-  const requestLocationPermission = () => {
-    if (navigator.geolocation) {
-      getCurrentLocation();
-    } else {
-      toast({
-        title: "Geolocation not supported",
-        description: "Your browser doesn't support location services.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const getWelcomeText = () => {
-    if (userFirstName) {
-      return `Welcome back, ${capitalizeFirstLetter(userFirstName)}!`;
-    }
-    if (user?.email) {
-      return `Welcome back, ${user.email.split('@')[0]}!`;
-    }
-    return 'Welcome back!';
+  const handleEventCreated = () => {
+    setRefreshKey(prev => prev + 1);
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-      {/* Header with logout button and profile link */}
-      <div className="flex justify-between items-center p-6">
-        <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-600 via-red-500 to-orange-500 bg-clip-text text-transparent">
-          meetdown
-        </h1>
-        <div className="flex items-center gap-3">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => navigate('/profile')}
-            className="flex items-center gap-2"
-          >
-            <User size={16} />
-            Profile
-          </Button>
-          <LogoutButton />
-        </div>
-      </div>
-
-      {/* Location permission prompt */}
-      {locationPermission === 'prompt' && (
-        <div className="bg-blue-50 border-l-4 border-blue-400 p-4 mx-6 mb-4">
-          <div className="flex items-center">
-            <MapPin className="text-blue-400 mr-3" size={20} />
-            <div className="flex-1">
-              <p className="text-blue-800 font-medium">Enable location for better recommendations</p>
-              <p className="text-blue-600 text-sm">We'll show you events happening near you</p>
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <div className="bg-white shadow-sm border-b">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex justify-between items-center">
+            <div>
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+                Meetdown
+              </h1>
+              <p className="text-gray-600">Welcome back, {getDisplayName()}!</p>
             </div>
-            <Button 
-              size="sm" 
-              onClick={requestLocationPermission}
-              className="bg-blue-600 hover:bg-blue-700"
-            >
-              Enable Location
-            </Button>
+            <LogoutButton />
           </div>
         </div>
-      )}
-
-      {/* Location input bar */}
-      <LocationBar />
-
-      {/* Welcome message */}
-      <div className="container mx-auto px-6 py-8">
-        <div className="text-center mb-8">
-          <h2 className="text-3xl font-bold text-gray-800 mb-2">
-            {getWelcomeText()}
-          </h2>
-          <p className="text-lg text-gray-600">
-            Check out these personalized events for you.
-          </p>
-        </div>
       </div>
 
-      {/* Personalized Events feed */}
-      <PersonalizedEventsFeed userLocation={userLocation} />
+      <div className="container mx-auto px-4 py-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Main Content */}
+          <div className="lg:col-span-2 space-y-6">
+            <LocationBar />
+            
+            <CreateEventForm onEventCreated={handleEventCreated} />
+
+            <Tabs defaultValue="all" className="w-full">
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="all">All Events</TabsTrigger>
+                <TabsTrigger value="personalized">For You</TabsTrigger>
+                <TabsTrigger value="following">Following</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="all" className="space-y-4">
+                <EventsFeed key={`all-${refreshKey}`} />
+              </TabsContent>
+              
+              <TabsContent value="personalized" className="space-y-4">
+                <PersonalizedEventsFeed key={`personalized-${refreshKey}`} />
+              </TabsContent>
+              
+              <TabsContent value="following" className="space-y-4">
+                <FollowingEventsFeed key={`following-${refreshKey}`} />
+              </TabsContent>
+            </Tabs>
+          </div>
+
+          {/* Sidebar */}
+          <div className="space-y-6">
+            <EventFilters />
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
