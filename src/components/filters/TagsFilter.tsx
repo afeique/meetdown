@@ -1,10 +1,11 @@
 
 import { Label } from '@/components/ui/label';
-import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { X } from 'lucide-react';
 import { EventFilters } from '../EventFilters';
 import { Tag } from '@/hooks/useActivityTags';
+import { useState, useEffect } from 'react';
 
 interface TagsFilterProps {
   filters: EventFilters;
@@ -14,33 +15,58 @@ interface TagsFilterProps {
 }
 
 const TagsFilter = ({ filters, onFiltersChange, availableTags, loading }: TagsFilterProps) => {
-  const handleTagToggle = (tagId: string) => {
-    const isSelected = filters.selectedTags.includes(tagId);
-    const newSelectedTags = isSelected
-      ? filters.selectedTags.filter(id => id !== tagId)
-      : [...filters.selectedTags, tagId];
+  const [tagInput, setTagInput] = useState('');
+
+  // Initialize the input field with current selected tag names
+  useEffect(() => {
+    if (filters.selectedTags.length > 0 && availableTags.length > 0) {
+      const selectedTagNames = availableTags
+        .filter(tag => filters.selectedTags.includes(tag.id))
+        .map(tag => tag.name)
+        .join(', ');
+      setTagInput(selectedTagNames);
+    } else {
+      setTagInput('');
+    }
+  }, [filters.selectedTags, availableTags]);
+
+  const handleTagInputChange = (value: string) => {
+    setTagInput(value);
+    
+    // Parse the input to extract tag names
+    const tagNames = value
+      .split(/[,;]/)
+      .map(name => name.trim())
+      .filter(name => name.length > 0);
+
+    // Find matching tag IDs from available tags
+    const matchingTagIds = availableTags
+      .filter(tag => tagNames.some(inputName => 
+        tag.name.toLowerCase().includes(inputName.toLowerCase()) ||
+        inputName.toLowerCase().includes(tag.name.toLowerCase())
+      ))
+      .map(tag => tag.id);
 
     onFiltersChange({
       ...filters,
-      selectedTags: newSelectedTags
+      selectedTags: matchingTagIds
     });
   };
 
   const removeTag = (tagId: string) => {
+    const updatedTags = filters.selectedTags.filter(id => id !== tagId);
     onFiltersChange({
       ...filters,
-      selectedTags: filters.selectedTags.filter(id => id !== tagId)
+      selectedTags: updatedTags
     });
-  };
 
-  const groupedTags = availableTags.reduce((groups, tag) => {
-    const category = tag.category || 'Other';
-    if (!groups[category]) {
-      groups[category] = [];
-    }
-    groups[category].push(tag);
-    return groups;
-  }, {} as Record<string, Tag[]>);
+    // Update the input field
+    const remainingTagNames = availableTags
+      .filter(tag => updatedTags.includes(tag.id))
+      .map(tag => tag.name)
+      .join(', ');
+    setTagInput(remainingTagNames);
+  };
 
   const selectedTagsData = availableTags.filter(tag => filters.selectedTags.includes(tag.id));
 
@@ -48,10 +74,23 @@ const TagsFilter = ({ filters, onFiltersChange, availableTags, loading }: TagsFi
     <div className="space-y-3">
       <Label className="text-sm font-medium">Filter by Tags</Label>
       
+      <div className="space-y-2">
+        <Input
+          type="text"
+          placeholder="Enter tags separated by commas or semicolons..."
+          value={tagInput}
+          onChange={(e) => handleTagInputChange(e.target.value)}
+          className="w-full"
+        />
+        <div className="text-xs text-gray-500">
+          Type tag names separated by commas (,) or semicolons (;)
+        </div>
+      </div>
+      
       {/* Selected Tags */}
       {selectedTagsData.length > 0 && (
         <div className="space-y-2">
-          <div className="text-xs text-gray-600">Selected:</div>
+          <div className="text-xs text-gray-600">Active filters:</div>
           <div className="flex flex-wrap gap-2">
             {selectedTagsData.map((tag) => (
               <Badge
@@ -73,33 +112,8 @@ const TagsFilter = ({ filters, onFiltersChange, availableTags, loading }: TagsFi
         </div>
       )}
 
-      {/* Available Tags */}
-      {loading ? (
+      {loading && (
         <div className="text-sm text-gray-500">Loading tags...</div>
-      ) : (
-        <div className="space-y-3 max-h-48 overflow-y-auto">
-          {Object.entries(groupedTags).map(([category, tags]) => (
-            <div key={category} className="space-y-2">
-              <h4 className="text-xs font-medium text-gray-600 uppercase tracking-wide">
-                {category}
-              </h4>
-              <div className="flex flex-wrap gap-2">
-                {tags.map((tag) => (
-                  <Button
-                    key={tag.id}
-                    type="button"
-                    variant={filters.selectedTags.includes(tag.id) ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => handleTagToggle(tag.id)}
-                    className="text-xs h-7"
-                  >
-                    {tag.name}
-                  </Button>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
       )}
     </div>
   );
