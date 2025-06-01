@@ -4,10 +4,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Plus, Calendar, MapPin, Users, DollarSign, Clock } from 'lucide-react';
 import BannerGenerator from './BannerGenerator';
+import ImageUpload from './ImageUpload';
+import TagSelector from './TagSelector';
 
 interface CreateEventFormProps {
   onEventCreated: () => void;
@@ -17,6 +20,7 @@ const CreateEventForm = ({ onEventCreated }: CreateEventFormProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [bannerUrl, setBannerUrl] = useState('');
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -40,7 +44,8 @@ const CreateEventForm = ({ onEventCreated }: CreateEventFormProps) => {
         throw new Error('User not authenticated');
       }
 
-      const { error } = await supabase
+      // Create the event
+      const { data: eventData, error: eventError } = await supabase
         .from('events')
         .insert([{
           title: formData.title,
@@ -53,9 +58,28 @@ const CreateEventForm = ({ onEventCreated }: CreateEventFormProps) => {
           requires_reservation: formData.requiresReservation,
           creator_id: user.id,
           banner_url: bannerUrl || null,
-        }]);
+        }])
+        .select()
+        .single();
 
-      if (error) throw error;
+      if (eventError) throw eventError;
+
+      // Add tags to the event if any are selected
+      if (selectedTags.length > 0 && eventData) {
+        const tagInserts = selectedTags.map(tagId => ({
+          event_id: eventData.id,
+          tag_id: tagId
+        }));
+
+        const { error: tagsError } = await supabase
+          .from('event_tags')
+          .insert(tagInserts);
+
+        if (tagsError) {
+          console.error('Error adding tags:', tagsError);
+          // Don't throw error, just log it - event was still created
+        }
+      }
 
       toast({
         title: "Event created!",
@@ -74,6 +98,7 @@ const CreateEventForm = ({ onEventCreated }: CreateEventFormProps) => {
         requiresReservation: false,
       });
       setBannerUrl('');
+      setSelectedTags([]);
       setIsOpen(false);
       onEventCreated();
     } catch (error: any) {
@@ -110,7 +135,7 @@ const CreateEventForm = ({ onEventCreated }: CreateEventFormProps) => {
         <CardTitle>Create New Event</CardTitle>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
             <label className="text-sm font-medium">Event Title</label>
             <Input
@@ -131,13 +156,33 @@ const CreateEventForm = ({ onEventCreated }: CreateEventFormProps) => {
             />
           </div>
 
-          {/* Banner Generator */}
+          {/* Banner Section */}
           {formData.title && (
-            <BannerGenerator
-              eventTitle={formData.title}
-              onBannerGenerated={setBannerUrl}
-              currentBanner={bannerUrl}
-            />
+            <div className="space-y-4">
+              <label className="text-sm font-medium">Event Banner</label>
+              <Tabs defaultValue="ai" className="w-full">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="ai">AI Generated</TabsTrigger>
+                  <TabsTrigger value="upload">Upload Image</TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="ai" className="space-y-4">
+                  <BannerGenerator
+                    eventTitle={formData.title}
+                    onBannerGenerated={setBannerUrl}
+                    currentBanner={bannerUrl}
+                  />
+                </TabsContent>
+                
+                <TabsContent value="upload" className="space-y-4">
+                  <ImageUpload
+                    onImageUploaded={setBannerUrl}
+                    currentImage={bannerUrl}
+                    maxSizeMB={5}
+                  />
+                </TabsContent>
+              </Tabs>
+            </div>
           )}
 
           <div className="grid grid-cols-2 gap-4">
@@ -220,6 +265,14 @@ const CreateEventForm = ({ onEventCreated }: CreateEventFormProps) => {
             <label htmlFor="requiresReservation" className="text-sm font-medium">
               Requires Reservation
             </label>
+          </div>
+
+          {/* Tags Section */}
+          <div className="space-y-2">
+            <TagSelector
+              selectedTags={selectedTags}
+              onTagsChange={setSelectedTags}
+            />
           </div>
 
           <div className="flex gap-2 pt-4">
