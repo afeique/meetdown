@@ -12,6 +12,7 @@ import CreateEventForm from '@/components/CreateEventForm';
 import LocationBar from '@/components/LocationBar';
 import EventFilters, { EventFilters as EventFiltersType } from '@/components/EventFilters';
 import LogoutButton from '@/components/LogoutButton';
+import Calendar from '@/components/ui/calendar';
 
 const Index = () => {
   const { user } = useAuth();
@@ -69,7 +70,17 @@ const Index = () => {
               </h1>
               <p className="text-gray-600">Welcome back, {getDisplayName()}!</p>
             </div>
-            <LogoutButton />
+            <div className="flex items-center gap-3">
+              <Button
+                variant="outline"
+                onClick={() => window.location.href = '/my-events'}
+                className="flex items-center gap-2"
+              >
+                <Calendar className="h-4 w-4" />
+                My Events
+              </Button>
+              <LogoutButton />
+            </div>
           </div>
         </div>
       </div>

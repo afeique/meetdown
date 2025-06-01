@@ -10,6 +10,7 @@ import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Profile from "./pages/Profile";
 import Followers from "./pages/Followers";
+import MyEvents from "./pages/MyEvents";
 import NotFound from "./pages/NotFound";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 
@@ -33,6 +34,11 @@ const App = () => (
             <Route path="/followers" element={
               <ProtectedRoute>
                 <Followers />
+              </ProtectedRoute>
+            } />
+            <Route path="/my-events" element={
+              <ProtectedRoute>
+                <MyEvents />
               </ProtectedRoute>
             } />
             <Route path="/" element={
