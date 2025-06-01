@@ -12,7 +12,7 @@ import CreateEventForm from '@/components/CreateEventForm';
 import LocationBar from '@/components/LocationBar';
 import EventFilters, { EventFilters as EventFiltersType } from '@/components/EventFilters';
 import LogoutButton from '@/components/LogoutButton';
-import Calendar from '@/components/ui/calendar';
+import { Calendar } from '@/components/ui/calendar';
 
 const Index = () => {
   const { user } = useAuth();
