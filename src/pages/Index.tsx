@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import LogoutButton from "@/components/LogoutButton";
@@ -152,7 +151,7 @@ const Index = () => {
             {getWelcomeText()}
           </h2>
           <p className="text-lg text-gray-600">
-            Are you down to meet? Check out these personalized events for you.
+            Check out these personalized events for you.
           </p>
         </div>
       </div>
