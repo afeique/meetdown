@@ -68,7 +68,7 @@ const Index = () => {
               <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
                 Meetdown
               </h1>
-              <p className="text-gray-600">Welcome back, {getDisplayName()}!</p>
+              <p className="text-gray-600">{getDisplayName()}!</p>
             </div>
             <div className="flex items-center gap-3">
               <Button
