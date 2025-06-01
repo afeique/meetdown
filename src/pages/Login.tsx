@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -19,6 +18,12 @@ const Login = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const { user } = useAuth();
+
+  // Get the current domain for redirect URLs
+  const getRedirectUrl = () => {
+    const currentDomain = window.location.origin;
+    return currentDomain;
+  };
 
   // Redirect if already logged in
   useEffect(() => {
@@ -41,6 +46,7 @@ const Login = () => {
               first_name: firstName,
               last_name: lastName,
             },
+            emailRedirectTo: getRedirectUrl(),
           },
         });
 
