@@ -1,5 +1,6 @@
 
 import EventCard from './EventCard';
+import { EventFilters } from './EventFilters';
 
 // Mock data for demonstration with banner photos
 const mockEvents = [
@@ -96,8 +97,51 @@ const sortEventsByDateAndDistance = (events: typeof mockEvents) => {
   });
 };
 
-const EventsFeed = () => {
-  const sortedEvents = sortEventsByDateAndDistance(mockEvents);
+const filterEvents = (events: typeof mockEvents, filters: EventFilters, tagNames: string[]) => {
+  return events.filter(event => {
+    // Filter by cover charge
+    if (filters.freeEventsOnly && event.cover_charge > 0) {
+      return false;
+    }
+    if (!filters.freeEventsOnly && event.cover_charge > filters.maxCoverCharge) {
+      return false;
+    }
+    
+    // Filter by reservation requirement
+    if (filters.noReservationRequired && event.requires_reservation) {
+      return false;
+    }
+    
+    // Filter by tags - if tags are selected, event must have at least one matching tag
+    if (tagNames.length > 0) {
+      const hasMatchingTag = event.activity_tags.some(tag => 
+        tagNames.includes(tag)
+      );
+      if (!hasMatchingTag) {
+        return false;
+      }
+    }
+    
+    return true;
+  });
+};
+
+interface EventsFeedProps {
+  filters?: EventFilters;
+  selectedTagNames?: string[];
+}
+
+const EventsFeed = ({ filters, selectedTagNames = [] }: EventsFeedProps) => {
+  const defaultFilters: EventFilters = {
+    maxCoverCharge: 50,
+    noReservationRequired: false,
+    freeEventsOnly: false,
+    selectedTags: []
+  };
+  
+  const currentFilters = filters || defaultFilters;
+  const filteredEvents = filterEvents(mockEvents, currentFilters, selectedTagNames);
+  const sortedEvents = sortEventsByDateAndDistance(filteredEvents);
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-2xl">
@@ -119,7 +163,7 @@ const EventsFeed = () => {
       {sortedEvents.length === 0 && (
         <div className="text-center py-12">
           <p className="text-gray-500 text-lg">
-            No events found in your area. Try searching a different location!
+            No events found matching your filters. Try adjusting your search criteria!
           </p>
         </div>
       )}

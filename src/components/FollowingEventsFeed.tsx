@@ -3,6 +3,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import EventCard from './EventCard';
+import { EventFilters } from './EventFilters';
 
 interface Event {
   id: string;
@@ -27,6 +28,8 @@ interface Event {
 
 interface FollowingEventsFeedProps {
   userLocation?: { lat: number; lng: number };
+  filters?: EventFilters;
+  selectedTagNames?: string[];
 }
 
 const parseDistance = (distance: string): number => {
@@ -52,11 +55,47 @@ const sortEventsByDateAndDistance = (events: Event[]) => {
   });
 };
 
-const FollowingEventsFeed = ({ userLocation }: FollowingEventsFeedProps) => {
+const filterEvents = (events: Event[], filters: EventFilters, tagNames: string[]) => {
+  return events.filter(event => {
+    // Filter by cover charge
+    if (filters.freeEventsOnly && event.cover_charge > 0) {
+      return false;
+    }
+    if (!filters.freeEventsOnly && event.cover_charge > filters.maxCoverCharge) {
+      return false;
+    }
+    
+    // Filter by reservation requirement
+    if (filters.noReservationRequired && event.requires_reservation) {
+      return false;
+    }
+    
+    // Filter by tags - if tags are selected, event must have at least one matching tag
+    if (tagNames.length > 0) {
+      const hasMatchingTag = event.activity_tags.some(tag => 
+        tagNames.includes(tag)
+      );
+      if (!hasMatchingTag) {
+        return false;
+      }
+    }
+    
+    return true;
+  });
+};
+
+const FollowingEventsFeed = ({ userLocation, filters, selectedTagNames = [] }: FollowingEventsFeedProps) => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const defaultFilters: EventFilters = {
+    maxCoverCharge: 50,
+    noReservationRequired: false,
+    freeEventsOnly: false,
+    selectedTags: []
+  };
 
   useEffect(() => {
     if (user) {
@@ -296,6 +335,10 @@ const FollowingEventsFeed = ({ userLocation }: FollowingEventsFeedProps) => {
     }
   };
 
+  const currentFilters = filters || defaultFilters;
+  const filteredEvents = filterEvents(events, currentFilters, selectedTagNames);
+  const sortedEvents = sortEventsByDateAndDistance(filteredEvents);
+
   if (loading) {
     return (
       <div className="container mx-auto px-4 py-8 max-w-2xl">
@@ -318,7 +361,7 @@ const FollowingEventsFeed = ({ userLocation }: FollowingEventsFeedProps) => {
       </div>
       
       <div className="space-y-4">
-        {events.map((event) => (
+        {sortedEvents.map((event) => (
           <div key={event.id} className="space-y-2">
             {event.creator_name && (
               <div className="text-sm text-gray-500">
@@ -334,10 +377,10 @@ const FollowingEventsFeed = ({ userLocation }: FollowingEventsFeedProps) => {
         ))}
       </div>
       
-      {events.length === 0 && (
+      {sortedEvents.length === 0 && (
         <div className="text-center py-12">
           <p className="text-gray-500 text-lg mb-4">
-            No events from people you follow yet.
+            No events found matching your filters.
           </p>
           <p className="text-gray-400">
             Follow other users to see their events here!

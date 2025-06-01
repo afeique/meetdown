@@ -24,6 +24,30 @@ const Index = () => {
     freeEventsOnly: false,
     selectedTags: []
   });
+  const [selectedTagNames, setSelectedTagNames] = useState<string[]>([]);
+
+  // Fetch tag names when selected tags change
+  useEffect(() => {
+    if (filters.selectedTags.length > 0) {
+      fetchTagNames();
+    } else {
+      setSelectedTagNames([]);
+    }
+  }, [filters.selectedTags]);
+
+  const fetchTagNames = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('activity_tags')
+        .select('name')
+        .in('id', filters.selectedTags);
+
+      if (error) throw error;
+      setSelectedTagNames(data?.map(tag => tag.name) || []);
+    } catch (error) {
+      console.error('Error fetching tag names:', error);
+    }
+  };
 
   const handleEventCreated = () => {
     setRefreshKey(prev => prev + 1);
@@ -76,15 +100,27 @@ const Index = () => {
               </TabsList>
               
               <TabsContent value="all" className="space-y-4">
-                <EventsFeed key={`all-${refreshKey}`} />
+                <EventsFeed 
+                  key={`all-${refreshKey}`} 
+                  filters={filters}
+                  selectedTagNames={selectedTagNames}
+                />
               </TabsContent>
               
               <TabsContent value="personalized" className="space-y-4">
-                <PersonalizedEventsFeed key={`personalized-${refreshKey}`} />
+                <PersonalizedEventsFeed 
+                  key={`personalized-${refreshKey}`}
+                  filters={filters}
+                  selectedTagNames={selectedTagNames}
+                />
               </TabsContent>
               
               <TabsContent value="following" className="space-y-4">
-                <FollowingEventsFeed key={`following-${refreshKey}`} />
+                <FollowingEventsFeed 
+                  key={`following-${refreshKey}`}
+                  filters={filters}
+                  selectedTagNames={selectedTagNames}
+                />
               </TabsContent>
             </Tabs>
           </div>

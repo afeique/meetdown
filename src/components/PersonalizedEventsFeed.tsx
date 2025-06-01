@@ -1,9 +1,9 @@
-
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import EventCard from './EventCard';
+import { EventFilters } from './EventFilters';
 
 interface Event {
   id: string;
@@ -27,6 +27,8 @@ interface Event {
 
 interface PersonalizedEventsFeedProps {
   userLocation?: { lat: number; lng: number };
+  filters?: EventFilters;
+  selectedTagNames?: string[];
 }
 
 const parseDistance = (distance: string): number => {
@@ -52,17 +54,43 @@ const sortEventsByDateAndDistance = (events: Event[]) => {
   });
 };
 
-const PersonalizedEventsFeed = ({ userLocation }: PersonalizedEventsFeedProps) => {
+const filterEvents = (events: Event[], filters: EventFilters) => {
+  return events.filter(event => {
+    // Filter by cover charge
+    if (filters.freeEventsOnly && event.cover_charge > 0) {
+      return false;
+    }
+    if (!filters.freeEventsOnly && event.cover_charge > filters.maxCoverCharge) {
+      return false;
+    }
+    
+    // Filter by reservation requirement
+    if (filters.noReservationRequired && event.requires_reservation) {
+      return false;
+    }
+    
+    return true;
+  });
+};
+
+const PersonalizedEventsFeed = ({ userLocation, filters, selectedTagNames = [] }: PersonalizedEventsFeedProps) => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const defaultFilters: EventFilters = {
+    maxCoverCharge: 50,
+    noReservationRequired: false,
+    freeEventsOnly: false,
+    selectedTags: []
+  };
+
   useEffect(() => {
     if (user) {
       fetchPersonalizedEvents();
     }
-  }, [user]);
+  }, [user, selectedTagNames]);
 
   const calculateDistance = (lat1?: number, lng1?: number, lat2?: number, lng2?: number): string => {
     if (!lat1 || !lng1 || !lat2 || !lng2) return 'Unknown distance';
@@ -101,9 +129,25 @@ const PersonalizedEventsFeed = ({ userLocation }: PersonalizedEventsFeedProps) =
       }
 
       const interestTagIds = userInterests?.map(ui => ui.activity_tags.id) || [];
+      
+      // Combine user interests with selected filter tags
+      let tagFilter: string[] = [];
+      if (selectedTagNames.length > 0) {
+        // Get tag IDs for selected tag names
+        const { data: selectedTagData, error: tagError } = await supabase
+          .from('activity_tags')
+          .select('id, name')
+          .in('name', selectedTagNames);
+        
+        if (!tagError && selectedTagData) {
+          tagFilter = selectedTagData.map(tag => tag.id);
+        }
+      } else {
+        tagFilter = interestTagIds;
+      }
 
-      if (interestTagIds.length === 0) {
-        console.log('User has no interests set, showing all events');
+      if (tagFilter.length === 0) {
+        console.log('No tags to filter by, showing all events');
         // If user has no interests, show all events
         const { data: allEvents, error } = await supabase
           .from('events')
@@ -168,7 +212,7 @@ const PersonalizedEventsFeed = ({ userLocation }: PersonalizedEventsFeedProps) =
         return;
       }
 
-      // Fetch events that match user's interests
+      // Fetch events that match the tag filter
       const { data: personalizedEvents, error } = await supabase
         .from('events')
         .select(`
@@ -183,7 +227,7 @@ const PersonalizedEventsFeed = ({ userLocation }: PersonalizedEventsFeedProps) =
             user_id
           )
         `)
-        .in('event_tags.tag_id', interestTagIds)
+        .in('event_tags.tag_id', tagFilter)
         .order('date', { ascending: true });
 
       if (error) {
@@ -346,6 +390,10 @@ const PersonalizedEventsFeed = ({ userLocation }: PersonalizedEventsFeedProps) =
     }
   };
 
+  const currentFilters = filters || defaultFilters;
+  const filteredEvents = filterEvents(events, currentFilters);
+  const sortedEvents = sortEventsByDateAndDistance(filteredEvents);
+
   if (loading) {
     return (
       <div className="container mx-auto px-4 py-8 max-w-2xl">
@@ -368,7 +416,7 @@ const PersonalizedEventsFeed = ({ userLocation }: PersonalizedEventsFeedProps) =
       </div>
       
       <div className="space-y-4">
-        {events.map((event) => (
+        {sortedEvents.map((event) => (
           <EventCard 
             key={event.id} 
             event={event} 
@@ -378,13 +426,13 @@ const PersonalizedEventsFeed = ({ userLocation }: PersonalizedEventsFeedProps) =
         ))}
       </div>
       
-      {events.length === 0 && (
+      {sortedEvents.length === 0 && (
         <div className="text-center py-12">
           <p className="text-gray-500 text-lg mb-4">
-            No personalized events found yet.
+            No personalized events found matching your filters.
           </p>
           <p className="text-gray-400">
-            Set your interests in your profile to see personalized recommendations!
+            Try adjusting your filters or set your interests in your profile!
           </p>
         </div>
       )}
