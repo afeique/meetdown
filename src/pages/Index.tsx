@@ -21,7 +21,8 @@ const Index = () => {
   const [filters, setFilters] = useState<EventFiltersType>({
     maxCoverCharge: 50,
     noReservationRequired: false,
-    freeEventsOnly: false
+    freeEventsOnly: false,
+    selectedTags: []
   });
 
   const handleEventCreated = () => {
