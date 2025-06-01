@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -29,6 +28,29 @@ interface Event {
 interface FollowingEventsFeedProps {
   userLocation?: { lat: number; lng: number };
 }
+
+const parseDistance = (distance: string): number => {
+  const match = distance.match(/(\d+\.?\d*)/);
+  return match ? parseFloat(match[1]) : 0;
+};
+
+const sortEventsByDateAndDistance = (events: Event[]) => {
+  return [...events].sort((a, b) => {
+    // First, sort by date
+    const dateA = new Date(a.date);
+    const dateB = new Date(b.date);
+    
+    if (dateA.getTime() !== dateB.getTime()) {
+      return dateA.getTime() - dateB.getTime();
+    }
+    
+    // If dates are the same, sort by distance
+    const distanceA = parseDistance(a.distance || '0');
+    const distanceB = parseDistance(b.distance || '0');
+    
+    return distanceA - distanceB;
+  });
+};
 
 const FollowingEventsFeed = ({ userLocation }: FollowingEventsFeedProps) => {
   const { user } = useAuth();
@@ -100,7 +122,8 @@ const FollowingEventsFeed = ({ userLocation }: FollowingEventsFeedProps) => {
             last_name
           )
         `)
-        .in('creator_id', followingIds);
+        .in('creator_id', followingIds)
+        .order('date', { ascending: true });
 
       if (error) {
         console.log('Database query failed:', error.message);
@@ -154,7 +177,9 @@ const FollowingEventsFeed = ({ userLocation }: FollowingEventsFeedProps) => {
           };
         });
 
-        setEvents(eventsData);
+        // Sort events by date first, then by distance
+        const sortedEvents = sortEventsByDateAndDistance(eventsData);
+        setEvents(sortedEvents);
       } else {
         console.log('No events found from followed users');
         setEvents([]);

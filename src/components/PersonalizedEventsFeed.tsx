@@ -149,6 +149,29 @@ const mockEvents: Event[] = [
   }
 ];
 
+const parseDistance = (distance: string): number => {
+  const match = distance.match(/(\d+\.?\d*)/);
+  return match ? parseFloat(match[1]) : 0;
+};
+
+const sortEventsByDateAndDistance = (events: Event[]) => {
+  return [...events].sort((a, b) => {
+    // First, sort by date
+    const dateA = new Date(a.date);
+    const dateB = new Date(b.date);
+    
+    if (dateA.getTime() !== dateB.getTime()) {
+      return dateA.getTime() - dateB.getTime();
+    }
+    
+    // If dates are the same, sort by distance
+    const distanceA = parseDistance(a.distance || '0');
+    const distanceB = parseDistance(b.distance || '0');
+    
+    return distanceA - distanceB;
+  });
+};
+
 const PersonalizedEventsFeed = ({ userLocation }: PersonalizedEventsFeedProps) => {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -225,7 +248,8 @@ const PersonalizedEventsFeed = ({ userLocation }: PersonalizedEventsFeedProps) =
             id,
             user_id
           )
-        `);
+        `)
+        .order('date', { ascending: true });
 
       if (eventsError) {
         console.log('Database query failed, using mock data:', eventsError.message);
@@ -292,8 +316,26 @@ const PersonalizedEventsFeed = ({ userLocation }: PersonalizedEventsFeedProps) =
           filteredEvents.sort((a, b) => {
             const aMatches = a.activity_tags.filter(tag => userInterests.includes(tag)).length;
             const bMatches = b.activity_tags.filter(tag => userInterests.includes(tag)).length;
-            return bMatches - aMatches;
+            if (bMatches !== aMatches) {
+              return bMatches - aMatches;
+            }
+            
+            // If interest matches are the same, sort by date then distance
+            const dateA = new Date(a.date);
+            const dateB = new Date(b.date);
+            
+            if (dateA.getTime() !== dateB.getTime()) {
+              return dateA.getTime() - dateB.getTime();
+            }
+            
+            const distanceA = parseDistance(a.distance || '0');
+            const distanceB = parseDistance(b.distance || '0');
+            
+            return distanceA - distanceB;
           });
+        } else {
+          // If no interests, just sort by date and distance
+          filteredEvents = sortEventsByDateAndDistance(filteredEvents);
         }
 
         setEvents(filteredEvents);
@@ -319,6 +361,9 @@ const PersonalizedEventsFeed = ({ userLocation }: PersonalizedEventsFeedProps) =
           }));
         }
 
+        // Sort mock events by date and distance
+        filteredMockEvents = sortEventsByDateAndDistance(filteredMockEvents);
+
         setEvents(filteredMockEvents);
       }
     } catch (error: any) {
@@ -336,6 +381,9 @@ const PersonalizedEventsFeed = ({ userLocation }: PersonalizedEventsFeedProps) =
         if (filters.noReservationRequired && event.requires_reservation) return false;
         return true;
       });
+
+      // Sort mock events by date and distance
+      filteredMockEvents = sortEventsByDateAndDistance(filteredMockEvents);
 
       setEvents(filteredMockEvents);
     } finally {

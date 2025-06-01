@@ -73,7 +73,32 @@ const mockEvents = [
   }
 ];
 
+const parseDistance = (distance: string): number => {
+  const match = distance.match(/(\d+\.?\d*)/);
+  return match ? parseFloat(match[1]) : 0;
+};
+
+const sortEventsByDateAndDistance = (events: typeof mockEvents) => {
+  return [...events].sort((a, b) => {
+    // First, sort by date
+    const dateA = new Date(a.date);
+    const dateB = new Date(b.date);
+    
+    if (dateA.getTime() !== dateB.getTime()) {
+      return dateA.getTime() - dateB.getTime();
+    }
+    
+    // If dates are the same, sort by distance
+    const distanceA = parseDistance(a.distance);
+    const distanceB = parseDistance(b.distance);
+    
+    return distanceA - distanceB;
+  });
+};
+
 const EventsFeed = () => {
+  const sortedEvents = sortEventsByDateAndDistance(mockEvents);
+
   return (
     <div className="container mx-auto px-4 py-8 max-w-2xl">
       <div className="mb-6">
@@ -86,12 +111,12 @@ const EventsFeed = () => {
       </div>
       
       <div className="space-y-4">
-        {mockEvents.map((event) => (
+        {sortedEvents.map((event) => (
           <EventCard key={event.id} event={event} />
         ))}
       </div>
       
-      {mockEvents.length === 0 && (
+      {sortedEvents.length === 0 && (
         <div className="text-center py-12">
           <p className="text-gray-500 text-lg">
             No events found in your area. Try searching a different location!
