@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button";
 import { User, MapPin } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { capitalizeFirstLetter } from "@/lib/nameUtils";
 
 const Index = () => {
   const { user } = useAuth();
@@ -15,6 +17,7 @@ const Index = () => {
   const { toast } = useToast();
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [locationPermission, setLocationPermission] = useState<'granted' | 'denied' | 'prompt'>('prompt');
+  const [userFirstName, setUserFirstName] = useState<string | null>(null);
 
   useEffect(() => {
     // Check if geolocation is supported and get user's location
@@ -27,6 +30,33 @@ const Index = () => {
       });
     }
   }, []);
+
+  useEffect(() => {
+    if (user) {
+      fetchUserProfile();
+    }
+  }, [user]);
+
+  const fetchUserProfile = async () => {
+    try {
+      const { data: profile, error } = await supabase
+        .from('profiles')
+        .select('first_name')
+        .eq('id', user?.id)
+        .single();
+
+      if (error) {
+        console.log('Error fetching profile:', error.message);
+        return;
+      }
+
+      if (profile?.first_name) {
+        setUserFirstName(profile.first_name);
+      }
+    } catch (error) {
+      console.error('Error fetching user profile:', error);
+    }
+  };
 
   const getCurrentLocation = () => {
     navigator.geolocation.getCurrentPosition(
@@ -59,6 +89,16 @@ const Index = () => {
         variant: "destructive",
       });
     }
+  };
+
+  const getWelcomeText = () => {
+    if (userFirstName) {
+      return `Welcome back, ${capitalizeFirstLetter(userFirstName)}!`;
+    }
+    if (user?.email) {
+      return `Welcome back, ${user.email.split('@')[0]}!`;
+    }
+    return 'Welcome back!';
   };
 
   return (
@@ -109,7 +149,7 @@ const Index = () => {
       <div className="container mx-auto px-6 py-8">
         <div className="text-center mb-8">
           <h2 className="text-3xl font-bold text-gray-800 mb-2">
-            Welcome back{user?.email ? `, ${user.email.split('@')[0]}` : ''}!
+            {getWelcomeText()}
           </h2>
           <p className="text-lg text-gray-600">
             Are you down to meet? Check out these personalized events for you.
