@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -493,7 +492,6 @@ const PersonalizedEventsFeed = ({ userLocation }: PersonalizedEventsFeedProps) =
                 event={event} 
                 onJoin={handleJoinEvent}
                 onLeave={handleLeaveEvent}
-                showFollowButton={true}
               />
             ))}
           </div>
