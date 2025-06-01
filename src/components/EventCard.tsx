@@ -44,14 +44,15 @@ const EventCard = ({ event, onJoin, onLeave }: EventCardProps) => {
     <Card className="hover:shadow-lg transition-shadow overflow-hidden">
       {/* Banner Image */}
       {event.banner_url && (
-        <div className="w-full h-48 overflow-hidden">
+        <div className="w-full h-48 overflow-hidden bg-gray-100">
           <img 
             src={event.banner_url} 
-            alt={event.title}
-            className="w-full h-full object-cover"
+            alt={`${event.title} banner`}
+            className="w-full h-full object-cover transition-transform hover:scale-105"
             onError={(e) => {
-              // Hide image if it fails to load
-              e.currentTarget.style.display = 'none';
+              const target = e.target as HTMLImageElement;
+              target.style.display = 'none';
+              target.parentElement!.classList.add('hidden');
             }}
           />
         </div>
