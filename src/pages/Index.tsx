@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -75,7 +76,7 @@ const Index = () => {
                 onClick={() => window.location.href = '/my-events'}
                 className="flex items-center gap-2"
               >
-                <Calendar className="h-4 w-4" />
+                <MapPin className="h-4 w-4" />
                 My Events
               </Button>
               <LogoutButton />
