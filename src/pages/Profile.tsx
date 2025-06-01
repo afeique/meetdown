@@ -181,6 +181,7 @@ const Profile = () => {
       </div>
 
       <div className="container mx-auto px-6 py-8 max-w-2xl">
+        {/* Profile Information Card */}
         <Card className="backdrop-blur-sm bg-white/80 shadow-xl border-0 mb-6">
           <CardHeader>
             <CardTitle className="text-xl font-semibold text-gray-800">
@@ -270,6 +271,28 @@ const Profile = () => {
                 Update Profile
               </Button>
             </form>
+          </CardContent>
+        </Card>
+
+        {/* Social Links Card */}
+        <Card className="backdrop-blur-sm bg-white/80 shadow-xl border-0 mb-6">
+          <CardHeader>
+            <CardTitle className="text-xl font-semibold text-gray-800 flex items-center gap-2">
+              <User size={20} />
+              Social
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex justify-center">
+              <Button
+                onClick={() => navigate('/followers')}
+                variant="outline"
+                className="flex items-center gap-2"
+              >
+                <User size={16} />
+                View My Followers
+              </Button>
+            </div>
           </CardContent>
         </Card>
 
