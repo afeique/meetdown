@@ -1,0 +1,353 @@
+
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+import { Plus, Calendar, MapPin, Users, DollarSign, Clock, Tag } from 'lucide-react';
+import BannerGenerator from './BannerGenerator';
+import ImageUpload from './ImageUpload';
+
+interface MyEventsCreateFormProps {
+  onEventCreated: () => void;
+}
+
+const MyEventsCreateForm = ({ onEventCreated }: MyEventsCreateFormProps) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [bannerUrl, setBannerUrl] = useState('');
+  const [tagInput, setTagInput] = useState('');
+  const [formData, setFormData] = useState({
+    title: '',
+    description: '',
+    date: '',
+    time: '',
+    location: '',
+    maxAttendees: 10,
+    coverCharge: 0,
+    requiresReservation: false,
+  });
+  const { toast } = useToast();
+
+  const parseTagsFromInput = (input: string): string[] => {
+    return input
+      .split(/[,;]/)
+      .map(tag => tag.trim())
+      .filter(tag => tag.length > 0)
+      .map(tag => tag.toLowerCase());
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
+
+      // Create the event
+      const { data: eventData, error: eventError } = await supabase
+        .from('events')
+        .insert([{
+          title: formData.title,
+          description: formData.description,
+          date: formData.date,
+          time: formData.time,
+          location: formData.location,
+          max_attendees: formData.maxAttendees,
+          cover_charge: formData.coverCharge,
+          requires_reservation: formData.requiresReservation,
+          creator_id: user.id,
+          banner_url: bannerUrl || null,
+        }])
+        .select()
+        .single();
+
+      if (eventError) throw eventError;
+
+      // Process tags if any are entered
+      const tagNames = parseTagsFromInput(tagInput);
+      if (tagNames.length > 0 && eventData) {
+        // Find existing tags or create new ones
+        const { data: existingTags } = await supabase
+          .from('activity_tags')
+          .select('id, name')
+          .in('name', tagNames);
+
+        const existingTagNames = existingTags?.map(tag => tag.name.toLowerCase()) || [];
+        const newTagNames = tagNames.filter(name => !existingTagNames.includes(name));
+
+        // Create new tags
+        let allTagIds = existingTags?.map(tag => tag.id) || [];
+        
+        if (newTagNames.length > 0) {
+          const { data: newTags, error: newTagsError } = await supabase
+            .from('activity_tags')
+            .insert(newTagNames.map(name => ({ name, category: 'Other' })))
+            .select('id');
+
+          if (newTagsError) {
+            console.error('Error creating new tags:', newTagsError);
+          } else {
+            allTagIds = [...allTagIds, ...(newTags?.map(tag => tag.id) || [])];
+          }
+        }
+
+        // Link tags to event
+        if (allTagIds.length > 0) {
+          const tagInserts = allTagIds.map(tagId => ({
+            event_id: eventData.id,
+            tag_id: tagId
+          }));
+
+          const { error: tagsError } = await supabase
+            .from('event_tags')
+            .insert(tagInserts);
+
+          if (tagsError) {
+            console.error('Error adding tags to event:', tagsError);
+          }
+        }
+      }
+
+      toast({
+        title: "Event created!",
+        description: "Your event has been successfully created.",
+      });
+
+      // Reset form
+      setFormData({
+        title: '',
+        description: '',
+        date: '',
+        time: '',
+        location: '',
+        maxAttendees: 10,
+        coverCharge: 0,
+        requiresReservation: false,
+      });
+      setBannerUrl('');
+      setTagInput('');
+      setIsOpen(false);
+      onEventCreated();
+    } catch (error: any) {
+      console.error('Error creating event:', error);
+      toast({
+        title: "Error creating event",
+        description: error.message || "Failed to create event. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleInputChange = (field: string, value: any) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  if (!isOpen) {
+    return (
+      <Button 
+        onClick={() => setIsOpen(true)}
+        className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+      >
+        <Plus className="mr-2 h-4 w-4" />
+        Create New Event
+      </Button>
+    );
+  }
+
+  return (
+    <Card className="w-full">
+      <CardHeader>
+        <CardTitle>Create New Event</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Event Title</label>
+            <Input
+              placeholder="Enter event title"
+              value={formData.title}
+              onChange={(e) => handleInputChange('title', e.target.value)}
+              required
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Description</label>
+            <Textarea
+              placeholder="Describe your event"
+              value={formData.description}
+              onChange={(e) => handleInputChange('description', e.target.value)}
+              rows={3}
+            />
+          </div>
+
+          {/* Banner Section */}
+          {formData.title && (
+            <div className="space-y-4">
+              <label className="text-sm font-medium">Event Banner</label>
+              <Tabs defaultValue="ai" className="w-full">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="ai">AI Generated</TabsTrigger>
+                  <TabsTrigger value="upload">Upload Image</TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="ai" className="space-y-4">
+                  <BannerGenerator
+                    eventTitle={formData.title}
+                    onBannerGenerated={setBannerUrl}
+                    currentBanner={bannerUrl}
+                  />
+                </TabsContent>
+                
+                <TabsContent value="upload" className="space-y-4">
+                  <ImageUpload
+                    onImageUploaded={setBannerUrl}
+                    currentImage={bannerUrl}
+                    maxSizeMB={5}
+                  />
+                </TabsContent>
+              </Tabs>
+            </div>
+          )}
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium flex items-center gap-1">
+                <Calendar className="h-4 w-4" />
+                Date
+              </label>
+              <Input
+                type="date"
+                value={formData.date}
+                onChange={(e) => handleInputChange('date', e.target.value)}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium flex items-center gap-1">
+                <Clock className="h-4 w-4" />
+                Time
+              </label>
+              <Input
+                type="time"
+                value={formData.time}
+                onChange={(e) => handleInputChange('time', e.target.value)}
+                required
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-sm font-medium flex items-center gap-1">
+              <MapPin className="h-4 w-4" />
+              Location
+            </label>
+            <Input
+              placeholder="Enter event location"
+              value={formData.location}
+              onChange={(e) => handleInputChange('location', e.target.value)}
+              required
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium flex items-center gap-1">
+                <Users className="h-4 w-4" />
+                Max Attendees
+              </label>
+              <Input
+                type="number"
+                min="1"
+                value={formData.maxAttendees}
+                onChange={(e) => handleInputChange('maxAttendees', parseInt(e.target.value))}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium flex items-center gap-1">
+                <DollarSign className="h-4 w-4" />
+                Cover Charge ($)
+              </label>
+              <Input
+                type="number"
+                min="0"
+                step="0.01"
+                value={formData.coverCharge}
+                onChange={(e) => handleInputChange('coverCharge', parseFloat(e.target.value) || 0)}
+              />
+            </div>
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <input
+              type="checkbox"
+              id="requiresReservation"
+              checked={formData.requiresReservation}
+              onChange={(e) => handleInputChange('requiresReservation', e.target.checked)}
+              className="h-4 w-4"
+            />
+            <label htmlFor="requiresReservation" className="text-sm font-medium">
+              Requires Reservation
+            </label>
+          </div>
+
+          {/* Tags Section */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium flex items-center gap-1">
+              <Tag className="h-4 w-4" />
+              Tags
+            </label>
+            <Input
+              placeholder="Enter tags separated by commas or semicolons (e.g., hiking, outdoors; fitness)"
+              value={tagInput}
+              onChange={(e) => setTagInput(e.target.value)}
+            />
+            {tagInput && (
+              <div className="flex flex-wrap gap-2 mt-2">
+                {parseTagsFromInput(tagInput).map((tag, index) => (
+                  <span
+                    key={index}
+                    className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full"
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="flex gap-2 pt-4">
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={() => setIsOpen(false)}
+              className="flex-1"
+            >
+              Cancel
+            </Button>
+            <Button 
+              type="submit" 
+              disabled={isSubmitting}
+              className="flex-1 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+            >
+              {isSubmitting ? 'Creating...' : 'Create Event'}
+            </Button>
+          </div>
+        </form>
+      </CardContent>
+    </Card>
+  );
+};
+
+export default MyEventsCreateForm;

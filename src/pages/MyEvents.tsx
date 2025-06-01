@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -9,6 +8,7 @@ import { ArrowLeft, Calendar, Plus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import UserProfileHeader from '@/components/UserProfileHeader';
+import MyEventsCreateForm from '@/components/MyEventsCreateForm';
 
 interface Event {
   id: string;
@@ -142,6 +142,11 @@ const MyEvents = () => {
       </div>
 
       <div className="container mx-auto px-4 py-6">
+        {/* Add Create Event Form */}
+        <div className="mb-6">
+          <MyEventsCreateForm onEventCreated={() => window.location.reload()} />
+        </div>
+
         {events.length === 0 ? (
           <Card className="text-center py-12">
             <CardContent>
@@ -150,13 +155,6 @@ const MyEvents = () => {
               <p className="text-gray-600 mb-6">
                 Start creating events to build your community and connect with others.
               </p>
-              <Button
-                onClick={() => navigate('/')}
-                className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
-              >
-                <Plus className="mr-2 h-4 w-4" />
-                Create Your First Event
-              </Button>
             </CardContent>
           </Card>
         ) : (
