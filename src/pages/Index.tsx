@@ -13,42 +13,16 @@ import CreateEventForm from '@/components/CreateEventForm';
 import LocationBar from '@/components/LocationBar';
 import EventFilters, { EventFilters as EventFiltersType } from '@/components/EventFilters';
 import LogoutButton from '@/components/LogoutButton';
+import UserProfileHeader from '@/components/UserProfileHeader';
 
 const Index = () => {
   const { user } = useAuth();
-  const [userProfile, setUserProfile] = useState<any>(null);
   const [refreshKey, setRefreshKey] = useState(0);
   const [filters, setFilters] = useState<EventFiltersType>({
     maxCoverCharge: 50,
     noReservationRequired: false,
     freeEventsOnly: false
   });
-
-  useEffect(() => {
-    const fetchUserProfile = async () => {
-      if (user) {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('first_name, email')
-          .eq('id', user.id)
-          .single();
-
-        setUserProfile(profile);
-      }
-    };
-
-    fetchUserProfile();
-  }, [user]);
-
-  const getDisplayName = () => {
-    if (userProfile?.first_name) {
-      return userProfile.first_name.toUpperCase();
-    }
-    if (userProfile?.email) {
-      return userProfile.email.split('@')[0].toUpperCase();
-    }
-    return 'FRIEND';
-  };
 
   const handleEventCreated = () => {
     setRefreshKey(prev => prev + 1);
@@ -64,11 +38,11 @@ const Index = () => {
       <div className="bg-white shadow-sm border-b">
         <div className="container mx-auto px-4 py-4">
           <div className="flex justify-between items-center">
-            <div>
+            <div className="flex items-center gap-4">
               <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
                 Meetdown
               </h1>
-              <p className="text-gray-600">{getDisplayName()}!</p>
+              <UserProfileHeader />
             </div>
             <div className="flex items-center gap-3">
               <Button

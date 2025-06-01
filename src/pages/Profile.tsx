@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -12,6 +13,7 @@ import { Upload, User, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import InterestTags from '@/components/InterestTags';
 import { capitalizeFirstLetter, formatDisplayName } from '@/lib/nameUtils';
+import UserProfileHeader from '@/components/UserProfileHeader';
 
 interface Profile {
   id: string;
@@ -167,19 +169,26 @@ const Profile = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
       {/* Header */}
-      <div className="flex items-center gap-4 p-6">
-        <Button 
-          variant="outline" 
-          size="sm" 
-          onClick={() => navigate('/')}
-          className="flex items-center gap-2"
-        >
-          <ArrowLeft size={16} />
-          Back
-        </Button>
-        <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-600 via-red-500 to-orange-500 bg-clip-text text-transparent">
-          My Profile
-        </h1>
+      <div className="bg-white shadow-sm border-b">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => navigate('/')}
+                className="flex items-center gap-2"
+              >
+                <ArrowLeft size={16} />
+                Back
+              </Button>
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-600 via-red-500 to-orange-500 bg-clip-text text-transparent">
+                My Profile
+              </h1>
+            </div>
+            <UserProfileHeader />
+          </div>
+        </div>
       </div>
 
       <div className="container mx-auto px-6 py-8 max-w-2xl">
