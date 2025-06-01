@@ -62,6 +62,26 @@ const FollowingEventsFeed = ({ userLocation }: FollowingEventsFeedProps) => {
     try {
       console.log('Fetching events from users that current user follows...');
       
+      // First, get the list of users that the current user follows
+      const { data: followingUsers, error: followingError } = await supabase
+        .from('user_follows')
+        .select('following_id')
+        .eq('follower_id', user?.id);
+
+      if (followingError) {
+        console.log('Error fetching following users:', followingError.message);
+        throw followingError;
+      }
+
+      if (!followingUsers || followingUsers.length === 0) {
+        console.log('User is not following anyone');
+        setEvents([]);
+        return;
+      }
+
+      const followingIds = followingUsers.map(f => f.following_id);
+
+      // Then fetch events created by those users
       const { data: followingEvents, error } = await supabase
         .from('events')
         .select(`
@@ -80,12 +100,7 @@ const FollowingEventsFeed = ({ userLocation }: FollowingEventsFeedProps) => {
             last_name
           )
         `)
-        .in('creator_id', 
-          supabase
-            .from('user_follows')
-            .select('following_id')
-            .eq('follower_id', user?.id)
-        );
+        .in('creator_id', followingIds);
 
       if (error) {
         console.log('Database query failed:', error.message);
