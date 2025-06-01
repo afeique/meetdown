@@ -3,6 +3,7 @@ import { Calendar, MapPin, Users, Tag, DollarSign, Clock } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import UserFollowButton from './UserFollowButton';
 
 interface Event {
   id: string;
@@ -19,15 +20,18 @@ interface Event {
   requires_reservation?: boolean;
   is_registered?: boolean;
   banner_url?: string;
+  creator_id?: string;
+  creator_name?: string;
 }
 
 interface EventCardProps {
   event: Event;
   onJoin?: (eventId: string) => void;
   onLeave?: (eventId: string) => void;
+  showFollowButton?: boolean;
 }
 
-const EventCard = ({ event, onJoin, onLeave }: EventCardProps) => {
+const EventCard = ({ event, onJoin, onLeave, showFollowButton = false }: EventCardProps) => {
   const handleButtonClick = () => {
     if (event.is_registered && onLeave) {
       onLeave(event.id);
@@ -56,9 +60,17 @@ const EventCard = ({ event, onJoin, onLeave }: EventCardProps) => {
       )}
       
       <CardHeader>
-        <CardTitle className="text-lg font-semibold text-gray-800">
-          {event.title}
-        </CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-lg font-semibold text-gray-800">
+            {event.title}
+          </CardTitle>
+          {showFollowButton && event.creator_id && (
+            <UserFollowButton 
+              targetUserId={event.creator_id} 
+              targetUserName={event.creator_name}
+            />
+          )}
+        </div>
       </CardHeader>
       <CardContent className="space-y-3">
         <p className="text-gray-600 text-sm">{event.description}</p>

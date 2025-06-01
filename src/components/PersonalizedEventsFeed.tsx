@@ -5,6 +5,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import EventCard from './EventCard';
 import EventFiltersComponent, { EventFilters } from './EventFilters';
+import FollowingEventsFeed from './FollowingEventsFeed';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface Event {
   id: string;
@@ -458,46 +460,60 @@ const PersonalizedEventsFeed = ({ userLocation }: PersonalizedEventsFeedProps) =
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-2xl">
-      <div className="mb-6">
-        <h2 className="text-2xl font-bold text-gray-800 mb-2">
-          {userInterests.length > 0 ? 'Events For You' : 'Nearby Events'}
-        </h2>
-        <p className="text-gray-600">
-          {userInterests.length > 0 
-            ? 'Discover events matching your interests' 
-            : 'Discover and join events happening near you'
-          }
-        </p>
-        {userInterests.length > 0 && (
-          <p className="text-sm text-blue-600 mt-1">
-            Based on your interests: {userInterests.join(', ')}
-          </p>
-        )}
-      </div>
+      <Tabs defaultValue="for-you" className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="for-you">For You</TabsTrigger>
+          <TabsTrigger value="following">Following</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="for-you" className="space-y-6">
+          <div className="mb-6">
+            <h2 className="text-2xl font-bold text-gray-800 mb-2">
+              {userInterests.length > 0 ? 'Events For You' : 'Nearby Events'}
+            </h2>
+            <p className="text-gray-600">
+              {userInterests.length > 0 
+                ? 'Discover events matching your interests' 
+                : 'Discover and join events happening near you'
+              }
+            </p>
+            {userInterests.length > 0 && (
+              <p className="text-sm text-blue-600 mt-1">
+                Based on your interests: {userInterests.join(', ')}
+              </p>
+            )}
+          </div>
 
-      <EventFiltersComponent filters={filters} onFiltersChange={setFilters} />
-      
-      <div className="space-y-4">
-        {events.map((event) => (
-          <EventCard 
-            key={event.id} 
-            event={event} 
-            onJoin={handleJoinEvent}
-            onLeave={handleLeaveEvent}
-          />
-        ))}
-      </div>
-      
-      {events.length === 0 && (
-        <div className="text-center py-12">
-          <p className="text-gray-500 text-lg mb-4">
-            No events found matching your criteria.
-          </p>
-          <p className="text-gray-400">
-            Try adjusting your filters or check back later for new events!
-          </p>
-        </div>
-      )}
+          <EventFiltersComponent filters={filters} onFiltersChange={setFilters} />
+          
+          <div className="space-y-4">
+            {events.map((event) => (
+              <EventCard 
+                key={event.id} 
+                event={event} 
+                onJoin={handleJoinEvent}
+                onLeave={handleLeaveEvent}
+                showFollowButton={true}
+              />
+            ))}
+          </div>
+          
+          {events.length === 0 && (
+            <div className="text-center py-12">
+              <p className="text-gray-500 text-lg mb-4">
+                No events found matching your criteria.
+              </p>
+              <p className="text-gray-400">
+                Try adjusting your filters or check back later for new events!
+              </p>
+            </div>
+          )}
+        </TabsContent>
+        
+        <TabsContent value="following">
+          <FollowingEventsFeed userLocation={userLocation} />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
