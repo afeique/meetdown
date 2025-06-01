@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { User, Mail, Phone, Upload } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { capitalizeFirstLetter } from "@/lib/nameUtils";
 
 const MeetdownLogin = () => {
   const [formData, setFormData] = useState({
@@ -64,7 +64,9 @@ const MeetdownLogin = () => {
   };
 
   const getInitials = () => {
-    return `${formData.firstName.charAt(0)}${formData.lastName.charAt(0)}`.toUpperCase();
+    const formattedFirst = capitalizeFirstLetter(formData.firstName);
+    const formattedLast = capitalizeFirstLetter(formData.lastName);
+    return `${formattedFirst.charAt(0)}${formattedLast.charAt(0)}`.toUpperCase();
   };
 
   return (

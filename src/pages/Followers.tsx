@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -9,6 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ArrowLeft, Users } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import UserFollowButton from '@/components/UserFollowButton';
+import { formatDisplayName } from '@/lib/nameUtils';
 
 interface Follower {
   id: string;
@@ -76,15 +76,14 @@ const Followers = () => {
 
   const getDisplayName = (follower: Follower) => {
     const { first_name, last_name } = follower.follower_profile;
-    if (first_name || last_name) {
-      return `${first_name || ''} ${last_name || ''}`.trim();
-    }
-    return 'Unknown User';
+    return formatDisplayName(first_name, last_name);
   };
 
   const getInitials = (follower: Follower) => {
     const { first_name, last_name } = follower.follower_profile;
-    return `${first_name?.charAt(0) || ''}${last_name?.charAt(0) || ''}`.toUpperCase() || 'U';
+    const firstName = first_name?.charAt(0)?.toUpperCase() || '';
+    const lastName = last_name?.charAt(0)?.toUpperCase() || '';
+    return firstName + lastName || 'U';
   };
 
   if (loading) {

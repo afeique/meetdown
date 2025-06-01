@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -12,6 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Upload, User, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import InterestTags from '@/components/InterestTags';
+import { capitalizeFirstLetter, formatDisplayName } from '@/lib/nameUtils';
 
 interface Profile {
   id: string;
@@ -151,7 +151,9 @@ const Profile = () => {
 
   const getInitials = () => {
     if (!profile) return 'U';
-    return `${profile.first_name?.charAt(0) || ''}${profile.last_name?.charAt(0) || ''}`.toUpperCase();
+    const formattedFirst = capitalizeFirstLetter(profile.first_name);
+    const formattedLast = capitalizeFirstLetter(profile.last_name);
+    return `${formattedFirst?.charAt(0) || ''}${formattedLast?.charAt(0) || ''}`.toUpperCase();
   };
 
   if (loading) {
@@ -213,6 +215,11 @@ const Profile = () => {
               <p className="text-sm text-gray-500">
                 {uploading ? 'Uploading...' : 'Click to upload profile picture'}
               </p>
+              {profile && (profile.first_name || profile.last_name) && (
+                <p className="text-lg font-semibold text-gray-800">
+                  {formatDisplayName(profile.first_name, profile.last_name)}
+                </p>
+              )}
             </div>
 
             {/* Profile Form */}
