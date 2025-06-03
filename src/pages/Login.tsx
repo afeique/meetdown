@@ -8,14 +8,16 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { AlertCircle, CheckCircle, Mail } from 'lucide-react';
+import { AlertCircle, CheckCircle, Mail, Phone } from 'lucide-react';
 
 const Login = () => {
   const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [isSignUp, setIsSignUp] = useState(false);
+  const [authMethod, setAuthMethod] = useState<'email' | 'phone'>('email');
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -94,32 +96,62 @@ const Login = () => {
 
     try {
       if (isSignUp) {
-        const { error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            data: {
-              first_name: firstName,
-              last_name: lastName,
+        if (authMethod === 'email') {
+          const { error } = await supabase.auth.signUp({
+            email,
+            password,
+            options: {
+              data: {
+                first_name: firstName,
+                last_name: lastName,
+              },
+              emailRedirectTo: getRedirectUrl(),
             },
-            emailRedirectTo: getRedirectUrl(),
-          },
-        });
+          });
 
-        if (error) throw error;
+          if (error) throw error;
 
-        toast({
-          title: "Account created successfully!",
-          description: "Please check your email to verify your account before signing in.",
-          duration: 7000,
-        });
+          toast({
+            title: "Account created successfully!",
+            description: "Please check your email to verify your account before signing in.",
+            duration: 7000,
+          });
+        } else {
+          const { error } = await supabase.auth.signUp({
+            phone,
+            password,
+            options: {
+              data: {
+                first_name: firstName,
+                last_name: lastName,
+              },
+            },
+          });
+
+          if (error) throw error;
+
+          toast({
+            title: "Account created successfully!",
+            description: "You can now sign in with your phone number.",
+            duration: 5000,
+          });
+        }
       } else {
-        const { error } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
+        if (authMethod === 'email') {
+          const { error } = await supabase.auth.signInWithPassword({
+            email,
+            password,
+          });
 
-        if (error) throw error;
+          if (error) throw error;
+        } else {
+          const { error } = await supabase.auth.signInWithPassword({
+            phone,
+            password,
+          });
+
+          if (error) throw error;
+        }
 
         toast({
           title: "Welcome back!",
@@ -138,7 +170,7 @@ const Login = () => {
   };
 
   // Show email verification notice if user is logged in but email not verified
-  if (user && userProfile && !userProfile.email_verified) {
+  if (user && userProfile && !userProfile.email_verified && user.email) {
     return (
       <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-blue-50 via-white to-purple-50">
         <div className="w-full max-w-md">
@@ -221,6 +253,34 @@ const Login = () => {
           </CardHeader>
           
           <CardContent>
+            {/* Auth Method Toggle */}
+            <div className="flex mb-6 bg-gray-100 rounded-lg p-1">
+              <button
+                type="button"
+                onClick={() => setAuthMethod('email')}
+                className={`flex-1 flex items-center justify-center gap-2 py-2 px-4 rounded-md transition-all ${
+                  authMethod === 'email'
+                    ? 'bg-white text-blue-600 shadow-sm font-medium'
+                    : 'text-gray-600 hover:text-gray-800'
+                }`}
+              >
+                <Mail className="w-4 h-4" />
+                Email
+              </button>
+              <button
+                type="button"
+                onClick={() => setAuthMethod('phone')}
+                className={`flex-1 flex items-center justify-center gap-2 py-2 px-4 rounded-md transition-all ${
+                  authMethod === 'phone'
+                    ? 'bg-white text-blue-600 shadow-sm font-medium'
+                    : 'text-gray-600 hover:text-gray-800'
+                }`}
+              >
+                <Phone className="w-4 h-4" />
+                Phone
+              </button>
+            </div>
+
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Name Fields - Only for Sign Up */}
               {isSignUp && (
@@ -256,21 +316,38 @@ const Login = () => {
                 </div>
               )}
 
-              {/* Email Field */}
-              <div className="space-y-2">
-                <Label htmlFor="email" className="text-sm font-medium text-gray-700">
-                  Email Address
-                </Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="john.doe@example.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="border-gray-200 focus:border-blue-500 focus:ring-blue-500"
-                  required
-                />
-              </div>
+              {/* Email or Phone Field */}
+              {authMethod === 'email' ? (
+                <div className="space-y-2">
+                  <Label htmlFor="email" className="text-sm font-medium text-gray-700">
+                    Email Address
+                  </Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="john.doe@example.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="border-gray-200 focus:border-blue-500 focus:ring-blue-500"
+                    required
+                  />
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <Label htmlFor="phone" className="text-sm font-medium text-gray-700">
+                    Phone Number
+                  </Label>
+                  <Input
+                    id="phone"
+                    type="tel"
+                    placeholder="+1 (555) 123-4567"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    className="border-gray-200 focus:border-blue-500 focus:ring-blue-500"
+                    required
+                  />
+                </div>
+              )}
 
               {/* Password Field */}
               <div className="space-y-2">
