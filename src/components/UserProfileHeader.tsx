@@ -62,9 +62,13 @@ const UserProfileHeader = () => {
       <div className="flex items-center gap-2">
         <span className="text-gray-700 font-medium">{getDisplayName()}</span>
         {fullProfile?.email_verified ? (
-          <CheckCircle className="w-4 h-4 text-green-500" title="Email verified" />
+          <div title="Email verified">
+            <CheckCircle className="w-4 h-4 text-green-500" />
+          </div>
         ) : (
-          <AlertCircle className="w-4 h-4 text-yellow-500" title="Email not verified" />
+          <div title="Email not verified">
+            <AlertCircle className="w-4 h-4 text-yellow-500" />
+          </div>
         )}
       </div>
     </div>
