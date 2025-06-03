@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -7,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { AlertCircle, CheckCircle, Mail } from 'lucide-react';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -17,7 +19,7 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, userProfile, refreshProfile } = useAuth();
 
   // Get the current domain for redirect URLs
   const getRedirectUrl = () => {
@@ -25,12 +27,66 @@ const Login = () => {
     return currentDomain;
   };
 
-  // Redirect if already logged in
+  // Redirect if already logged in and email is verified
   useEffect(() => {
-    if (user) {
+    if (user && userProfile?.email_verified) {
       navigate('/', { replace: true });
     }
-  }, [user, navigate]);
+  }, [user, userProfile, navigate]);
+
+  // Check for email verification on component mount
+  useEffect(() => {
+    const checkEmailVerification = async () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const type = urlParams.get('type');
+      
+      if (type === 'email' || type === 'signup') {
+        // User clicked email verification link
+        toast({
+          title: "Email verified successfully!",
+          description: "Your email has been verified. You can now access all features.",
+          duration: 5000,
+        });
+        
+        // Refresh the user profile to get updated email_verified status
+        if (user) {
+          await refreshProfile();
+        }
+      }
+    };
+
+    checkEmailVerification();
+  }, [user, refreshProfile, toast]);
+
+  const handleResendVerification = async () => {
+    if (!user?.email) return;
+    
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email: user.email,
+        options: {
+          emailRedirectTo: getRedirectUrl(),
+        },
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Verification email sent!",
+        description: "Please check your email for the verification link.",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -54,7 +110,8 @@ const Login = () => {
 
         toast({
           title: "Account created successfully!",
-          description: "Please check your email to verify your account.",
+          description: "Please check your email to verify your account before signing in.",
+          duration: 7000,
         });
       } else {
         const { error } = await supabase.auth.signInWithPassword({
@@ -68,8 +125,6 @@ const Login = () => {
           title: "Welcome back!",
           description: "You have successfully signed in.",
         });
-        
-        navigate('/', { replace: true });
       }
     } catch (error: any) {
       toast({
@@ -81,6 +136,64 @@ const Login = () => {
       setLoading(false);
     }
   };
+
+  // Show email verification notice if user is logged in but email not verified
+  if (user && userProfile && !userProfile.email_verified) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-blue-50 via-white to-purple-50">
+        <div className="w-full max-w-md">
+          <div className="text-center mb-8">
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 via-red-500 to-orange-500 bg-clip-text text-transparent mb-2">
+              meetdown
+            </h1>
+            <p className="text-gray-600 text-lg">Are you down to meet?</p>
+          </div>
+
+          <Card className="backdrop-blur-sm bg-white/80 shadow-xl border-0">
+            <CardHeader className="text-center space-y-4">
+              <div className="mx-auto w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center">
+                <Mail className="w-8 h-8 text-orange-600" />
+              </div>
+              <CardTitle className="text-2xl font-semibold text-gray-800">
+                Verify Your Email
+              </CardTitle>
+              <CardDescription className="text-gray-600">
+                We've sent a verification link to <strong>{user.email}</strong>. 
+                Please click the link in your email to verify your account.
+              </CardDescription>
+            </CardHeader>
+            
+            <CardContent className="space-y-4">
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 flex items-start gap-3">
+                <AlertCircle className="w-5 h-5 text-yellow-600 mt-0.5 flex-shrink-0" />
+                <div className="text-sm text-yellow-800">
+                  <p className="font-medium">Email verification required</p>
+                  <p>You need to verify your email before you can access the app.</p>
+                </div>
+              </div>
+
+              <Button
+                onClick={handleResendVerification}
+                disabled={loading}
+                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold py-3"
+              >
+                {loading ? 'Sending...' : 'Resend Verification Email'}
+              </Button>
+
+              <div className="text-center">
+                <button 
+                  onClick={() => supabase.auth.signOut()}
+                  className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
+                >
+                  Sign out and use a different account
+                </button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-blue-50 via-white to-purple-50">
