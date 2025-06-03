@@ -6,7 +6,6 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import AuthMethodToggle from './AuthMethodToggle';
 import NameFields from './NameFields';
 
 interface AuthFormProps {
@@ -14,15 +13,32 @@ interface AuthFormProps {
 }
 
 const AuthForm: React.FC<AuthFormProps> = ({ onSuccess }) => {
-  const [email, setEmail] = useState('');
-  const [phone, setPhone] = useState('');
+  const [emailOrPhone, setEmailOrPhone] = useState('');
   const [password, setPassword] = useState('');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [isSignUp, setIsSignUp] = useState(false);
-  const [authMethod, setAuthMethod] = useState<'email' | 'phone'>('email');
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+
+  const isEmail = (input: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(input);
+  };
+
+  const isPhone = (input: string): boolean => {
+    // Remove all non-digit characters for validation
+    const digitsOnly = input.replace(/\D/g, '');
+    // Check if it's a valid phone number (10-15 digits, optionally starting with +)
+    return /^(\+?1?)?[0-9]{10,14}$/.test(digitsOnly) && digitsOnly.length >= 10;
+  };
+
+  const getInputType = (): 'email' | 'phone' | 'unknown' => {
+    if (!emailOrPhone.trim()) return 'unknown';
+    if (isEmail(emailOrPhone)) return 'email';
+    if (isPhone(emailOrPhone)) return 'phone';
+    return 'unknown';
+  };
 
   const getRedirectUrl = () => {
     const currentDomain = window.location.origin;
@@ -33,11 +49,23 @@ const AuthForm: React.FC<AuthFormProps> = ({ onSuccess }) => {
     e.preventDefault();
     setLoading(true);
 
+    const inputType = getInputType();
+    
+    if (inputType === 'unknown') {
+      toast({
+        title: "Invalid Input",
+        description: "Please enter a valid email address or phone number.",
+        variant: "destructive",
+      });
+      setLoading(false);
+      return;
+    }
+
     try {
       if (isSignUp) {
-        if (authMethod === 'email') {
+        if (inputType === 'email') {
           const { error } = await supabase.auth.signUp({
-            email,
+            email: emailOrPhone,
             password,
             options: {
               data: {
@@ -57,7 +85,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ onSuccess }) => {
           });
         } else {
           const { error } = await supabase.auth.signUp({
-            phone,
+            phone: emailOrPhone,
             password,
             options: {
               data: {
@@ -76,16 +104,16 @@ const AuthForm: React.FC<AuthFormProps> = ({ onSuccess }) => {
           });
         }
       } else {
-        if (authMethod === 'email') {
+        if (inputType === 'email') {
           const { error } = await supabase.auth.signInWithPassword({
-            email,
+            email: emailOrPhone,
             password,
           });
 
           if (error) throw error;
         } else {
           const { error } = await supabase.auth.signInWithPassword({
-            phone,
+            phone: emailOrPhone,
             password,
           });
 
@@ -110,6 +138,11 @@ const AuthForm: React.FC<AuthFormProps> = ({ onSuccess }) => {
     }
   };
 
+  const inputType = getInputType();
+  const placeholderText = inputType === 'unknown' ? 'Enter email or phone number' : 
+                         inputType === 'email' ? 'john.doe@example.com' : 
+                         '+1 (555) 123-4567';
+
   return (
     <Card className="backdrop-blur-sm bg-white/80 shadow-xl border-0">
       <CardHeader className="text-center space-y-2 pb-6">
@@ -125,8 +158,6 @@ const AuthForm: React.FC<AuthFormProps> = ({ onSuccess }) => {
       </CardHeader>
       
       <CardContent>
-        <AuthMethodToggle authMethod={authMethod} setAuthMethod={setAuthMethod} />
-
         <form onSubmit={handleSubmit} className="space-y-6">
           {isSignUp && (
             <NameFields 
@@ -137,37 +168,25 @@ const AuthForm: React.FC<AuthFormProps> = ({ onSuccess }) => {
             />
           )}
 
-          {authMethod === 'email' ? (
-            <div className="space-y-2">
-              <Label htmlFor="email" className="text-sm font-medium text-gray-700">
-                Email Address
-              </Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="john.doe@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="border-gray-200 focus:border-blue-500 focus:ring-blue-500"
-                required
-              />
-            </div>
-          ) : (
-            <div className="space-y-2">
-              <Label htmlFor="phone" className="text-sm font-medium text-gray-700">
-                Phone Number
-              </Label>
-              <Input
-                id="phone"
-                type="tel"
-                placeholder="+1 (555) 123-4567"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                className="border-gray-200 focus:border-blue-500 focus:ring-blue-500"
-                required
-              />
-            </div>
-          )}
+          <div className="space-y-2">
+            <Label htmlFor="emailOrPhone" className="text-sm font-medium text-gray-700">
+              Email or Phone Number
+            </Label>
+            <Input
+              id="emailOrPhone"
+              type="text"
+              placeholder={placeholderText}
+              value={emailOrPhone}
+              onChange={(e) => setEmailOrPhone(e.target.value)}
+              className="border-gray-200 focus:border-blue-500 focus:ring-blue-500"
+              required
+            />
+            {emailOrPhone && inputType !== 'unknown' && (
+              <p className="text-xs text-gray-500 mt-1">
+                Detected: {inputType === 'email' ? 'Email address' : 'Phone number'}
+              </p>
+            )}
+          </div>
 
           <div className="space-y-2">
             <Label htmlFor="password" className="text-sm font-medium text-gray-700">
