@@ -25,6 +25,9 @@ const EmailVerificationScreen: React.FC<EmailVerificationScreenProps> = ({ user 
     
     setLoading(true);
     try {
+      console.log('Attempting to resend verification email to:', user.email);
+      console.log('Redirect URL:', getRedirectUrl());
+      
       const { error } = await supabase.auth.resend({
         type: 'signup',
         email: user.email,
@@ -33,17 +36,34 @@ const EmailVerificationScreen: React.FC<EmailVerificationScreenProps> = ({ user 
         },
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Resend verification error:', error);
+        throw error;
+      }
 
+      console.log('Verification email resend successful');
       toast({
         title: "Verification email sent!",
-        description: "Please check your email for the verification link.",
+        description: `Please check your email (${user.email}) for the verification link. Don't forget to check your spam folder.`,
+        duration: 8000,
       });
     } catch (error: any) {
+      console.error('Error in handleResendVerification:', error);
+      
+      let errorMessage = error.message;
+      
+      // Handle specific error cases
+      if (error.message?.includes('rate limit')) {
+        errorMessage = "You've requested too many verification emails. Please wait a few minutes before trying again.";
+      } else if (error.message?.includes('invalid_request')) {
+        errorMessage = "There was an issue with the verification request. Please try signing out and signing back in.";
+      }
+      
       toast({
-        title: "Error",
-        description: error.message,
+        title: "Error sending verification email",
+        description: errorMessage,
         variant: "destructive",
+        duration: 8000,
       });
     } finally {
       setLoading(false);
@@ -79,8 +99,18 @@ const EmailVerificationScreen: React.FC<EmailVerificationScreenProps> = ({ user 
               <AlertCircle className="w-5 h-5 text-yellow-600 mt-0.5 flex-shrink-0" />
               <div className="text-sm text-yellow-800">
                 <p className="font-medium">Email verification required</p>
-                <p>You need to verify your email before you can access the app.</p>
+                <p>You need to verify your email before you can access the app. Check your spam folder if you don't see the email.</p>
               </div>
+            </div>
+
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <h4 className="font-medium text-blue-900 mb-2">Troubleshooting tips:</h4>
+              <ul className="text-sm text-blue-800 space-y-1">
+                <li>• Check your spam/junk folder</li>
+                <li>• Make sure {user.email} is correct</li>
+                <li>• Wait a few minutes for the email to arrive</li>
+                <li>• Try resending the verification email</li>
+              </ul>
             </div>
 
             <Button

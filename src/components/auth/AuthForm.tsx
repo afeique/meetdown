@@ -64,6 +64,9 @@ const AuthForm: React.FC<AuthFormProps> = ({ onSuccess }) => {
     try {
       if (isSignUp) {
         if (inputType === 'email') {
+          console.log('Attempting email signup for:', emailOrPhone);
+          console.log('Redirect URL:', getRedirectUrl());
+          
           const { error } = await supabase.auth.signUp({
             email: emailOrPhone,
             password,
@@ -76,14 +79,19 @@ const AuthForm: React.FC<AuthFormProps> = ({ onSuccess }) => {
             },
           });
 
-          if (error) throw error;
+          if (error) {
+            console.error('Signup error:', error);
+            throw error;
+          }
 
+          console.log('Signup successful');
           toast({
             title: "Account created successfully!",
-            description: "Please check your email to verify your account before signing in.",
-            duration: 7000,
+            description: "Please check your email to verify your account before signing in. Don't forget to check your spam folder.",
+            duration: 10000,
           });
         } else {
+          console.log('Attempting phone signup for:', emailOrPhone);
           const { error } = await supabase.auth.signUp({
             phone: emailOrPhone,
             password,
@@ -95,8 +103,12 @@ const AuthForm: React.FC<AuthFormProps> = ({ onSuccess }) => {
             },
           });
 
-          if (error) throw error;
+          if (error) {
+            console.error('Phone signup error:', error);
+            throw error;
+          }
 
+          console.log('Phone signup successful');
           toast({
             title: "Account created successfully!",
             description: "You can now sign in with your phone number.",
@@ -105,21 +117,30 @@ const AuthForm: React.FC<AuthFormProps> = ({ onSuccess }) => {
         }
       } else {
         if (inputType === 'email') {
+          console.log('Attempting email signin for:', emailOrPhone);
           const { error } = await supabase.auth.signInWithPassword({
             email: emailOrPhone,
             password,
           });
 
-          if (error) throw error;
+          if (error) {
+            console.error('Email signin error:', error);
+            throw error;
+          }
         } else {
+          console.log('Attempting phone signin for:', emailOrPhone);
           const { error } = await supabase.auth.signInWithPassword({
             phone: emailOrPhone,
             password,
           });
 
-          if (error) throw error;
+          if (error) {
+            console.error('Phone signin error:', error);
+            throw error;
+          }
         }
 
+        console.log('Signin successful');
         toast({
           title: "Welcome back!",
           description: "You have successfully signed in.",
@@ -128,10 +149,28 @@ const AuthForm: React.FC<AuthFormProps> = ({ onSuccess }) => {
         onSuccess?.();
       }
     } catch (error: any) {
+      console.error('Authentication error:', error);
+      
+      let errorMessage = error.message;
+      
+      // Handle specific error cases with more user-friendly messages
+      if (error.message?.includes('Invalid login credentials')) {
+        errorMessage = "Invalid email/phone or password. Please check your credentials and try again.";
+      } else if (error.message?.includes('Email not confirmed')) {
+        errorMessage = "Please check your email and click the verification link before signing in.";
+      } else if (error.message?.includes('Signup requires a valid password')) {
+        errorMessage = "Password must be at least 6 characters long.";
+      } else if (error.message?.includes('User already registered')) {
+        errorMessage = "An account with this email already exists. Try signing in instead.";
+      } else if (error.message?.includes('rate limit')) {
+        errorMessage = "Too many attempts. Please wait a moment before trying again.";
+      }
+      
       toast({
         title: "Authentication Error",
-        description: error.message,
+        description: errorMessage,
         variant: "destructive",
+        duration: 8000,
       });
     } finally {
       setLoading(false);
