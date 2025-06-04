@@ -88,7 +88,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setUserProfile(null);
         }
         
-        // Always set loading to false after handling auth state change
+        // Set loading to false after handling auth state change
         setLoading(false);
       }
     );
