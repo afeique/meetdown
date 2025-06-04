@@ -89,7 +89,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          await fetchUserProfile(session.user.id);
+          // Defer profile fetching to avoid blocking the auth flow
+          setTimeout(() => {
+            if (mounted) {
+              fetchUserProfile(session.user.id);
+            }
+          }, 0);
         } else {
           setUserProfile(null);
         }
@@ -101,23 +106,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     };
 
-    // Set up auth state listener
+    // Set up auth state listener - CRITICAL: No async operations here!
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      (event, session) => {
         console.log('Auth state changed:', event, session?.user?.id);
         
         if (!mounted) return;
         
+        // Only synchronous state updates here
         setSession(session);
         setUser(session?.user ?? null);
         
+        // Defer any Supabase calls to prevent deadlock
         if (session?.user) {
-          await fetchUserProfile(session.user.id);
+          setTimeout(() => {
+            if (mounted) {
+              fetchUserProfile(session.user.id);
+            }
+          }, 0);
         } else {
           setUserProfile(null);
         }
         
-        // Ensure loading is false after auth state change
+        // Always resolve loading state
         setLoading(false);
       }
     );
