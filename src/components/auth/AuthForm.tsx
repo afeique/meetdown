@@ -48,10 +48,10 @@ const AuthForm: React.FC<AuthFormProps> = ({ onSuccess }) => {
 
     // Validation for sign up
     if (isSignUp) {
-      if (!email && !phone) {
+      if (!email) {
         toast({
-          title: "Contact Information Required",
-          description: "Please provide either an email address or phone number.",
+          title: "Email Required",
+          description: "Please provide an email address.",
           variant: "destructive",
         });
         setLoading(false);
@@ -101,40 +101,28 @@ const AuthForm: React.FC<AuthFormProps> = ({ onSuccess }) => {
 
     try {
       if (isSignUp) {
-        // Determine primary contact method
-        const primaryContact = email || phone;
-        const inputType = email ? 'email' : 'phone';
-
+        // For signup, email is always required, phone is optional
         const result = await signUpUser({
-          emailOrPhone: primaryContact,
+          emailOrPhone: email,
           password,
           firstName,
           lastName,
-          inputType,
+          inputType: 'email',
           dateOfBirth: dateOfBirth?.toISOString().split('T')[0],
           zipCode,
           address: address || undefined,
-          email: email || undefined,
+          email: email,
           phone: phone || undefined,
         });
 
-        if (result.isEmail) {
-          console.log('Signup successful, sending custom verification email');
-          await sendVerificationEmail(email, firstName);
-          
-          toast({
-            title: "Account created successfully!",
-            description: "Please check your email to verify your account before signing in. We've sent you a beautifully designed verification email.",
-            duration: 10000,
-          });
-        } else {
-          console.log('Phone signup successful');
-          toast({
-            title: "Account created successfully!",
-            description: "You can now sign in with your phone number.",
-            duration: 5000,
-          });
-        }
+        console.log('Signup successful, sending custom verification email');
+        await sendVerificationEmail(email, firstName);
+        
+        toast({
+          title: "Account created successfully!",
+          description: "Please check your email to verify your account before signing in. We've sent you a beautifully designed verification email.",
+          duration: 10000,
+        });
       } else {
         // For sign in, use emailOrPhone from the single field
         const { getInputType } = await import('@/utils/inputValidation');

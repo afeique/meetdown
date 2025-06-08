@@ -28,7 +28,7 @@ const ContactFields: React.FC<ContactFieldsProps> = ({
         <div className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="email" className="text-sm font-medium text-gray-700">
-              Email Address <span className="text-gray-400">(optional if phone provided)</span>
+              Email Address <span className="text-red-500">*</span>
             </Label>
             <div className="relative">
               <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
@@ -39,13 +39,14 @@ const ContactFields: React.FC<ContactFieldsProps> = ({
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="pl-10 border-gray-200 focus:border-blue-500 focus:ring-blue-500"
+                required
               />
             </div>
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="phone" className="text-sm font-medium text-gray-700">
-              Phone Number <span className="text-gray-400">(optional if email provided)</span>
+              Phone Number <span className="text-gray-400">(optional)</span>
             </Label>
             <div className="relative">
               <Phone className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
