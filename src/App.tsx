@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -24,7 +25,6 @@ const App = () => (
       <AuthProvider>
         <BrowserRouter>
           <Routes>
-            {/* Handle verification on the login page - both direct access and with verification params */}
             <Route path="/feed" element={<Login />} />
             <Route path="/verify" element={<Verify />} />
             <Route path="/privacy-policy" element={<PrivacyPolicy />} />
@@ -43,13 +43,11 @@ const App = () => (
                 <MyEvents />
               </ProtectedRoute>
             } />
-            {/* Home route - redirect verification URLs to login */}
             <Route path="/" element={
               <ProtectedRoute>
                 <Index />
               </ProtectedRoute>
             } />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
@@ -57,28 +55,5 @@ const App = () => (
     </TooltipProvider>
   </QueryClientProvider>
 );
-
-// Import useNavigate and useEffect
-import { useNavigate } from 'react-router-dom';
-import { useEffect } from 'react';
-
-// Component to handle verification redirects
-const VerificationRedirect = ({ children }: { children: React.ReactNode }) => {
-  const navigate = useNavigate();
-  
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const type = urlParams.get('type');
-    const token = urlParams.get('token');
-    
-    // If this is a verification URL, redirect to login page with the parameters
-    if (type === 'email' && token) {
-      navigate(`/feed?type=${type}&token=${token}`, { replace: true });
-      return;
-    }
-  }, [navigate]);
-  
-  return <>{children}</>;
-};
 
 export default App;
