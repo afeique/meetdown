@@ -150,10 +150,20 @@ const AuthForm: React.FC<AuthFormProps> = ({ onSuccess }) => {
           return;
         }
 
+        if (inputType === 'unknown') {
+          toast({
+            title: "Invalid Contact Information",
+            description: "Please enter a valid email address or phone number.",
+            variant: "destructive",
+          });
+          setLoading(false);
+          return;
+        }
+
         await signInUser({
           emailOrPhone,
           password,
-          inputType,
+          inputType: inputType as 'email' | 'phone',
         });
 
         console.log('Signin successful');
@@ -178,17 +188,6 @@ const AuthForm: React.FC<AuthFormProps> = ({ onSuccess }) => {
     } finally {
       setLoading(false);
     }
-  };
-
-  const validateAge = (birthDate: Date): boolean => {
-    const today = new Date();
-    const age = today.getFullYear() - birthDate.getFullYear();
-    const monthDiff = today.getMonth() - birthDate.getMonth();
-    
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-      return age - 1 >= 13;
-    }
-    return age >= 13;
   };
 
   return (
