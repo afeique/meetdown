@@ -8,6 +8,11 @@ interface SignUpData {
   firstName: string;
   lastName: string;
   inputType: 'email' | 'phone';
+  dateOfBirth?: string;
+  zipCode?: string;
+  address?: string;
+  email?: string;
+  phone?: string;
 }
 
 interface SignInData {
@@ -17,7 +22,7 @@ interface SignInData {
 }
 
 export const signUpUser = async (data: SignUpData) => {
-  const { emailOrPhone, password, firstName, lastName, inputType } = data;
+  const { emailOrPhone, password, firstName, lastName, inputType, dateOfBirth, zipCode, address, email, phone } = data;
 
   if (inputType === 'email') {
     console.log('Attempting email signup for:', emailOrPhone);
@@ -29,6 +34,11 @@ export const signUpUser = async (data: SignUpData) => {
         data: {
           first_name: firstName,
           last_name: lastName,
+          date_of_birth: dateOfBirth,
+          zip_code: zipCode,
+          address: address,
+          email: email,
+          phone: phone,
         },
         emailRedirectTo: window.location.origin,
       },
@@ -51,6 +61,11 @@ export const signUpUser = async (data: SignUpData) => {
         data: {
           first_name: firstName,
           last_name: lastName,
+          date_of_birth: dateOfBirth,
+          zip_code: zipCode,
+          address: address,
+          email: email,
+          phone: phone,
         },
       },
     });

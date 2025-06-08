@@ -4,54 +4,121 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { useCustomEmailVerification } from '@/hooks/useCustomEmailVerification';
-import { getInputType } from '@/utils/inputValidation';
 import { signUpUser, signInUser, getAuthErrorMessage } from '@/services/authService';
 import NameFields from './NameFields';
-import AuthFormField from './AuthFormField';
+import ContactFields from './ContactFields';
+import PersonalInfoFields from './PersonalInfoFields';
+import AddressFields from './AddressFields';
 
 interface AuthFormProps {
   onSuccess?: () => void;
 }
 
 const AuthForm: React.FC<AuthFormProps> = ({ onSuccess }) => {
-  const [emailOrPhone, setEmailOrPhone] = useState('');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
+  const [dateOfBirth, setDateOfBirth] = useState<Date | undefined>();
+  const [ageVerified, setAgeVerified] = useState(false);
+  const [zipCode, setZipCode] = useState('');
+  const [address, setAddress] = useState('');
   const [isSignUp, setIsSignUp] = useState(false);
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   const { sendVerificationEmail } = useCustomEmailVerification();
 
+  const validateAge = (birthDate: Date): boolean => {
+    const today = new Date();
+    const age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      return age - 1 >= 13;
+    }
+    return age >= 13;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
-    const inputType = getInputType(emailOrPhone);
-    
-    if (inputType === 'unknown') {
-      toast({
-        title: "Invalid Input",
-        description: "Please enter a valid email address or phone number.",
-        variant: "destructive",
-      });
-      setLoading(false);
-      return;
+    // Validation for sign up
+    if (isSignUp) {
+      if (!email && !phone) {
+        toast({
+          title: "Contact Information Required",
+          description: "Please provide either an email address or phone number.",
+          variant: "destructive",
+        });
+        setLoading(false);
+        return;
+      }
+
+      if (!dateOfBirth) {
+        toast({
+          title: "Date of Birth Required",
+          description: "Please select your date of birth.",
+          variant: "destructive",
+        });
+        setLoading(false);
+        return;
+      }
+
+      if (dateOfBirth >= new Date()) {
+        toast({
+          title: "Invalid Date of Birth",
+          description: "Date of birth must be before today.",
+          variant: "destructive",
+        });
+        setLoading(false);
+        return;
+      }
+
+      if (!validateAge(dateOfBirth)) {
+        toast({
+          title: "Age Requirement",
+          description: "You must be at least 13 years old to register.",
+          variant: "destructive",
+        });
+        setLoading(false);
+        return;
+      }
+
+      if (!ageVerified) {
+        toast({
+          title: "Age Verification Required",
+          description: "Please confirm that you are at least 13 years of age.",
+          variant: "destructive",
+        });
+        setLoading(false);
+        return;
+      }
     }
 
     try {
       if (isSignUp) {
+        // Determine primary contact method
+        const primaryContact = email || phone;
+        const inputType = email ? 'email' : 'phone';
+
         const result = await signUpUser({
-          emailOrPhone,
+          emailOrPhone: primaryContact,
           password,
           firstName,
           lastName,
           inputType,
+          dateOfBirth: dateOfBirth?.toISOString().split('T')[0],
+          zipCode,
+          address: address || undefined,
+          email: email || undefined,
+          phone: phone || undefined,
         });
 
         if (result.isEmail) {
           console.log('Signup successful, sending custom verification email');
-          await sendVerificationEmail(emailOrPhone, firstName);
+          await sendVerificationEmail(email, firstName);
           
           toast({
             title: "Account created successfully!",
@@ -67,8 +134,22 @@ const AuthForm: React.FC<AuthFormProps> = ({ onSuccess }) => {
           });
         }
       } else {
+        // For sign in, use the primary contact method
+        const primaryContact = email || phone;
+        const inputType = email ? 'email' : 'phone';
+
+        if (!primaryContact) {
+          toast({
+            title: "Contact Information Required",
+            description: "Please provide either an email address or phone number.",
+            variant: "destructive",
+          });
+          setLoading(false);
+          return;
+        }
+
         await signInUser({
-          emailOrPhone,
+          emailOrPhone: primaryContact,
           password,
           inputType,
         });
@@ -114,20 +195,50 @@ const AuthForm: React.FC<AuthFormProps> = ({ onSuccess }) => {
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
           {isSignUp && (
-            <NameFields 
-              firstName={firstName}
-              lastName={lastName}
-              setFirstName={setFirstName}
-              setLastName={setLastName}
-            />
+            <>
+              <NameFields 
+                firstName={firstName}
+                lastName={lastName}
+                setFirstName={setFirstName}
+                setLastName={setLastName}
+              />
+
+              <ContactFields
+                email={email}
+                phone={phone}
+                setEmail={setEmail}
+                setPhone={setPhone}
+                password={password}
+                setPassword={setPassword}
+              />
+
+              <PersonalInfoFields
+                dateOfBirth={dateOfBirth}
+                setDateOfBirth={setDateOfBirth}
+                ageVerified={ageVerified}
+                setAgeVerified={setAgeVerified}
+              />
+
+              <AddressFields
+                zipCode={zipCode}
+                address={address}
+                setZipCode={setZipCode}
+                setAddress={setAddress}
+              />
+            </>
           )}
 
-          <AuthFormField
-            emailOrPhone={emailOrPhone}
-            setEmailOrPhone={setEmailOrPhone}
-            password={password}
-            setPassword={setPassword}
-          />
+          {!isSignUp && (
+            <ContactFields
+              email={email}
+              phone={phone}
+              setEmail={setEmail}
+              setPhone={setPhone}
+              password={password}
+              setPassword={setPassword}
+              isSignIn={true}
+            />
+          )}
 
           <Button
             type="submit"
