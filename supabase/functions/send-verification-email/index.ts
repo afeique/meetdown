@@ -57,9 +57,9 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    // Use meetdown.org domain instead of the Lovable URL
+    // Use meetdown.org domain and point to /verify route
     const productionUrl = "https://meetdown.org";
-    const verificationUrl = `${productionUrl}?token=${token}&type=email`;
+    const verificationUrl = `${productionUrl}/verify?token=${token}&type=email`;
 
     console.log('Using verification URL:', verificationUrl);
 

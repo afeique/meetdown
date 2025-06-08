@@ -1,17 +1,13 @@
 
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
-import { useCustomEmailVerification } from '@/hooks/useCustomEmailVerification';
 import AuthForm from '@/components/auth/AuthForm';
 import EmailVerificationScreen from '@/components/auth/EmailVerificationScreen';
 
 const Login = () => {
-  const { toast } = useToast();
   const navigate = useNavigate();
-  const { user, userProfile, refreshProfile } = useAuth();
-  const { verifyEmailToken } = useCustomEmailVerification();
+  const { user, userProfile } = useAuth();
 
   // Redirect if already logged in and email is verified
   useEffect(() => {
@@ -19,60 +15,6 @@ const Login = () => {
       navigate('/', { replace: true });
     }
   }, [user, userProfile, navigate]);
-
-  // Check for email verification on component mount - check both current URL and referrer
-  useEffect(() => {
-    const checkEmailVerification = async () => {
-      // Check current URL first
-      let urlParams = new URLSearchParams(window.location.search);
-      let type = urlParams.get('type');
-      let token = urlParams.get('token');
-      
-      // If not found in current URL, check if we were redirected from a verification URL
-      if (!token && window.location.pathname === '/feed') {
-        // Check if the referrer or previous URL had verification parameters
-        const searchParams = new URLSearchParams(window.location.search);
-        type = searchParams.get('type');
-        token = searchParams.get('token');
-      }
-      
-      if (type === 'email' && token) {
-        console.log('Processing email verification with token:', token);
-        
-        try {
-          // Verify the token
-          const result = await verifyEmailToken(token);
-          
-          if (result.success) {
-            // Refresh the user profile to get updated email_verified status
-            if (user) {
-              await refreshProfile();
-            }
-            
-            // Clear the URL parameters
-            window.history.replaceState({}, document.title, window.location.pathname);
-            
-            toast({
-              title: "Email verified successfully!",
-              description: "Your email has been verified. Redirecting to home page...",
-              duration: 3000,
-            });
-            
-            // Navigate to home page
-            setTimeout(() => {
-              navigate('/', { replace: true });
-            }, 1000);
-          }
-        } catch (error) {
-          console.error('Error during email verification:', error);
-          // Clear the URL parameters even on error
-          window.history.replaceState({}, document.title, window.location.pathname);
-        }
-      }
-    };
-
-    checkEmailVerification();
-  }, [user, refreshProfile, verifyEmailToken, navigate, toast]);
 
   // Show email verification notice if user is logged in but email not verified
   if (user && userProfile && !userProfile.email_verified && user.email) {

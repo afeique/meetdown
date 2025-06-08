@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -8,6 +7,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
+import Verify from "./pages/Verify";
 import Profile from "./pages/Profile";
 import Followers from "./pages/Followers";
 import MyEvents from "./pages/MyEvents";
@@ -26,6 +26,7 @@ const App = () => (
           <Routes>
             {/* Handle verification on the login page - both direct access and with verification params */}
             <Route path="/feed" element={<Login />} />
+            <Route path="/verify" element={<Verify />} />
             <Route path="/privacy-policy" element={<PrivacyPolicy />} />
             <Route path="/profile" element={
               <ProtectedRoute>
@@ -44,11 +45,9 @@ const App = () => (
             } />
             {/* Home route - redirect verification URLs to login */}
             <Route path="/" element={
-              <VerificationRedirect>
-                <ProtectedRoute>
-                  <Index />
-                </ProtectedRoute>
-              </VerificationRedirect>
+              <ProtectedRoute>
+                <Index />
+              </ProtectedRoute>
             } />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
@@ -58,6 +57,10 @@ const App = () => (
     </TooltipProvider>
   </QueryClientProvider>
 );
+
+// Import useNavigate and useEffect
+import { useNavigate } from 'react-router-dom';
+import { useEffect } from 'react';
 
 // Component to handle verification redirects
 const VerificationRedirect = ({ children }: { children: React.ReactNode }) => {
@@ -77,9 +80,5 @@ const VerificationRedirect = ({ children }: { children: React.ReactNode }) => {
   
   return <>{children}</>;
 };
-
-// Import useNavigate and useEffect
-import { useNavigate } from 'react-router-dom';
-import { useEffect } from 'react';
 
 export default App;
