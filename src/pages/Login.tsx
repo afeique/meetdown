@@ -30,28 +30,40 @@ const Login = () => {
       if (type === 'email' && token) {
         console.log('Processing email verification with token:', token);
         
-        // Verify the token
-        const result = await verifyEmailToken(token);
-        
-        if (result.success) {
-          // Refresh the user profile to get updated email_verified status
-          if (user) {
-            await refreshProfile();
+        try {
+          // Verify the token
+          const result = await verifyEmailToken(token);
+          
+          if (result.success) {
+            // Refresh the user profile to get updated email_verified status
+            if (user) {
+              await refreshProfile();
+            }
+            
+            // Clear the URL parameters
+            window.history.replaceState({}, document.title, window.location.pathname);
+            
+            toast({
+              title: "Email verified successfully!",
+              description: "Your email has been verified. Redirecting to home page...",
+              duration: 3000,
+            });
+            
+            // Navigate to home page
+            setTimeout(() => {
+              navigate('/', { replace: true });
+            }, 1000);
           }
-          
-          // Clear the URL parameters
+        } catch (error) {
+          console.error('Error during email verification:', error);
+          // Clear the URL parameters even on error
           window.history.replaceState({}, document.title, window.location.pathname);
-          
-          // Navigate to home page
-          setTimeout(() => {
-            navigate('/', { replace: true });
-          }, 1000);
         }
       }
     };
 
     checkEmailVerification();
-  }, [user, refreshProfile, verifyEmailToken, navigate]);
+  }, [user, refreshProfile, verifyEmailToken, navigate, toast]);
 
   // Show email verification notice if user is logged in but email not verified
   if (user && userProfile && !userProfile.email_verified && user.email) {

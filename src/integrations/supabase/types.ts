@@ -54,6 +54,30 @@ export type Database = {
         }
         Relationships: []
       }
+      email_verification_tokens: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          token: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          token: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          token?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       event_registrations: {
         Row: {
           created_at: string
