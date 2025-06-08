@@ -8,7 +8,6 @@ import { validateSignUpForm } from './AuthFormValidation';
 import NameFields from './NameFields';
 import ContactFields from './ContactFields';
 import PersonalInfoFields from './PersonalInfoFields';
-import AddressFields from './AddressFields';
 
 interface SignUpFormProps {
   onSuccess?: () => void;
@@ -23,8 +22,6 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ onSuccess, onToggleMode }) => {
   const [lastName, setLastName] = useState('');
   const [dateOfBirth, setDateOfBirth] = useState<Date | undefined>();
   const [ageVerified, setAgeVerified] = useState(false);
-  const [zipCode, setZipCode] = useState('');
-  const [address, setAddress] = useState('');
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   const { sendVerificationEmail } = useCustomEmailVerification();
@@ -52,8 +49,6 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ onSuccess, onToggleMode }) => {
         lastName,
         inputType: 'email',
         dateOfBirth: dateOfBirth?.toISOString().split('T')[0],
-        zipCode,
-        address: address || undefined,
         email: email,
         phone: phone || undefined,
       });
@@ -105,13 +100,6 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ onSuccess, onToggleMode }) => {
         setDateOfBirth={setDateOfBirth}
         ageVerified={ageVerified}
         setAgeVerified={setAgeVerified}
-      />
-
-      <AddressFields
-        zipCode={zipCode}
-        address={address}
-        setZipCode={setZipCode}
-        setAddress={setAddress}
       />
 
       <Button

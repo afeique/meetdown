@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { formatPhoneNumber } from '@/utils/phoneUtils';
 
@@ -9,8 +8,6 @@ interface SignUpData {
   lastName: string;
   inputType: 'email' | 'phone';
   dateOfBirth?: string;
-  zipCode?: string;
-  address?: string;
   email?: string;
   phone?: string;
 }
@@ -22,7 +19,7 @@ interface SignInData {
 }
 
 export const signUpUser = async (data: SignUpData) => {
-  const { emailOrPhone, password, firstName, lastName, inputType, dateOfBirth, zipCode, address, email, phone } = data;
+  const { emailOrPhone, password, firstName, lastName, inputType, dateOfBirth, email, phone } = data;
 
   if (inputType === 'email') {
     console.log('Attempting email signup for:', emailOrPhone);
@@ -35,8 +32,6 @@ export const signUpUser = async (data: SignUpData) => {
           first_name: firstName,
           last_name: lastName,
           date_of_birth: dateOfBirth,
-          zip_code: zipCode,
-          address: address,
           email: email,
           phone: phone,
         },
@@ -62,8 +57,6 @@ export const signUpUser = async (data: SignUpData) => {
           first_name: firstName,
           last_name: lastName,
           date_of_birth: dateOfBirth,
-          zip_code: zipCode,
-          address: address,
           email: email,
           phone: phone,
         },
