@@ -33,7 +33,7 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ onSuccess, onToggleMode }) => {
     e.preventDefault();
     setLoading(true);
 
-    const validation = validateSignUpForm(email, dateOfBirth, ageVerified);
+    const validation = validateSignUpForm(email, password, dateOfBirth, ageVerified);
     if (!validation.isValid) {
       toast({
         title: validation.error!.title,

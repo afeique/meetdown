@@ -12,6 +12,7 @@ export const validateAge = (birthDate: Date): boolean => {
 
 export const validateSignUpForm = (
   email: string,
+  password: string,
   dateOfBirth: Date | undefined,
   ageVerified: boolean
 ) => {
@@ -21,6 +22,26 @@ export const validateSignUpForm = (
       error: {
         title: "Email Required",
         description: "Please provide an email address.",
+      }
+    };
+  }
+
+  if (!password) {
+    return {
+      isValid: false,
+      error: {
+        title: "Password Required",
+        description: "Please provide a password.",
+      }
+    };
+  }
+
+  if (password.length < 8) {
+    return {
+      isValid: false,
+      error: {
+        title: "Password Too Short",
+        description: "Password must be at least 8 characters long.",
       }
     };
   }

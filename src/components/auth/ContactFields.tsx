@@ -2,6 +2,7 @@
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Mail, Phone } from 'lucide-react';
+import PasswordStrengthChecker from './PasswordStrengthChecker';
 
 interface ContactFieldsProps {
   email: string;
@@ -65,7 +66,7 @@ const ContactFields: React.FC<ContactFieldsProps> = ({
 
       <div className="space-y-2">
         <Label htmlFor="password" className="text-sm font-medium text-gray-700">
-          Password
+          Password {!isSignIn && <span className="text-red-500">*</span>}
         </Label>
         <Input
           id="password"
@@ -76,6 +77,7 @@ const ContactFields: React.FC<ContactFieldsProps> = ({
           className="border-gray-200 focus:border-blue-500 focus:ring-blue-500"
           required
         />
+        {!isSignIn && <PasswordStrengthChecker password={password} />}
       </div>
     </>
   );
