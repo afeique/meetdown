@@ -28,9 +28,13 @@ const handler = async (req: Request): Promise<Response> => {
     const { email, token, redirectUrl, firstName }: VerificationEmailRequest = await req.json();
 
     console.log('Sending verification email to:', email);
-    console.log('Redirect URL:', redirectUrl);
+    console.log('Original redirect URL:', redirectUrl);
 
-    const verificationUrl = `${redirectUrl}?token=${token}&type=email`;
+    // Use meetdown.org domain instead of the Lovable URL
+    const productionUrl = "https://meetdown.org";
+    const verificationUrl = `${productionUrl}?token=${token}&type=email`;
+
+    console.log('Using verification URL:', verificationUrl);
 
     const emailResponse = await resend.emails.send({
       from: "Meetdown <onboarding@resend.dev>",
