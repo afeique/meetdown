@@ -35,6 +35,29 @@ const AuthForm: React.FC<AuthFormProps> = ({ onSuccess }) => {
     return /^(\+?1?)?[0-9]{10,14}$/.test(digitsOnly) && digitsOnly.length >= 10;
   };
 
+  const formatPhoneNumber = (input: string): string => {
+    // Remove all non-digit characters except +
+    const cleaned = input.replace(/[^\d+]/g, '');
+    
+    // If it doesn't start with +, add +1 for US numbers
+    if (cleaned.match(/^\d{10}$/)) {
+      return `+1${cleaned}`;
+    }
+    
+    // If it starts with 1 and has 11 digits, add +
+    if (cleaned.match(/^1\d{10}$/)) {
+      return `+${cleaned}`;
+    }
+    
+    // If it already starts with +, return as is
+    if (cleaned.startsWith('+')) {
+      return cleaned;
+    }
+    
+    // For other formats, add + if not present
+    return cleaned.startsWith('+') ? cleaned : `+${cleaned}`;
+  };
+
   const getInputType = (): 'email' | 'phone' | 'unknown' => {
     if (!emailOrPhone.trim()) return 'unknown';
     if (isEmail(emailOrPhone)) return 'email';
@@ -63,8 +86,6 @@ const AuthForm: React.FC<AuthFormProps> = ({ onSuccess }) => {
         if (inputType === 'email') {
           console.log('Attempting email signup for:', emailOrPhone);
           
-          // For email signups, we'll disable Supabase's built-in email confirmation
-          // and handle it with our custom system
           const { data, error } = await supabase.auth.signUp({
             email: emailOrPhone,
             password,
@@ -84,7 +105,6 @@ const AuthForm: React.FC<AuthFormProps> = ({ onSuccess }) => {
 
           console.log('Signup successful, sending custom verification email');
           
-          // Send our custom verification email
           await sendVerificationEmail(emailOrPhone, firstName);
           
           toast({
@@ -94,8 +114,10 @@ const AuthForm: React.FC<AuthFormProps> = ({ onSuccess }) => {
           });
         } else {
           console.log('Attempting phone signup for:', emailOrPhone);
-          const { error } = await supabase.auth.signUp({
-            phone: emailOrPhone,
+          const formattedPhone = formatPhoneNumber(emailOrPhone);
+          
+          const { data, error } = await supabase.auth.signUp({
+            phone: formattedPhone,
             password,
             options: {
               data: {
@@ -131,8 +153,10 @@ const AuthForm: React.FC<AuthFormProps> = ({ onSuccess }) => {
           }
         } else {
           console.log('Attempting phone signin for:', emailOrPhone);
+          const formattedPhone = formatPhoneNumber(emailOrPhone);
+          
           const { error } = await supabase.auth.signInWithPassword({
-            phone: emailOrPhone,
+            phone: formattedPhone,
             password,
           });
 
@@ -163,9 +187,11 @@ const AuthForm: React.FC<AuthFormProps> = ({ onSuccess }) => {
       } else if (error.message?.includes('Signup requires a valid password')) {
         errorMessage = "Password must be at least 6 characters long.";
       } else if (error.message?.includes('User already registered')) {
-        errorMessage = "An account with this email already exists. Try signing in instead.";
+        errorMessage = "An account with this email/phone already exists. Try signing in instead.";
       } else if (error.message?.includes('rate limit')) {
         errorMessage = "Too many attempts. Please wait a moment before trying again.";
+      } else if (error.message?.includes('Invalid phone number format')) {
+        errorMessage = "Please enter a valid phone number with country code (e.g., +1234567890).";
       }
       
       toast({
@@ -225,6 +251,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ onSuccess }) => {
             {emailOrPhone && inputType !== 'unknown' && (
               <p className="text-xs text-gray-500 mt-1">
                 Detected: {inputType === 'email' ? 'Email address' : 'Phone number'}
+                {inputType === 'phone' && ` (will be formatted as: ${formatPhoneNumber(emailOrPhone)})`}
               </p>
             )}
           </div>
