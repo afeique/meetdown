@@ -1,13 +1,13 @@
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
 import { useCustomEmailVerification } from '@/hooks/useCustomEmailVerification';
+import { getInputType } from '@/utils/inputValidation';
+import { signUpUser, signInUser, getAuthErrorMessage } from '@/services/authService';
 import NameFields from './NameFields';
+import AuthFormField from './AuthFormField';
 
 interface AuthFormProps {
   onSuccess?: () => void;
@@ -23,53 +23,11 @@ const AuthForm: React.FC<AuthFormProps> = ({ onSuccess }) => {
   const { toast } = useToast();
   const { sendVerificationEmail } = useCustomEmailVerification();
 
-  const isEmail = (input: string): boolean => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(input);
-  };
-
-  const isPhone = (input: string): boolean => {
-    // Remove all non-digit characters for validation
-    const digitsOnly = input.replace(/\D/g, '');
-    // Check if it's a valid phone number (10-15 digits, optionally starting with +)
-    return /^(\+?1?)?[0-9]{10,14}$/.test(digitsOnly) && digitsOnly.length >= 10;
-  };
-
-  const formatPhoneNumber = (input: string): string => {
-    // Remove all non-digit characters except +
-    const cleaned = input.replace(/[^\d+]/g, '');
-    
-    // If it doesn't start with +, add +1 for US numbers
-    if (cleaned.match(/^\d{10}$/)) {
-      return `+1${cleaned}`;
-    }
-    
-    // If it starts with 1 and has 11 digits, add +
-    if (cleaned.match(/^1\d{10}$/)) {
-      return `+${cleaned}`;
-    }
-    
-    // If it already starts with +, return as is
-    if (cleaned.startsWith('+')) {
-      return cleaned;
-    }
-    
-    // For other formats, add + if not present
-    return cleaned.startsWith('+') ? cleaned : `+${cleaned}`;
-  };
-
-  const getInputType = (): 'email' | 'phone' | 'unknown' => {
-    if (!emailOrPhone.trim()) return 'unknown';
-    if (isEmail(emailOrPhone)) return 'email';
-    if (isPhone(emailOrPhone)) return 'phone';
-    return 'unknown';
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
-    const inputType = getInputType();
+    const inputType = getInputType(emailOrPhone);
     
     if (inputType === 'unknown') {
       toast({
@@ -83,28 +41,16 @@ const AuthForm: React.FC<AuthFormProps> = ({ onSuccess }) => {
 
     try {
       if (isSignUp) {
-        if (inputType === 'email') {
-          console.log('Attempting email signup for:', emailOrPhone);
-          
-          const { data, error } = await supabase.auth.signUp({
-            email: emailOrPhone,
-            password,
-            options: {
-              data: {
-                first_name: firstName,
-                last_name: lastName,
-              },
-              emailRedirectTo: window.location.origin,
-            },
-          });
+        const result = await signUpUser({
+          emailOrPhone,
+          password,
+          firstName,
+          lastName,
+          inputType,
+        });
 
-          if (error) {
-            console.error('Signup error:', error);
-            throw error;
-          }
-
+        if (result.isEmail) {
           console.log('Signup successful, sending custom verification email');
-          
           await sendVerificationEmail(emailOrPhone, firstName);
           
           toast({
@@ -113,25 +59,6 @@ const AuthForm: React.FC<AuthFormProps> = ({ onSuccess }) => {
             duration: 10000,
           });
         } else {
-          console.log('Attempting phone signup for:', emailOrPhone);
-          const formattedPhone = formatPhoneNumber(emailOrPhone);
-          
-          const { data, error } = await supabase.auth.signUp({
-            phone: formattedPhone,
-            password,
-            options: {
-              data: {
-                first_name: firstName,
-                last_name: lastName,
-              },
-            },
-          });
-
-          if (error) {
-            console.error('Phone signup error:', error);
-            throw error;
-          }
-
           console.log('Phone signup successful');
           toast({
             title: "Account created successfully!",
@@ -140,31 +67,11 @@ const AuthForm: React.FC<AuthFormProps> = ({ onSuccess }) => {
           });
         }
       } else {
-        if (inputType === 'email') {
-          console.log('Attempting email signin for:', emailOrPhone);
-          const { error } = await supabase.auth.signInWithPassword({
-            email: emailOrPhone,
-            password,
-          });
-
-          if (error) {
-            console.error('Email signin error:', error);
-            throw error;
-          }
-        } else {
-          console.log('Attempting phone signin for:', emailOrPhone);
-          const formattedPhone = formatPhoneNumber(emailOrPhone);
-          
-          const { error } = await supabase.auth.signInWithPassword({
-            phone: formattedPhone,
-            password,
-          });
-
-          if (error) {
-            console.error('Phone signin error:', error);
-            throw error;
-          }
-        }
+        await signInUser({
+          emailOrPhone,
+          password,
+          inputType,
+        });
 
         console.log('Signin successful');
         toast({
@@ -177,22 +84,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ onSuccess }) => {
     } catch (error: any) {
       console.error('Authentication error:', error);
       
-      let errorMessage = error.message;
-      
-      // Handle specific error cases with more user-friendly messages
-      if (error.message?.includes('Invalid login credentials')) {
-        errorMessage = "Invalid email/phone or password. Please check your credentials and try again.";
-      } else if (error.message?.includes('Email not confirmed')) {
-        errorMessage = "Please check your email and click the verification link before signing in.";
-      } else if (error.message?.includes('Signup requires a valid password')) {
-        errorMessage = "Password must be at least 6 characters long.";
-      } else if (error.message?.includes('User already registered')) {
-        errorMessage = "An account with this email/phone already exists. Try signing in instead.";
-      } else if (error.message?.includes('rate limit')) {
-        errorMessage = "Too many attempts. Please wait a moment before trying again.";
-      } else if (error.message?.includes('Invalid phone number format')) {
-        errorMessage = "Please enter a valid phone number with country code (e.g., +1234567890).";
-      }
+      const errorMessage = getAuthErrorMessage(error);
       
       toast({
         title: "Authentication Error",
@@ -204,11 +96,6 @@ const AuthForm: React.FC<AuthFormProps> = ({ onSuccess }) => {
       setLoading(false);
     }
   };
-
-  const inputType = getInputType();
-  const placeholderText = inputType === 'unknown' ? 'Enter email or phone number' : 
-                         inputType === 'email' ? 'john.doe@example.com' : 
-                         '+1 (555) 123-4567';
 
   return (
     <Card className="backdrop-blur-sm bg-white/80 shadow-xl border-0">
@@ -235,41 +122,12 @@ const AuthForm: React.FC<AuthFormProps> = ({ onSuccess }) => {
             />
           )}
 
-          <div className="space-y-2">
-            <Label htmlFor="emailOrPhone" className="text-sm font-medium text-gray-700">
-              Email or Phone Number
-            </Label>
-            <Input
-              id="emailOrPhone"
-              type="text"
-              placeholder={placeholderText}
-              value={emailOrPhone}
-              onChange={(e) => setEmailOrPhone(e.target.value)}
-              className="border-gray-200 focus:border-blue-500 focus:ring-blue-500"
-              required
-            />
-            {emailOrPhone && inputType !== 'unknown' && (
-              <p className="text-xs text-gray-500 mt-1">
-                Detected: {inputType === 'email' ? 'Email address' : 'Phone number'}
-                {inputType === 'phone' && ` (will be formatted as: ${formatPhoneNumber(emailOrPhone)})`}
-              </p>
-            )}
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="password" className="text-sm font-medium text-gray-700">
-              Password
-            </Label>
-            <Input
-              id="password"
-              type="password"
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="border-gray-200 focus:border-blue-500 focus:ring-blue-500"
-              required
-            />
-          </div>
+          <AuthFormField
+            emailOrPhone={emailOrPhone}
+            setEmailOrPhone={setEmailOrPhone}
+            password={password}
+            setPassword={setPassword}
+          />
 
           <Button
             type="submit"
