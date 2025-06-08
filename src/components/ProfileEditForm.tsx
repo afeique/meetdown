@@ -317,9 +317,13 @@ const ProfileEditForm = () => {
               <Label htmlFor="email" className="flex items-center gap-2">
                 Email Address
                 {profile?.email_verified ? (
-                  <CheckCircle className="w-4 h-4 text-green-500" title="Email verified" />
+                  <div title="Email verified">
+                    <CheckCircle className="w-4 h-4 text-green-500" />
+                  </div>
                 ) : (
-                  <AlertCircle className="w-4 h-4 text-yellow-500" title="Email not verified" />
+                  <div title="Email not verified">
+                    <AlertCircle className="w-4 h-4 text-yellow-500" />
+                  </div>
                 )}
               </Label>
               <Input
@@ -341,9 +345,13 @@ const ProfileEditForm = () => {
               <Label htmlFor="phone" className="flex items-center gap-2">
                 Phone Number
                 {profile?.phone_verified ? (
-                  <CheckCircle className="w-4 h-4 text-green-500" title="Phone verified" />
+                  <div title="Phone verified">
+                    <CheckCircle className="w-4 h-4 text-green-500" />
+                  </div>
                 ) : (
-                  <AlertCircle className="w-4 h-4 text-yellow-500" title="Phone not verified" />
+                  <div title="Phone not verified">
+                    <AlertCircle className="w-4 h-4 text-yellow-500" />
+                  </div>
                 )}
               </Label>
               <Input
