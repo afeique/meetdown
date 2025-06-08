@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { useCustomEmailVerification } from '@/hooks/useCustomEmailVerification';
 import { AlertCircle, Mail } from 'lucide-react';
 import { User } from '@supabase/supabase-js';
 
@@ -14,61 +15,41 @@ interface EmailVerificationScreenProps {
 const EmailVerificationScreen: React.FC<EmailVerificationScreenProps> = ({ user }) => {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
-
-  const getRedirectUrl = () => {
-    const currentDomain = window.location.origin;
-    return currentDomain;
-  };
+  const { sendVerificationEmail, loading: customEmailLoading } = useCustomEmailVerification();
 
   const handleResendVerification = async () => {
     if (!user?.email) return;
     
     setLoading(true);
     try {
-      console.log('Attempting to resend verification email to:', user.email);
-      console.log('Redirect URL:', getRedirectUrl());
+      // Get user's first name from user metadata
+      const firstName = user.user_metadata?.first_name;
       
-      const { error } = await supabase.auth.resend({
-        type: 'signup',
-        email: user.email,
-        options: {
-          emailRedirectTo: getRedirectUrl(),
-        },
-      });
-
-      if (error) {
-        console.error('Resend verification error:', error);
-        throw error;
+      // Use our custom email verification system
+      const result = await sendVerificationEmail(user.email, firstName);
+      
+      if (!result.success) {
+        throw new Error(result.error);
       }
-
-      console.log('Verification email resend successful');
-      toast({
-        title: "Verification email sent!",
-        description: `Please check your email (${user.email}) for the verification link. Don't forget to check your spam folder.`,
-        duration: 8000,
-      });
     } catch (error: any) {
       console.error('Error in handleResendVerification:', error);
       
-      let errorMessage = error.message;
-      
-      // Handle specific error cases
-      if (error.message?.includes('rate limit')) {
-        errorMessage = "You've requested too many verification emails. Please wait a few minutes before trying again.";
-      } else if (error.message?.includes('invalid_request')) {
-        errorMessage = "There was an issue with the verification request. Please try signing out and signing back in.";
+      // The error handling is done in the custom hook
+      // This is just for any unexpected errors
+      if (!error.message?.includes('rate limit')) {
+        toast({
+          title: "Error sending verification email",
+          description: "An unexpected error occurred. Please try again.",
+          variant: "destructive",
+          duration: 8000,
+        });
       }
-      
-      toast({
-        title: "Error sending verification email",
-        description: errorMessage,
-        variant: "destructive",
-        duration: 8000,
-      });
     } finally {
       setLoading(false);
     }
   };
+
+  const isLoading = loading || customEmailLoading;
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-blue-50 via-white to-purple-50">
@@ -115,10 +96,10 @@ const EmailVerificationScreen: React.FC<EmailVerificationScreenProps> = ({ user 
 
             <Button
               onClick={handleResendVerification}
-              disabled={loading}
+              disabled={isLoading}
               className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold py-3"
             >
-              {loading ? 'Sending...' : 'Resend Verification Email'}
+              {isLoading ? 'Sending...' : 'Resend Verification Email'}
             </Button>
 
             <div className="text-center">

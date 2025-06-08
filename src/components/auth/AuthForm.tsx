@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { useCustomEmailVerification } from '@/hooks/useCustomEmailVerification';
 import NameFields from './NameFields';
 
 interface AuthFormProps {
@@ -20,6 +21,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ onSuccess }) => {
   const [isSignUp, setIsSignUp] = useState(false);
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+  const { sendVerificationEmail } = useCustomEmailVerification();
 
   const isEmail = (input: string): boolean => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -38,11 +40,6 @@ const AuthForm: React.FC<AuthFormProps> = ({ onSuccess }) => {
     if (isEmail(emailOrPhone)) return 'email';
     if (isPhone(emailOrPhone)) return 'phone';
     return 'unknown';
-  };
-
-  const getRedirectUrl = () => {
-    const currentDomain = window.location.origin;
-    return currentDomain;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -65,9 +62,10 @@ const AuthForm: React.FC<AuthFormProps> = ({ onSuccess }) => {
       if (isSignUp) {
         if (inputType === 'email') {
           console.log('Attempting email signup for:', emailOrPhone);
-          console.log('Redirect URL:', getRedirectUrl());
           
-          const { error } = await supabase.auth.signUp({
+          // For email signups, we'll disable Supabase's built-in email confirmation
+          // and handle it with our custom system
+          const { data, error } = await supabase.auth.signUp({
             email: emailOrPhone,
             password,
             options: {
@@ -75,7 +73,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ onSuccess }) => {
                 first_name: firstName,
                 last_name: lastName,
               },
-              emailRedirectTo: getRedirectUrl(),
+              emailRedirectTo: window.location.origin,
             },
           });
 
@@ -84,10 +82,14 @@ const AuthForm: React.FC<AuthFormProps> = ({ onSuccess }) => {
             throw error;
           }
 
-          console.log('Signup successful');
+          console.log('Signup successful, sending custom verification email');
+          
+          // Send our custom verification email
+          await sendVerificationEmail(emailOrPhone, firstName);
+          
           toast({
             title: "Account created successfully!",
-            description: "Please check your email to verify your account before signing in. Don't forget to check your spam folder.",
+            description: "Please check your email to verify your account before signing in. We've sent you a beautifully designed verification email.",
             duration: 10000,
           });
         } else {
