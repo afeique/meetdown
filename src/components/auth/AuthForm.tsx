@@ -9,6 +9,7 @@ import NameFields from './NameFields';
 import ContactFields from './ContactFields';
 import PersonalInfoFields from './PersonalInfoFields';
 import AddressFields from './AddressFields';
+import AuthFormField from './AuthFormField';
 
 interface AuthFormProps {
   onSuccess?: () => void;
@@ -17,6 +18,7 @@ interface AuthFormProps {
 const AuthForm: React.FC<AuthFormProps> = ({ onSuccess }) => {
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
+  const [emailOrPhone, setEmailOrPhone] = useState('');
   const [password, setPassword] = useState('');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -134,11 +136,11 @@ const AuthForm: React.FC<AuthFormProps> = ({ onSuccess }) => {
           });
         }
       } else {
-        // For sign in, use the primary contact method
-        const primaryContact = email || phone;
-        const inputType = email ? 'email' : 'phone';
+        // For sign in, use emailOrPhone from the single field
+        const { getInputType } = await import('@/utils/inputValidation');
+        const inputType = getInputType(emailOrPhone);
 
-        if (!primaryContact) {
+        if (!emailOrPhone) {
           toast({
             title: "Contact Information Required",
             description: "Please provide either an email address or phone number.",
@@ -149,7 +151,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ onSuccess }) => {
         }
 
         await signInUser({
-          emailOrPhone: primaryContact,
+          emailOrPhone,
           password,
           inputType,
         });
@@ -176,6 +178,17 @@ const AuthForm: React.FC<AuthFormProps> = ({ onSuccess }) => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const validateAge = (birthDate: Date): boolean => {
+    const today = new Date();
+    const age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      return age - 1 >= 13;
+    }
+    return age >= 13;
   };
 
   return (
@@ -229,14 +242,11 @@ const AuthForm: React.FC<AuthFormProps> = ({ onSuccess }) => {
           )}
 
           {!isSignUp && (
-            <ContactFields
-              email={email}
-              phone={phone}
-              setEmail={setEmail}
-              setPhone={setPhone}
+            <AuthFormField
+              emailOrPhone={emailOrPhone}
+              setEmailOrPhone={setEmailOrPhone}
               password={password}
               setPassword={setPassword}
-              isSignIn={true}
             />
           )}
 
