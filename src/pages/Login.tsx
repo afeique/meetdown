@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import { useCustomEmailVerification } from '@/hooks/useCustomEmailVerification';
 import AuthForm from '@/components/auth/AuthForm';
 import EmailVerificationScreen from '@/components/auth/EmailVerificationScreen';
 
@@ -10,6 +11,7 @@ const Login = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const { user, userProfile, refreshProfile } = useAuth();
+  const { verifyEmailToken } = useCustomEmailVerification();
 
   // Redirect if already logged in and email is verified
   useEffect(() => {
@@ -23,24 +25,33 @@ const Login = () => {
     const checkEmailVerification = async () => {
       const urlParams = new URLSearchParams(window.location.search);
       const type = urlParams.get('type');
+      const token = urlParams.get('token');
       
-      if (type === 'email' || type === 'signup') {
-        // User clicked email verification link
-        toast({
-          title: "Email verified successfully!",
-          description: "Your email has been verified. You can now access all features.",
-          duration: 5000,
-        });
+      if (type === 'email' && token) {
+        console.log('Processing email verification with token:', token);
         
-        // Refresh the user profile to get updated email_verified status
-        if (user) {
-          await refreshProfile();
+        // Verify the token
+        const result = await verifyEmailToken(token);
+        
+        if (result.success) {
+          // Refresh the user profile to get updated email_verified status
+          if (user) {
+            await refreshProfile();
+          }
+          
+          // Clear the URL parameters
+          window.history.replaceState({}, document.title, window.location.pathname);
+          
+          // Navigate to home page
+          setTimeout(() => {
+            navigate('/', { replace: true });
+          }, 1000);
         }
       }
     };
 
     checkEmailVerification();
-  }, [user, refreshProfile, toast]);
+  }, [user, refreshProfile, verifyEmailToken, navigate]);
 
   // Show email verification notice if user is logged in but email not verified
   if (user && userProfile && !userProfile.email_verified && user.email) {

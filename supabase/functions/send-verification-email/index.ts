@@ -16,6 +16,7 @@ interface VerificationEmailRequest {
   token: string;
   redirectUrl: string;
   firstName?: string;
+  userId: string;
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -25,10 +26,36 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { email, token, redirectUrl, firstName }: VerificationEmailRequest = await req.json();
+    const { email, token, redirectUrl, firstName, userId }: VerificationEmailRequest = await req.json();
 
     console.log('Sending verification email to:', email);
     console.log('Original redirect URL:', redirectUrl);
+
+    // Store the verification token in the database
+    const supabase = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
+    );
+
+    const { error: tokenError } = await supabase
+      .from('email_verification_tokens')
+      .insert({
+        token,
+        user_id: userId,
+        email,
+        created_at: new Date().toISOString()
+      });
+
+    if (tokenError) {
+      console.error('Error storing verification token:', tokenError);
+      return new Response(
+        JSON.stringify({ error: "Failed to store verification token" }),
+        {
+          status: 500,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        }
+      );
+    }
 
     // Use meetdown.org domain instead of the Lovable URL
     const productionUrl = "https://meetdown.org";
