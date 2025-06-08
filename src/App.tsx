@@ -24,6 +24,7 @@ const App = () => (
       <AuthProvider>
         <BrowserRouter>
           <Routes>
+            {/* Handle verification on the login page - both direct access and with verification params */}
             <Route path="/feed" element={<Login />} />
             <Route path="/privacy-policy" element={<PrivacyPolicy />} />
             <Route path="/profile" element={
@@ -41,10 +42,13 @@ const App = () => (
                 <MyEvents />
               </ProtectedRoute>
             } />
+            {/* Home route - redirect verification URLs to login */}
             <Route path="/" element={
-              <ProtectedRoute>
-                <Index />
-              </ProtectedRoute>
+              <VerificationRedirect>
+                <ProtectedRoute>
+                  <Index />
+                </ProtectedRoute>
+              </VerificationRedirect>
             } />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
@@ -54,5 +58,28 @@ const App = () => (
     </TooltipProvider>
   </QueryClientProvider>
 );
+
+// Component to handle verification redirects
+const VerificationRedirect = ({ children }: { children: React.ReactNode }) => {
+  const navigate = useNavigate();
+  
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const type = urlParams.get('type');
+    const token = urlParams.get('token');
+    
+    // If this is a verification URL, redirect to login page with the parameters
+    if (type === 'email' && token) {
+      navigate(`/feed?type=${type}&token=${token}`, { replace: true });
+      return;
+    }
+  }, [navigate]);
+  
+  return <>{children}</>;
+};
+
+// Import useNavigate and useEffect
+import { useNavigate } from 'react-router-dom';
+import { useEffect } from 'react';
 
 export default App;

@@ -20,12 +20,21 @@ const Login = () => {
     }
   }, [user, userProfile, navigate]);
 
-  // Check for email verification on component mount
+  // Check for email verification on component mount - check both current URL and referrer
   useEffect(() => {
     const checkEmailVerification = async () => {
-      const urlParams = new URLSearchParams(window.location.search);
-      const type = urlParams.get('type');
-      const token = urlParams.get('token');
+      // Check current URL first
+      let urlParams = new URLSearchParams(window.location.search);
+      let type = urlParams.get('type');
+      let token = urlParams.get('token');
+      
+      // If not found in current URL, check if we were redirected from a verification URL
+      if (!token && window.location.pathname === '/feed') {
+        // Check if the referrer or previous URL had verification parameters
+        const searchParams = new URLSearchParams(window.location.search);
+        type = searchParams.get('type');
+        token = searchParams.get('token');
+      }
       
       if (type === 'email' && token) {
         console.log('Processing email verification with token:', token);
