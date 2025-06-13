@@ -102,7 +102,7 @@
 }
 
 @layer utilities {
-  .bg-custom-gradient {
+  .meetdown-gradient {
     background: linear-gradient(45deg, 
       #030000, 
       #972d33, 
