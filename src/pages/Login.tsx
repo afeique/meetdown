@@ -29,7 +29,7 @@ const Login = () => {
           <img 
             src="/lovable-uploads/60a2c312-0667-497f-9f39-0a29a2e5c4ed.png" 
             alt="meetdown" 
-            className="h-16 mx-auto mb-2"
+            className="w-128 h-128 mx-auto mb-2"
           />
           <p className="text-gray-600 text-lg">Are you down to meet?</p>
         </div>
