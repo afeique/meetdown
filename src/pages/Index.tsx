@@ -13,9 +13,11 @@ import LocationBar from '@/components/LocationBar';
 import EventFilters, { EventFilters as EventFiltersType } from '@/components/EventFilters';
 import LogoutButton from '@/components/LogoutButton';
 import UserProfileHeader from '@/components/UserProfileHeader';
+import { useNavigate } from 'react-router-dom';
 
 const Index = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [refreshKey, setRefreshKey] = useState(0);
   const [filters, setFilters] = useState<EventFiltersType>({
     maxCoverCharge: 50,
@@ -66,7 +68,8 @@ const Index = () => {
               <img 
                 src="/logo.png" 
                 alt="meetdown" 
-                className="h-8"
+                className="h-8 cursor-pointer hover:opacity-80 transition-opacity"
+                onClick={() => navigate('/')}
               />
               <UserProfileHeader />
             </div>

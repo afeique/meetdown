@@ -29,7 +29,8 @@ const ProfileHeader = ({ isEditing, onToggleEdit }: ProfileHeaderProps) => {
             <img 
               src="/logo.png" 
               alt="meetdown" 
-              className="h-8"
+              className="h-8 cursor-pointer hover:opacity-80 transition-opacity"
+              onClick={() => navigate('/')}
             />
             <h1 className="text-2xl font-bold text-gray-800">
               {isEditing ? 'Edit Profile' : 'My Profile'}
