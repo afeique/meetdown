@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,6 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { User, Mail, Phone, Upload } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { capitalizeFirstLetter } from "@/lib/nameUtils";
+import MeetdownTagline from "@/components/MeetdownTagline";
 
 const MeetdownLogin = () => {
   const [formData, setFormData] = useState({
@@ -77,7 +79,7 @@ const MeetdownLogin = () => {
           <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 via-red-500 to-orange-500 bg-clip-text text-transparent mb-2">
             meetdown
           </h1>
-          <p className="text-gray-600 text-lg">Are you down to meet?</p>
+          <MeetdownTagline />
         </div>
 
         {/* Registration Card */}

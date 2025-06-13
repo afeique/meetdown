@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import AuthForm from '@/components/auth/AuthForm';
 import EmailVerificationScreen from '@/components/auth/EmailVerificationScreen';
+import MeetdownTagline from '@/components/MeetdownTagline';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -31,7 +32,7 @@ const Login = () => {
             alt="meetdown" 
             className="w-128 h-128 mx-auto mb-2"
           />
-          <p className="text-gray-600 text-lg">Are you down to meet?</p>
+          <MeetdownTagline />
         </div>
 
         {/* Authentication Form */}
