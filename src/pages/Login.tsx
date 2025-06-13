@@ -27,7 +27,7 @@ const Login = () => {
         {/* Header */}
         <div className="text-center mb-8">
           <img 
-            src="/lovable-uploads/7b32dd92-264e-4428-86f2-aba196d3abf8.png" 
+            src="/logo.png" 
             alt="meetdown" 
             className="w-128 h-128 mx-auto mb-2"
           />

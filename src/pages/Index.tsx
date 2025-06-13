@@ -64,8 +64,8 @@ const Index = () => {
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-4">
               <img 
-                src="/lovable-uploads/7b32dd92-264e-4428-86f2-aba196d3abf8.png" 
-                alt="Meetdown" 
+                src="/logo.png" 
+                alt="meetdown" 
                 className="h-8"
               />
               <UserProfileHeader />

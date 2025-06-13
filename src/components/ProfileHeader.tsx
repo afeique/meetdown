@@ -27,7 +27,7 @@ const ProfileHeader = ({ isEditing, onToggleEdit }: ProfileHeaderProps) => {
               Back
             </Button>
             <img 
-              src="/lovable-uploads/7b32dd92-264e-4428-86f2-aba196d3abf8.png" 
+              src="/logo.png" 
               alt="meetdown" 
               className="h-8"
             />
