@@ -102,8 +102,10 @@
 }
 
 @layer utilities {
-  .meetdown-gradient {
-    background: linear-gradient(45deg, 
+  .meetdown-tagline {
+    font-size: 1.5rem;
+    
+    background: linear-gradient(60deg, 
       #030000, 
       #972d33, 
       #f23a70, 
@@ -111,5 +113,10 @@
       #eb2385, 
       #fc7a4d
     );
+    /*background: linear-gradient(45deg, #5a51e2, #9f9ed5);*/
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text; /* For Firefox */
+    color: transparent;
   }
 }

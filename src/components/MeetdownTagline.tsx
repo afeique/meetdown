@@ -1,7 +1,7 @@
 
 const MeetdownTagline = () => {
   return (
-    <p className="text-gray-600 text-lg italic meetdown-gradient">are you down to meet?</p>
+    <p className="text-gray-600 text-lg uppercase font-semibold meetdown-tagline">u down to meet?</p>
   );
 };
 
