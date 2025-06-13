@@ -207,7 +207,11 @@ export type Database = {
           email_verified: boolean
           first_name: string | null
           id: string
+          last_address: string | null
+          last_latitude: number | null
+          last_longitude: number | null
           last_name: string | null
+          last_zip_postal_code: string | null
           phone: string | null
           phone_verified: boolean | null
           updated_at: string
@@ -221,7 +225,11 @@ export type Database = {
           email_verified?: boolean
           first_name?: string | null
           id: string
+          last_address?: string | null
+          last_latitude?: number | null
+          last_longitude?: number | null
           last_name?: string | null
+          last_zip_postal_code?: string | null
           phone?: string | null
           phone_verified?: boolean | null
           updated_at?: string
@@ -235,7 +243,11 @@ export type Database = {
           email_verified?: boolean
           first_name?: string | null
           id?: string
+          last_address?: string | null
+          last_latitude?: number | null
+          last_longitude?: number | null
           last_name?: string | null
+          last_zip_postal_code?: string | null
           phone?: string | null
           phone_verified?: boolean | null
           updated_at?: string

@@ -26,7 +26,12 @@ const ProfileHeader = ({ isEditing, onToggleEdit }: ProfileHeaderProps) => {
               <ArrowLeft size={16} />
               Back
             </Button>
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-600 via-red-500 to-orange-500 bg-clip-text text-transparent">
+            <img 
+              src="/lovable-uploads/60a2c312-0667-497f-9f39-0a29a2e5c4ed.png" 
+              alt="meetdown" 
+              className="h-8"
+            />
+            <h1 className="text-2xl font-bold text-gray-800">
               {isEditing ? 'Edit Profile' : 'My Profile'}
             </h1>
           </div>

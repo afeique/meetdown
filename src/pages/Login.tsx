@@ -26,9 +26,11 @@ const Login = () => {
       <div className="w-full max-w-md">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 via-red-500 to-orange-500 bg-clip-text text-transparent mb-2">
-            meetdown
-          </h1>
+          <img 
+            src="/lovable-uploads/60a2c312-0667-497f-9f39-0a29a2e5c4ed.png" 
+            alt="meetdown" 
+            className="h-16 mx-auto mb-2"
+          />
           <p className="text-gray-600 text-lg">Are you down to meet?</p>
         </div>
 

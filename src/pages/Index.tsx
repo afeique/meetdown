@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -64,9 +63,11 @@ const Index = () => {
         <div className="container mx-auto px-4 py-4">
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-4">
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-                Meetdown
-              </h1>
+              <img 
+                src="/lovable-uploads/60a2c312-0667-497f-9f39-0a29a2e5c4ed.png" 
+                alt="Meetdown" 
+                className="h-8"
+              />
               <UserProfileHeader />
             </div>
             <div className="flex items-center gap-3">
