@@ -1,3 +1,4 @@
+
 import { formatDisplayName } from '@/lib/nameUtils';
 import { formatPhoneNumber } from '@/utils/phoneUtils';
 import { Button } from '@/components/ui/button';
@@ -24,6 +25,16 @@ interface ProfileInfoProps {
 }
 
 const ProfileInfo = ({ profile, onVerifyPhone }: ProfileInfoProps) => {
+  const formatDateOfBirth = (dateString: string | null) => {
+    if (!dateString) return null;
+    
+    // Parse the date string as a local date to avoid timezone issues
+    const [year, month, day] = dateString.split('-').map(Number);
+    const date = new Date(year, month - 1, day); // month is 0-indexed
+    
+    return date.toLocaleDateString();
+  };
+
   return (
     <div className="space-y-4">
       {profile && (profile.first_name || profile.last_name) && (
@@ -72,7 +83,7 @@ const ProfileInfo = ({ profile, onVerifyPhone }: ProfileInfoProps) => {
         <div>
           <label className="text-sm font-medium text-gray-600">Date of Birth</label>
           <p className="text-gray-800">
-            {new Date(profile.date_of_birth).toLocaleDateString()}
+            {formatDateOfBirth(profile.date_of_birth)}
           </p>
         </div>
       )}

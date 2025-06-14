@@ -364,7 +364,7 @@ const ProfileEditForm = () => {
                     onCountryCodeChange={(value) => setFormData(prev => ({ ...prev, country_code: value }))}
                     onPhoneNumberChange={(value) => setFormData(prev => ({ ...prev, phone_number: value }))}
                     label=""
-                    placeholder="(555) 123-4567"
+                    placeholder="(555) 555-5555"
                   />
                 </div>
                 <PhoneVerificationButton
