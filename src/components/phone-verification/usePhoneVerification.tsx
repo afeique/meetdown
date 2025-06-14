@@ -26,7 +26,6 @@ export const usePhoneVerification = () => {
 
   const getFullPhoneNumber = (phoneNumber: string) => {
     const cleanNumber = extractDigitsOnly(phoneNumber);
-    console.log('Formatted phone number for verification:', '+1' + cleanNumber);
     return '+1' + cleanNumber;
   };
 

@@ -29,6 +29,7 @@ const handler = async (req: Request): Promise<Response> => {
     const { data: { user }, error: authError } = await supabaseClient.auth.getUser(token);
 
     if (authError || !user) {
+      console.error('Authentication error:', authError);
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
         status: 401,
         headers: { 'Content-Type': 'application/json', ...corsHeaders },
@@ -37,6 +38,8 @@ const handler = async (req: Request): Promise<Response> => {
 
     const { phone, token: verificationToken }: PhoneVerifyRequest = await req.json();
 
+    console.log('Verify phone request - phone:', phone, 'token:', verificationToken, 'user:', user.id);
+
     if (!phone || !verificationToken) {
       return new Response(JSON.stringify({ error: 'Phone number and verification code are required' }), {
         status: 400,
@@ -44,18 +47,31 @@ const handler = async (req: Request): Promise<Response> => {
       });
     }
 
+    // Extract phone number (remove +1 country code since we always assume US/Canada)
+    let phoneDigits = phone;
+    if (phone.startsWith('+1')) {
+      phoneDigits = phone.slice(2).replace(/\D/g, ''); // Remove +1 and any non-digits
+    } else {
+      phoneDigits = phone.replace(/\D/g, ''); // Remove all non-digits
+    }
+
+    console.log('Looking for verification token with phone digits:', phoneDigits);
+
     // Check if verification token exists and is valid
     const { data: tokenData, error: tokenError } = await supabaseClient
       .from('phone_verification_tokens')
       .select('*')
       .eq('user_id', user.id)
-      .eq('phone', phone)
+      .eq('phone', phoneDigits)
       .eq('token', verificationToken)
       .eq('verified', false)
       .gt('expires_at', new Date().toISOString())
       .single();
 
+    console.log('Token lookup result:', { tokenData, tokenError });
+
     if (tokenError || !tokenData) {
+      console.error('Invalid or expired verification code:', tokenError);
       return new Response(JSON.stringify({ error: 'Invalid or expired verification code' }), {
         status: 400,
         headers: { 'Content-Type': 'application/json', ...corsHeaders },
@@ -76,13 +92,7 @@ const handler = async (req: Request): Promise<Response> => {
       });
     }
 
-    // Extract phone number (remove +1 country code since we always assume US/Canada)
-    let phoneDigits = phone;
-    if (phone.startsWith('+1')) {
-      phoneDigits = phone.slice(2).replace(/\D/g, ''); // Remove +1 and any non-digits
-    } else {
-      phoneDigits = phone.replace(/\D/g, ''); // Remove all non-digits
-    }
+    console.log('Token marked as verified');
 
     // Update user profile to mark phone as verified and store the phone number
     const { error: profileError } = await supabaseClient
@@ -100,6 +110,8 @@ const handler = async (req: Request): Promise<Response> => {
         headers: { 'Content-Type': 'application/json', ...corsHeaders },
       });
     }
+
+    console.log('Profile updated successfully');
 
     return new Response(
       JSON.stringify({ message: 'Phone number verified successfully' }),
