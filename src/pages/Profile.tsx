@@ -19,6 +19,8 @@ interface Profile {
   bio: string | null;
   avatar_url: string | null;
   phone: string | null;
+  country_code: string | null;
+  phone_number: string | null;
   date_of_birth: string | null;
   email_verified: boolean;
   phone_verified: boolean;
