@@ -26,7 +26,7 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/verify" element={<Verify />} />
-            <Route path="/feed" element={<Login />} />
+            <Route path="/login" element={<Login />} />
             <Route path="/privacy-policy" element={<PrivacyPolicy />} />
             <Route path="/profile" element={
               <ProtectedRoute>
