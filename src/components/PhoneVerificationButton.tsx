@@ -1,5 +1,6 @@
 
 import { useState } from 'react';
+import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Phone, CheckCircle } from 'lucide-react';
 import PhoneVerificationModal from './PhoneVerificationModal';
@@ -35,7 +36,7 @@ const PhoneVerificationButton: React.FC<PhoneVerificationButtonProps> = ({
         onClick={() => setIsModalOpen(true)}
         className="flex items-center gap-2"
       >
-        Send SMS Verification
+        Send Verification SMS
       </Button>
       
       <PhoneVerificationModal
