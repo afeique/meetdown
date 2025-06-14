@@ -23,15 +23,16 @@ const CountryCodeSelect = ({ value, onValueChange, disabled }: CountryCodeSelect
 
   return (
     <Select value={value} onValueChange={onValueChange} disabled={disabled}>
-      <SelectTrigger className="w-[120px]">
+      <SelectTrigger className="w-[140px]">
         <SelectValue placeholder="Code" />
       </SelectTrigger>
       <SelectContent>
         {countryCodes.map((country, index) => (
-          <SelectItem key={`${country.code}-${index}`} value={country.code}>
+          <SelectItem key={`${country.code}-${country.country}-${index}`} value={country.code}>
             <div className="flex items-center gap-2">
               <span>{country.flag}</span>
               <span>{country.code}</span>
+              <span className="text-xs text-gray-500">{country.country}</span>
             </div>
           </SelectItem>
         ))}
