@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { useToast } from '@/hooks/use-toast';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
 import PhoneInput from '@/components/ui/phone-input';
-import { formatPhoneNumber } from '@/utils/phoneUtils';
+import { formatPhoneForDisplay, extractDigitsOnly } from '@/utils/phoneUtils';
 
 interface PhoneVerificationModalProps {
   isOpen: boolean;
@@ -29,7 +29,8 @@ const PhoneVerificationModal: React.FC<PhoneVerificationModalProps> = ({
   // Parse initial phone (remove +1 if present since we assume it)
   const parseInitialPhone = (phone: string) => {
     if (!phone) return '';
-    return phone.startsWith('+1') ? phone.slice(2) : phone;
+    const digitsOnly = phone.startsWith('+1') ? phone.slice(2) : phone;
+    return formatPhoneForDisplay(digitsOnly);
   };
 
   const [phoneNumber, setPhoneNumber] = useState(parseInitialPhone(initialPhone));
@@ -39,12 +40,12 @@ const PhoneVerificationModal: React.FC<PhoneVerificationModalProps> = ({
   const [resendCooldown, setResendCooldown] = useState(0);
 
   const getFullPhoneNumber = () => {
-    const cleanNumber = phoneNumber.replace(/\D/g, '');
+    const cleanNumber = extractDigitsOnly(phoneNumber);
     return '+1' + cleanNumber;
   };
 
   const getFormattedPhoneNumber = () => {
-    return formatPhoneNumber(phoneNumber);
+    return getFullPhoneNumber();
   };
 
   const handleSendCode = async () => {

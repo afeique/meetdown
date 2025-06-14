@@ -4,6 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { getInputType } from '@/utils/inputValidation';
+import { extractDigitsOnly } from '@/utils/phoneUtils';
 import ProfilePictureSection from './profile/ProfilePictureSection';
 import ProfileFormSection from './profile/ProfileFormSection';
 
@@ -12,7 +13,7 @@ interface ProfileData {
   first_name: string | null;
   last_name: string | null;
   email: string | null;
-  phone_number: string | null;
+  phone: string | null;
   bio: string | null;
   avatar_url: string | null;
   date_of_birth: string | null;
@@ -30,7 +31,7 @@ const ProfileEditForm = () => {
     first_name: '',
     last_name: '',
     email: '',
-    phone_number: '',
+    phone: '',
     bio: '',
     date_of_birth: ''
   });
@@ -56,7 +57,7 @@ const ProfileEditForm = () => {
         first_name: data.first_name || '',
         last_name: data.last_name || '',
         email: data.email || '',
-        phone_number: data.phone_number || '',
+        phone: data.phone || '',
         bio: data.bio || '',
         date_of_birth: data.date_of_birth || ''
       });
@@ -80,7 +81,9 @@ const ProfileEditForm = () => {
   };
 
   const handlePhoneChange = (value: string) => {
-    setFormData(prev => ({ ...prev, phone_number: value }));
+    // Extract only digits for storage
+    const digitsOnly = extractDigitsOnly(value);
+    setFormData(prev => ({ ...prev, phone: digitsOnly }));
   };
 
   const handleAvatarUpdate = (avatarUrl: string) => {
@@ -138,8 +141,8 @@ const ProfileEditForm = () => {
   };
 
   const getFullPhoneNumber = () => {
-    if (!formData.phone_number) return '';
-    return '+1' + formData.phone_number.replace(/\D/g, '');
+    if (!formData.phone) return '';
+    return '+1' + formData.phone;
   };
 
   if (loading) {

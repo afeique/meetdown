@@ -236,14 +236,13 @@ export type Database = {
           email: string | null
           email_verified: boolean
           first_name: string | null
-          full_phone_number: string | null
           id: string
           last_address: string | null
           last_latitude: number | null
           last_longitude: number | null
           last_name: string | null
           last_zip_postal_code: string | null
-          phone_number: string | null
+          phone: string | null
           phone_verified: boolean | null
           sms_notifications_enabled: boolean | null
           updated_at: string
@@ -256,14 +255,13 @@ export type Database = {
           email?: string | null
           email_verified?: boolean
           first_name?: string | null
-          full_phone_number?: string | null
           id: string
           last_address?: string | null
           last_latitude?: number | null
           last_longitude?: number | null
           last_name?: string | null
           last_zip_postal_code?: string | null
-          phone_number?: string | null
+          phone?: string | null
           phone_verified?: boolean | null
           sms_notifications_enabled?: boolean | null
           updated_at?: string
@@ -276,14 +274,13 @@ export type Database = {
           email?: string | null
           email_verified?: boolean
           first_name?: string | null
-          full_phone_number?: string | null
           id?: string
           last_address?: string | null
           last_latitude?: number | null
           last_longitude?: number | null
           last_name?: string | null
           last_zip_postal_code?: string | null
-          phone_number?: string | null
+          phone?: string | null
           phone_verified?: boolean | null
           sms_notifications_enabled?: boolean | null
           updated_at?: string
@@ -367,11 +364,9 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      get_full_phone_number: {
-        Args:
-          | { country_code: string; phone_number: string }
-          | { phone_number: string }
-        Returns: string
+      is_valid_us_canada_phone: {
+        Args: { phone_input: string }
+        Returns: boolean
       }
     }
     Enums: {

@@ -6,12 +6,13 @@ import { Label } from '@/components/ui/label';
 import { Upload, Save, AlertCircle, CheckCircle } from 'lucide-react';
 import PhoneInput from '@/components/ui/phone-input';
 import PhoneVerificationButton from '../PhoneVerificationButton';
+import { formatPhoneForDisplay } from '@/utils/phoneUtils';
 
 interface ProfileFormData {
   first_name: string;
   last_name: string;
   email: string;
-  phone_number: string;
+  phone: string;
   bio: string;
   date_of_birth: string;
 }
@@ -114,7 +115,7 @@ const ProfileFormSection = ({
             <div className="flex gap-2">
               <div className="flex-1">
                 <PhoneInput
-                  phoneNumber={formData.phone_number}
+                  phoneNumber={formatPhoneForDisplay(formData.phone)}
                   onPhoneNumberChange={onPhoneChange}
                   label=""
                   placeholder="(555) 555-5555"
@@ -126,7 +127,7 @@ const ProfileFormSection = ({
                 onVerificationSuccess={onPhoneVerificationSuccess}
               />
             </div>
-            {!profile?.phone_verified && formData.phone_number && (
+            {!profile?.phone_verified && formData.phone && (
               <p className="text-xs text-yellow-600">
                 Click "Verify Phone" to verify your phone number.
               </p>

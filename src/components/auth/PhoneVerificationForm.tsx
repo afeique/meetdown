@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
-import { formatPhoneNumber } from '@/utils/phoneUtils';
+import { extractDigitsOnly } from '@/utils/phoneUtils';
 import { Phone, ArrowLeft } from 'lucide-react';
 
 interface PhoneVerificationFormProps {
@@ -29,11 +29,9 @@ const PhoneVerificationForm: React.FC<PhoneVerificationFormProps> = ({
   const [resendCooldown, setResendCooldown] = useState(0);
 
   const formatPhoneForSubmission = (phoneInput: string) => {
-    // Remove all non-digit characters
-    const cleaned = phoneInput.replace(/[^\d]/g, '');
-    
-    // Always assume US (+1) country code
-    return formatPhoneNumber(cleaned);
+    // Extract only digits and format as +1XXXXXXXXXX
+    const cleaned = extractDigitsOnly(phoneInput);
+    return '+1' + cleaned;
   };
 
   const handleSendCode = async () => {

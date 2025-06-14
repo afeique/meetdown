@@ -1,7 +1,6 @@
 
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import CountryCodeSelect from './country-code-select';
 
 interface PhoneInputProps {
   phoneNumber: string;

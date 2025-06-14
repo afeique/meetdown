@@ -77,11 +77,11 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     // Extract phone number (remove +1 country code since we always assume US/Canada)
-    let phone_number = phone;
+    let phoneDigits = phone;
     if (phone.startsWith('+1')) {
-      phone_number = phone.slice(2).replace(/\D/g, ''); // Remove +1 and any non-digits
+      phoneDigits = phone.slice(2).replace(/\D/g, ''); // Remove +1 and any non-digits
     } else {
-      phone_number = phone.replace(/\D/g, ''); // Remove all non-digits
+      phoneDigits = phone.replace(/\D/g, ''); // Remove all non-digits
     }
 
     // Update user profile to mark phone as verified and store the phone number
@@ -89,7 +89,7 @@ const handler = async (req: Request): Promise<Response> => {
       .from('profiles')
       .update({ 
         phone_verified: true,
-        phone_number: phone_number
+        phone: phoneDigits
       })
       .eq('id', user.id);
 

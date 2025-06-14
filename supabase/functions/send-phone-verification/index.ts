@@ -33,15 +33,23 @@ serve(async (req) => {
       throw new Error('User not authenticated')
     }
 
+    // Extract phone digits (remove +1 if present)
+    let phoneDigits = phone;
+    if (phone.startsWith('+1')) {
+      phoneDigits = phone.slice(2).replace(/\D/g, '');
+    } else {
+      phoneDigits = phone.replace(/\D/g, '');
+    }
+
     // Generate 6-digit verification code
     const verificationCode = Math.floor(100000 + Math.random() * 900000).toString()
 
-    // Store verification token
+    // Store verification token with digits-only phone
     const { error: tokenError } = await supabaseClient
       .from('phone_verification_tokens')
       .insert({
         user_id: user.id,
-        phone: phone,
+        phone: phoneDigits,
         token: verificationCode,
         expires_at: new Date(Date.now() + 10 * 60 * 1000).toISOString(), // 10 minutes
       })
@@ -70,7 +78,7 @@ serve(async (req) => {
         },
         body: new URLSearchParams({
           From: twilioPhoneNumber,
-          To: phone,
+          To: phone, // Send to the original formatted phone number
           Body: `Your verification code is: ${verificationCode}. This code will expire in 10 minutes.`,
         }),
       }

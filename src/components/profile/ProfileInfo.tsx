@@ -1,6 +1,6 @@
 
 import { formatDisplayName } from '@/lib/nameUtils';
-import { formatPhoneNumber } from '@/utils/phoneUtils';
+import { formatPhoneForDisplay } from '@/utils/phoneUtils';
 import { Button } from '@/components/ui/button';
 import { Phone } from 'lucide-react';
 
@@ -11,7 +11,7 @@ interface Profile {
   email: string | null;
   bio: string | null;
   avatar_url: string | null;
-  phone_number: string | null;
+  phone: string | null;
   date_of_birth: string | null;
   email_verified: boolean;
   phone_verified: boolean;
@@ -55,10 +55,10 @@ const ProfileInfo = ({ profile, onVerifyPhone }: ProfileInfoProps) => {
         </div>
       )}
 
-      {profile?.phone_number && (
+      {profile?.phone && (
         <div>
           <label className="text-sm font-medium text-gray-600">Phone</label>
-          <p className="text-gray-800">{formatPhoneNumber(profile.phone_number)}</p>
+          <p className="text-gray-800">{formatPhoneForDisplay(profile.phone)}</p>
           <div className="flex items-center gap-3 mt-2">
             <p className="text-xs text-gray-500">
               {profile.phone_verified ? '✅ Verified' : '⚠️ Not verified'}

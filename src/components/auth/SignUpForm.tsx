@@ -6,6 +6,7 @@ import { useToast } from '@/hooks/use-toast';
 import { ArrowLeft, UserPlus } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { validateSignUpForm } from './AuthFormValidation';
+import { extractDigitsOnly } from '@/utils/phoneUtils';
 import NameFields from './NameFields';
 import ContactFields from './ContactFields';
 import PersonalInfoFields from './PersonalInfoFields';
@@ -65,7 +66,7 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ onBack }) => {
           data: {
             first_name: formData.firstName,
             last_name: formData.lastName,
-            phone_number: formData.phoneNumber.replace(/\D/g, ''), // Store only digits
+            phone: extractDigitsOnly(formData.phoneNumber), // Store only digits
             date_of_birth: formData.dateOfBirth?.toISOString().split('T')[0],
           },
         },
