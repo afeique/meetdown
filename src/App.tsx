@@ -14,6 +14,7 @@ import Followers from "./pages/Followers";
 import MyEvents from "./pages/MyEvents";
 import NotFound from "./pages/NotFound";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
+import TermsOfService from "./pages/TermsOfService";
 
 const queryClient = new QueryClient();
 
@@ -28,6 +29,7 @@ const App = () => (
             <Route path="/verify" element={<Verify />} />
             <Route path="/login" element={<Login />} />
             <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+            <Route path="/terms" element={<TermsOfService />} />
             <Route path="/profile" element={
               <ProtectedRoute>
                 <Profile />
