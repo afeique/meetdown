@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -12,6 +11,7 @@ import { Upload, Save, AlertCircle, CheckCircle } from 'lucide-react';
 import { formatPhoneNumber } from '@/utils/phoneUtils';
 import { getInputType } from '@/utils/inputValidation';
 import ProfilePictureGenerator from './ProfilePictureGenerator';
+import PhoneVerificationButton from './PhoneVerificationButton';
 
 interface ProfileData {
   id: string;
@@ -27,7 +27,7 @@ interface ProfileData {
 }
 
 const ProfileEditForm = () => {
-  const { user } = useAuth();
+  const { user, refreshProfile } = useAuth();
   const { toast } = useToast();
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -197,6 +197,7 @@ const ProfileEditForm = () => {
 
       // Refresh profile data to get updated verification status
       await fetchProfile();
+      await refreshProfile();
       
       toast({
         title: "Profile updated!",
@@ -211,6 +212,11 @@ const ProfileEditForm = () => {
     } finally {
       setSaving(false);
     }
+  };
+
+  const handlePhoneVerificationSuccess = async () => {
+    await fetchProfile();
+    await refreshProfile();
   };
 
   const getInitials = () => {
@@ -354,17 +360,25 @@ const ProfileEditForm = () => {
                   </div>
                 )}
               </Label>
-              <Input
-                id="phone"
-                name="phone"
-                type="tel"
-                value={formData.phone}
-                onChange={handleInputChange}
-                placeholder="+1 (555) 123-4567"
-              />
+              <div className="flex gap-2">
+                <Input
+                  id="phone"
+                  name="phone"
+                  type="tel"
+                  value={formData.phone}
+                  onChange={handleInputChange}
+                  placeholder="+1 (555) 123-4567"
+                  className="flex-1"
+                />
+                <PhoneVerificationButton
+                  isVerified={profile?.phone_verified || false}
+                  phone={formData.phone}
+                  onVerificationSuccess={handlePhoneVerificationSuccess}
+                />
+              </div>
               {!profile?.phone_verified && formData.phone && (
                 <p className="text-xs text-yellow-600">
-                  Phone verification required. You'll need to verify your phone after updating.
+                  Click "Verify Phone" to verify your phone number.
                 </p>
               )}
             </div>

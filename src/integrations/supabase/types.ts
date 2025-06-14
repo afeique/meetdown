@@ -197,6 +197,36 @@ export type Database = {
         }
         Relationships: []
       }
+      phone_verification_tokens: {
+        Row: {
+          created_at: string
+          expires_at: string
+          id: string
+          phone: string
+          token: string
+          user_id: string
+          verified: boolean
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string
+          id?: string
+          phone: string
+          token: string
+          user_id: string
+          verified?: boolean
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string
+          id?: string
+          phone?: string
+          token?: string
+          user_id?: string
+          verified?: boolean
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
