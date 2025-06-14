@@ -11,7 +11,6 @@ interface ProfileFormData {
   first_name: string;
   last_name: string;
   email: string;
-  country_code: string;
   phone_number: string;
   bio: string;
   date_of_birth: string;
@@ -25,7 +24,7 @@ interface ProfileFormSectionProps {
   } | null;
   saving: boolean;
   onInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
-  onPhoneChange: (field: 'country_code' | 'phone_number', value: string) => void;
+  onPhoneChange: (value: string) => void;
   onSubmit: (e: React.FormEvent) => void;
   onPhoneVerificationSuccess: () => void;
   getFullPhoneNumber: () => string;
@@ -115,10 +114,8 @@ const ProfileFormSection = ({
             <div className="flex gap-2">
               <div className="flex-1">
                 <PhoneInput
-                  countryCode={formData.country_code}
                   phoneNumber={formData.phone_number}
-                  onCountryCodeChange={(value) => onPhoneChange('country_code', value)}
-                  onPhoneNumberChange={(value) => onPhoneChange('phone_number', value)}
+                  onPhoneNumberChange={onPhoneChange}
                   label=""
                   placeholder="(555) 555-5555"
                 />
@@ -129,7 +126,7 @@ const ProfileFormSection = ({
                 onVerificationSuccess={onPhoneVerificationSuccess}
               />
             </div>
-            {!profile?.phone_verified && (formData.country_code && formData.phone_number) && (
+            {!profile?.phone_verified && formData.phone_number && (
               <p className="text-xs text-yellow-600">
                 Click "Verify Phone" to verify your phone number.
               </p>

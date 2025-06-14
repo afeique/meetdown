@@ -1,12 +1,9 @@
 
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import CountryCodeSelect from './country-code-select';
 
 interface PhoneInputProps {
-  countryCode: string;
   phoneNumber: string;
-  onCountryCodeChange: (value: string) => void;
   onPhoneNumberChange: (value: string) => void;
   label?: string;
   required?: boolean;
@@ -15,9 +12,7 @@ interface PhoneInputProps {
 }
 
 const PhoneInput = ({
-  countryCode,
   phoneNumber,
-  onCountryCodeChange,
   onPhoneNumberChange,
   label = "Phone Number",
   required = false,
@@ -66,25 +61,19 @@ const PhoneInput = ({
     <div className="space-y-2">
       <Label htmlFor="phone" className="text-sm font-medium text-gray-700">
         {label} {required && <span className="text-red-500">*</span>}
+        <span className="text-xs text-gray-500 ml-1">(US/Canada +1)</span>
       </Label>
-      <div className="flex gap-2">
-        <CountryCodeSelect
-          value={countryCode}
-          onValueChange={onCountryCodeChange}
-          disabled={disabled}
-        />
-        <Input
-          id="phone"
-          type="tel"
-          placeholder={placeholder}
-          value={phoneNumber}
-          onChange={handlePhoneNumberChange}
-          onKeyDown={handleKeyPress}
-          disabled={disabled}
-          className="flex-1 border-gray-200 focus:border-blue-500 focus:ring-blue-500"
-          maxLength={14} // (555) 555-5555 = 14 characters
-        />
-      </div>
+      <Input
+        id="phone"
+        type="tel"
+        placeholder={placeholder}
+        value={phoneNumber}
+        onChange={handlePhoneNumberChange}
+        onKeyDown={handleKeyPress}
+        disabled={disabled}
+        className="border-gray-200 focus:border-blue-500 focus:ring-blue-500"
+        maxLength={14} // (555) 555-5555 = 14 characters
+      />
     </div>
   );
 };

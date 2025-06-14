@@ -7,10 +7,8 @@ import PhoneInput from '@/components/ui/phone-input';
 
 interface ContactFieldsProps {
   email: string;
-  countryCode: string;
   phoneNumber: string;
   setEmail: (value: string) => void;
-  setCountryCode: (value: string) => void;
   setPhoneNumber: (value: string) => void;
   password: string;
   setPassword: (value: string) => void;
@@ -19,10 +17,8 @@ interface ContactFieldsProps {
 
 const ContactFields: React.FC<ContactFieldsProps> = ({
   email,
-  countryCode,
   phoneNumber,
   setEmail,
-  setCountryCode,
   setPhoneNumber,
   password,
   setPassword,
@@ -51,9 +47,7 @@ const ContactFields: React.FC<ContactFieldsProps> = ({
           </div>
 
           <PhoneInput
-            countryCode={countryCode}
             phoneNumber={phoneNumber}
-            onCountryCodeChange={setCountryCode}
             onPhoneNumberChange={setPhoneNumber}
             label="Phone Number"
             placeholder="(555) 123-4567"

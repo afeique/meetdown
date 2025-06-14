@@ -231,7 +231,6 @@ export type Database = {
         Row: {
           avatar_url: string | null
           bio: string | null
-          country_code: string | null
           created_at: string
           date_of_birth: string | null
           email: string | null
@@ -252,7 +251,6 @@ export type Database = {
         Insert: {
           avatar_url?: string | null
           bio?: string | null
-          country_code?: string | null
           created_at?: string
           date_of_birth?: string | null
           email?: string | null
@@ -273,7 +271,6 @@ export type Database = {
         Update: {
           avatar_url?: string | null
           bio?: string | null
-          country_code?: string | null
           created_at?: string
           date_of_birth?: string | null
           email?: string | null
@@ -371,7 +368,9 @@ export type Database = {
     }
     Functions: {
       get_full_phone_number: {
-        Args: { country_code: string; phone_number: string }
+        Args:
+          | { country_code: string; phone_number: string }
+          | { phone_number: string }
         Returns: string
       }
     }

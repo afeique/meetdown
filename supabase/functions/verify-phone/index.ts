@@ -76,28 +76,19 @@ const handler = async (req: Request): Promise<Response> => {
       });
     }
 
-    // Parse the full phone number to extract country code and phone number
-    let country_code = '+1';
+    // Extract phone number (remove +1 country code since we always assume US/Canada)
     let phone_number = phone;
-    
-    // Extract country code if phone starts with +
-    if (phone.startsWith('+')) {
-      const match = phone.match(/^(\+\d{1,3})(.+)$/);
-      if (match) {
-        country_code = match[1];
-        phone_number = match[2].replace(/\D/g, ''); // Remove non-digits from phone number
-      }
+    if (phone.startsWith('+1')) {
+      phone_number = phone.slice(2).replace(/\D/g, ''); // Remove +1 and any non-digits
     } else {
-      // Remove all non-digits if no country code provided
-      phone_number = phone.replace(/\D/g, '');
+      phone_number = phone.replace(/\D/g, ''); // Remove all non-digits
     }
 
-    // Update user profile to mark phone as verified and store the separated values
+    // Update user profile to mark phone as verified and store the phone number
     const { error: profileError } = await supabaseClient
       .from('profiles')
       .update({ 
         phone_verified: true,
-        country_code: country_code,
         phone_number: phone_number
       })
       .eq('id', user.id);

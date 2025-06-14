@@ -12,7 +12,6 @@ interface ProfileData {
   first_name: string | null;
   last_name: string | null;
   email: string | null;
-  country_code: string | null;
   phone_number: string | null;
   bio: string | null;
   avatar_url: string | null;
@@ -31,7 +30,6 @@ const ProfileEditForm = () => {
     first_name: '',
     last_name: '',
     email: '',
-    country_code: '+1',
     phone_number: '',
     bio: '',
     date_of_birth: ''
@@ -58,7 +56,6 @@ const ProfileEditForm = () => {
         first_name: data.first_name || '',
         last_name: data.last_name || '',
         email: data.email || '',
-        country_code: data.country_code || '+1',
         phone_number: data.phone_number || '',
         bio: data.bio || '',
         date_of_birth: data.date_of_birth || ''
@@ -82,8 +79,8 @@ const ProfileEditForm = () => {
     }));
   };
 
-  const handlePhoneChange = (field: 'country_code' | 'phone_number', value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+  const handlePhoneChange = (value: string) => {
+    setFormData(prev => ({ ...prev, phone_number: value }));
   };
 
   const handleAvatarUpdate = (avatarUrl: string) => {
@@ -141,8 +138,8 @@ const ProfileEditForm = () => {
   };
 
   const getFullPhoneNumber = () => {
-    if (!formData.country_code || !formData.phone_number) return '';
-    return formData.country_code + formData.phone_number.replace(/\D/g, '');
+    if (!formData.phone_number) return '';
+    return '+1' + formData.phone_number.replace(/\D/g, '');
   };
 
   if (loading) {
