@@ -1,5 +1,4 @@
-
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -22,6 +21,7 @@ interface Profile {
   date_of_birth: string | null;
   email_verified: boolean;
   phone_verified: boolean;
+  sms_notifications_enabled: boolean | null;
 }
 
 interface ProfileDisplayProps {
@@ -35,6 +35,13 @@ const ProfileDisplay = ({ profile }: ProfileDisplayProps) => {
   const [isPhoneModalOpen, setIsPhoneModalOpen] = useState(false);
   const [smsNotificationsEnabled, setSmsNotificationsEnabled] = useState(false);
   const [updatingSmsPrefs, setUpdatingSmsPrefs] = useState(false);
+
+  // Initialize SMS notifications state from profile data
+  useEffect(() => {
+    if (profile?.sms_notifications_enabled !== null) {
+      setSmsNotificationsEnabled(profile.sms_notifications_enabled || false);
+    }
+  }, [profile?.sms_notifications_enabled]);
 
   const handlePhoneVerificationSuccess = async () => {
     await refreshProfile();

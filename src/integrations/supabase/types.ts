@@ -244,6 +244,7 @@ export type Database = {
           last_zip_postal_code: string | null
           phone: string | null
           phone_verified: boolean | null
+          sms_notifications_enabled: boolean | null
           updated_at: string
         }
         Insert: {
@@ -262,6 +263,7 @@ export type Database = {
           last_zip_postal_code?: string | null
           phone?: string | null
           phone_verified?: boolean | null
+          sms_notifications_enabled?: boolean | null
           updated_at?: string
         }
         Update: {
@@ -280,6 +282,7 @@ export type Database = {
           last_zip_postal_code?: string | null
           phone?: string | null
           phone_verified?: boolean | null
+          sms_notifications_enabled?: boolean | null
           updated_at?: string
         }
         Relationships: []
