@@ -1,9 +1,8 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Upload, Save, AlertCircle, CheckCircle } from 'lucide-react';
+import { Upload, Save, AlertCircle, CheckCircle, CalendarIcon } from 'lucide-react';
 import PhoneInput from '@/components/ui/phone-input';
 import PhoneVerificationButton from '../PhoneVerificationButton';
 import { formatPhoneForDisplay } from '@/utils/phoneUtils';
@@ -93,56 +92,56 @@ const ProfileFormSection = ({
               placeholder="john.doe@example.com"
             />
             {!profile?.email_verified && formData.email && (
-              <p className="text-xs text-yellow-600">
+              <Label htmlFor="email" className="text-xs text-yellow-600">
                 Email verification required. You'll need to verify your email after updating.
+              </Label>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <Label className="flex items-center gap-2">
+              Phone Number
+              {profile?.phone_verified ? (
+                <div title="Phone verified">
+                  <CheckCircle className="w-4 h-4 text-green-500" />
+                </div>
+              ) : (
+                <div title="Phone not verified">
+                  <AlertCircle className="w-4 h-4 text-yellow-500" />
+                </div>
+              )}
+            </Label>
+            <PhoneInput
+              phoneNumber={formatPhoneForDisplay(formData.phone)}
+              onPhoneNumberChange={onPhoneChange}
+              label=""
+              placeholder="(555) 555-5555"
+            />
+            <PhoneVerificationButton
+              isVerified={profile?.phone_verified || false}
+              fullPhoneNumber={getFullPhoneNumber()}
+              onVerificationSuccess={onPhoneVerificationSuccess}
+            />
+            {!profile?.phone_verified && formData.phone && (
+              <p className="text-xs text-yellow-600">
+                Click "Verify Phone" to verify your phone number.
               </p>
             )}
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label className="flex items-center gap-2">
-                Phone Number
-                {profile?.phone_verified ? (
-                  <div title="Phone verified">
-                    <CheckCircle className="w-4 h-4 text-green-500" />
-                  </div>
-                ) : (
-                  <div title="Phone not verified">
-                    <AlertCircle className="w-4 h-4 text-yellow-500" />
-                  </div>
-                )}
-              </Label>
-              <PhoneInput
-                phoneNumber={formatPhoneForDisplay(formData.phone)}
-                onPhoneNumberChange={onPhoneChange}
-                label=""
-                placeholder="(555) 555-5555"
-              />
-            </div>
-            <div className="space-y-2">
-              <PhoneVerificationButton
-                isVerified={profile?.phone_verified || false}
-                fullPhoneNumber={getFullPhoneNumber()}
-                onVerificationSuccess={onPhoneVerificationSuccess}
-              />
-              {!profile?.phone_verified && formData.phone && (
-                <p className="text-xs text-yellow-600">
-                  Click "Verify Phone" to verify your phone number.
-                </p>
-              )}
-            </div>
-          </div>
-
           <div className="space-y-2">
             <Label htmlFor="date_of_birth">Date of Birth</Label>
-            <Input
-              id="date_of_birth"
-              name="date_of_birth"
-              type="date"
-              value={formData.date_of_birth}
-              onChange={onInputChange}
-            />
+            <div className="relative">
+              <CalendarIcon className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+              <Input
+                id="date_of_birth"
+                name="date_of_birth"
+                type="date"
+                value={formData.date_of_birth}
+                onChange={onInputChange}
+                className="pl-10 [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-inner-spin-button]:hidden [&::-webkit-outer-spin-button]:hidden"
+              />
+            </div>
           </div>
 
           <Button
