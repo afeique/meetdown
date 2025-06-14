@@ -244,7 +244,6 @@ export type Database = {
           last_longitude: number | null
           last_name: string | null
           last_zip_postal_code: string | null
-          phone: string | null
           phone_number: string | null
           phone_verified: boolean | null
           sms_notifications_enabled: boolean | null
@@ -266,7 +265,6 @@ export type Database = {
           last_longitude?: number | null
           last_name?: string | null
           last_zip_postal_code?: string | null
-          phone?: string | null
           phone_number?: string | null
           phone_verified?: boolean | null
           sms_notifications_enabled?: boolean | null
@@ -288,7 +286,6 @@ export type Database = {
           last_longitude?: number | null
           last_name?: string | null
           last_zip_postal_code?: string | null
-          phone?: string | null
           phone_number?: string | null
           phone_verified?: boolean | null
           sms_notifications_enabled?: boolean | null

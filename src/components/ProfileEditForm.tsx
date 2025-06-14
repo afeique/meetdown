@@ -369,7 +369,7 @@ const ProfileEditForm = () => {
                 </div>
                 <PhoneVerificationButton
                   isVerified={profile?.phone_verified || false}
-                  phone={getFullPhoneNumber()}
+                  fullPhoneNumber={getFullPhoneNumber()}
                   onVerificationSuccess={handlePhoneVerificationSuccess}
                 />
               </div>
