@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -19,6 +20,7 @@ interface Profile {
   date_of_birth: string | null;
   email_verified: boolean;
   phone_verified: boolean;
+  sms_notifications_enabled: boolean | null;
 }
 
 const Profile = () => {
