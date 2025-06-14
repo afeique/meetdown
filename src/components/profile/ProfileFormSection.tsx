@@ -113,14 +113,12 @@ const ProfileFormSection = ({
               )}
             </Label>
             <div className="flex items-center gap-2">
-              <div className="flex-1">
-                <PhoneInput
-                  phoneNumber={formatPhoneForDisplay(formData.phone)}
-                  onPhoneNumberChange={onPhoneChange}
-                  label=""
-                  placeholder="(555) 555-5555"
-                />
-              </div>
+              <PhoneInput
+                phoneNumber={formatPhoneForDisplay(formData.phone)}
+                onPhoneNumberChange={onPhoneChange}
+                label=""
+                placeholder="(555) 555-5555"
+              />
               <PhoneVerificationButton
                 isVerified={profile?.phone_verified || false}
                 fullPhoneNumber={getFullPhoneNumber()}
