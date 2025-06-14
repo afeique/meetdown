@@ -8,17 +8,18 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useToast } from '@/hooks/use-toast';
 import { Upload, Save, AlertCircle, CheckCircle } from 'lucide-react';
-import { formatPhoneNumber } from '@/utils/phoneUtils';
 import { getInputType } from '@/utils/inputValidation';
 import ProfilePictureGenerator from './ProfilePictureGenerator';
 import PhoneVerificationButton from './PhoneVerificationButton';
+import PhoneInput from '@/components/ui/phone-input';
 
 interface ProfileData {
   id: string;
   first_name: string | null;
   last_name: string | null;
   email: string | null;
-  phone: string | null;
+  country_code: string | null;
+  phone_number: string | null;
   bio: string | null;
   avatar_url: string | null;
   date_of_birth: string | null;
@@ -38,7 +39,8 @@ const ProfileEditForm = () => {
     first_name: '',
     last_name: '',
     email: '',
-    phone: '',
+    country_code: '+1',
+    phone_number: '',
     bio: '',
     date_of_birth: ''
   });
@@ -64,7 +66,8 @@ const ProfileEditForm = () => {
         first_name: data.first_name || '',
         last_name: data.last_name || '',
         email: data.email || '',
-        phone: data.phone || '',
+        country_code: data.country_code || '+1',
+        phone_number: data.phone_number || '',
         bio: data.bio || '',
         date_of_birth: data.date_of_birth || ''
       });
@@ -163,17 +166,6 @@ const ProfileEditForm = () => {
 
     setSaving(true);
     try {
-      // Validate and format phone number if provided
-      let formattedPhone = formData.phone;
-      if (formData.phone && formData.phone.trim()) {
-        const inputType = getInputType(formData.phone);
-        if (inputType === 'phone') {
-          formattedPhone = formatPhoneNumber(formData.phone);
-        } else if (inputType === 'unknown') {
-          throw new Error('Please enter a valid phone number');
-        }
-      }
-
       // Validate email format if provided
       if (formData.email && formData.email.trim()) {
         const inputType = getInputType(formData.email);
@@ -184,7 +176,6 @@ const ProfileEditForm = () => {
 
       const updateData = {
         ...formData,
-        phone: formattedPhone,
         updated_at: new Date().toISOString()
       };
 
@@ -224,6 +215,11 @@ const ProfileEditForm = () => {
     const first = profile.first_name?.charAt(0) || '';
     const last = profile.last_name?.charAt(0) || '';
     return `${first}${last}`.toUpperCase() || 'U';
+  };
+
+  const getFullPhoneNumber = () => {
+    if (!formData.country_code || !formData.phone_number) return '';
+    return formData.country_code + formData.phone_number.replace(/\D/g, '');
   };
 
   if (loading) {
@@ -348,7 +344,7 @@ const ProfileEditForm = () => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="phone" className="flex items-center gap-2">
+              <Label className="flex items-center gap-2">
                 Phone Number
                 {profile?.phone_verified ? (
                   <div title="Phone verified">
@@ -361,22 +357,23 @@ const ProfileEditForm = () => {
                 )}
               </Label>
               <div className="flex gap-2">
-                <Input
-                  id="phone"
-                  name="phone"
-                  type="tel"
-                  value={formData.phone}
-                  onChange={handleInputChange}
-                  placeholder="+1 (555) 123-4567"
-                  className="flex-1"
-                />
+                <div className="flex-1">
+                  <PhoneInput
+                    countryCode={formData.country_code}
+                    phoneNumber={formData.phone_number}
+                    onCountryCodeChange={(value) => setFormData(prev => ({ ...prev, country_code: value }))}
+                    onPhoneNumberChange={(value) => setFormData(prev => ({ ...prev, phone_number: value }))}
+                    label=""
+                    placeholder="(555) 123-4567"
+                  />
+                </div>
                 <PhoneVerificationButton
                   isVerified={profile?.phone_verified || false}
-                  phone={formData.phone}
+                  phone={getFullPhoneNumber()}
                   onVerificationSuccess={handlePhoneVerificationSuccess}
                 />
               </div>
-              {!profile?.phone_verified && formData.phone && (
+              {!profile?.phone_verified && (formData.country_code && formData.phone_number) && (
                 <p className="text-xs text-yellow-600">
                   Click "Verify Phone" to verify your phone number.
                 </p>

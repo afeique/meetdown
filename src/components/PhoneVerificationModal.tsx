@@ -1,14 +1,12 @@
-
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
-import { formatPhoneNumber } from '@/utils/phoneUtils';
+import PhoneInput from '@/components/ui/phone-input';
 
 interface PhoneVerificationModalProps {
   isOpen: boolean;
@@ -25,14 +23,45 @@ const PhoneVerificationModal: React.FC<PhoneVerificationModalProps> = ({
 }) => {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [phone, setPhone] = useState(initialPhone);
+  
+  // Parse initial phone into country code and number
+  const parseInitialPhone = (phone: string) => {
+    if (!phone) return { countryCode: '+1', phoneNumber: '' };
+    
+    // Check for various country codes
+    if (phone.startsWith('+1')) return { countryCode: '+1', phoneNumber: phone.slice(2) };
+    if (phone.startsWith('+44')) return { countryCode: '+44', phoneNumber: phone.slice(3) };
+    if (phone.startsWith('+33')) return { countryCode: '+33', phoneNumber: phone.slice(3) };
+    if (phone.startsWith('+49')) return { countryCode: '+49', phoneNumber: phone.slice(3) };
+    
+    return { countryCode: '+1', phoneNumber: phone };
+  };
+
+  const { countryCode: initialCountryCode, phoneNumber: initialPhoneNumber } = parseInitialPhone(initialPhone);
+  
+  const [countryCode, setCountryCode] = useState(initialCountryCode);
+  const [phoneNumber, setPhoneNumber] = useState(initialPhoneNumber);
   const [verificationCode, setVerificationCode] = useState('');
   const [step, setStep] = useState<'phone' | 'verify'>('phone');
   const [loading, setLoading] = useState(false);
   const [resendCooldown, setResendCooldown] = useState(0);
 
+  const getFullPhoneNumber = () => {
+    const cleanNumber = phoneNumber.replace(/\D/g, '');
+    return countryCode + cleanNumber;
+  };
+
+  const getFormattedPhoneNumber = () => {
+    const cleanNumber = phoneNumber.replace(/\D/g, '');
+    if (cleanNumber.length === 10) {
+      const formatted = cleanNumber.replace(/(\d{3})(\d{3})(\d{4})/, '($1) $2-$3');
+      return `${countryCode} ${formatted}`;
+    }
+    return `${countryCode} ${phoneNumber}`;
+  };
+
   const handleSendCode = async () => {
-    if (!user || !phone.trim()) {
+    if (!user || !phoneNumber.trim()) {
       toast({
         title: "Error",
         description: "Please enter a valid phone number",
@@ -43,10 +72,10 @@ const PhoneVerificationModal: React.FC<PhoneVerificationModalProps> = ({
 
     setLoading(true);
     try {
-      const formattedPhone = formatPhoneNumber(phone);
+      const fullPhone = getFullPhoneNumber();
       
       const { data, error } = await supabase.functions.invoke('send-phone-verification', {
-        body: { phone: formattedPhone },
+        body: { phone: fullPhone },
       });
 
       if (error) throw error;
@@ -55,7 +84,7 @@ const PhoneVerificationModal: React.FC<PhoneVerificationModalProps> = ({
       startResendCooldown();
       toast({
         title: "Verification code sent!",
-        description: `We've sent a verification code to ${formattedPhone} via SMS`,
+        description: `We've sent a verification code to ${getFormattedPhoneNumber()} via SMS`,
       });
     } catch (error: any) {
       toast({
@@ -73,10 +102,10 @@ const PhoneVerificationModal: React.FC<PhoneVerificationModalProps> = ({
     
     setLoading(true);
     try {
-      const formattedPhone = formatPhoneNumber(phone);
+      const fullPhone = getFullPhoneNumber();
       
       const { error } = await supabase.functions.invoke('send-phone-verification', {
-        body: { phone: formattedPhone },
+        body: { phone: fullPhone },
       });
 
       if (error) throw error;
@@ -84,7 +113,7 @@ const PhoneVerificationModal: React.FC<PhoneVerificationModalProps> = ({
       startResendCooldown();
       toast({
         title: "Code resent!",
-        description: `A new verification code has been sent to ${formattedPhone}`,
+        description: `A new verification code has been sent to ${getFormattedPhoneNumber()}`,
       });
     } catch (error: any) {
       toast({
@@ -122,11 +151,11 @@ const PhoneVerificationModal: React.FC<PhoneVerificationModalProps> = ({
 
     setLoading(true);
     try {
-      const formattedPhone = formatPhoneNumber(phone);
+      const fullPhone = getFullPhoneNumber();
       
       const { error } = await supabase.functions.invoke('verify-phone', {
         body: { 
-          phone: formattedPhone,
+          phone: fullPhone,
           token: verificationCode 
         },
       });
@@ -173,20 +202,17 @@ const PhoneVerificationModal: React.FC<PhoneVerificationModalProps> = ({
         <div className="space-y-4">
           {step === 'phone' ? (
             <>
-              <div className="space-y-2">
-                <Label htmlFor="phone">Phone Number</Label>
-                <Input
-                  id="phone"
-                  type="tel"
-                  placeholder="+1 (555) 123-4567"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  className="w-full"
-                />
-              </div>
+              <PhoneInput
+                countryCode={countryCode}
+                phoneNumber={phoneNumber}
+                onCountryCodeChange={setCountryCode}
+                onPhoneNumberChange={setPhoneNumber}
+                label="Phone Number"
+                placeholder="(555) 123-4567"
+              />
               <Button
                 onClick={handleSendCode}
-                disabled={loading || !phone.trim()}
+                disabled={loading || !phoneNumber.trim()}
                 className="w-full"
               >
                 {loading ? 'Sending...' : 'Send Verification Code'}
@@ -195,7 +221,7 @@ const PhoneVerificationModal: React.FC<PhoneVerificationModalProps> = ({
           ) : (
             <>
               <div className="space-y-2">
-                <Label>Enter the 6-digit code sent to {formatPhoneNumber(phone)}</Label>
+                <Label>Enter the 6-digit code sent to {getFormattedPhoneNumber()}</Label>
                 <div className="flex justify-center">
                   <InputOTP
                     maxLength={6}

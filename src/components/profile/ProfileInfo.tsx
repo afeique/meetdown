@@ -1,6 +1,5 @@
 
 import { formatDisplayName } from '@/lib/nameUtils';
-import { formatPhoneDisplay } from '@/utils/phoneDisplay';
 import { Button } from '@/components/ui/button';
 import { Phone } from 'lucide-react';
 
@@ -11,7 +10,8 @@ interface Profile {
   email: string | null;
   bio: string | null;
   avatar_url: string | null;
-  phone: string | null;
+  country_code: string | null;
+  phone_number: string | null;
   date_of_birth: string | null;
   email_verified: boolean;
   phone_verified: boolean;
@@ -22,6 +22,20 @@ interface ProfileInfoProps {
   profile: Profile | null;
   onVerifyPhone: () => void;
 }
+
+const formatPhoneDisplay = (countryCode: string | null, phoneNumber: string | null): string => {
+  if (!countryCode || !phoneNumber) return '';
+  
+  // Remove any formatting from phone number and add it back
+  const digits = phoneNumber.replace(/\D/g, '');
+  
+  if (digits.length === 10) {
+    const formatted = digits.replace(/(\d{3})(\d{3})(\d{4})/, '($1) $2-$3');
+    return `${countryCode} ${formatted}`;
+  }
+  
+  return `${countryCode} ${phoneNumber}`;
+};
 
 const ProfileInfo = ({ profile, onVerifyPhone }: ProfileInfoProps) => {
   return (
@@ -45,10 +59,10 @@ const ProfileInfo = ({ profile, onVerifyPhone }: ProfileInfoProps) => {
         </div>
       )}
 
-      {profile?.phone && (
+      {(profile?.country_code && profile?.phone_number) && (
         <div>
           <label className="text-sm font-medium text-gray-600">Phone</label>
-          <p className="text-gray-800">{formatPhoneDisplay(profile.phone)}</p>
+          <p className="text-gray-800">{formatPhoneDisplay(profile.country_code, profile.phone_number)}</p>
           <div className="flex items-center gap-3 mt-2">
             <p className="text-xs text-gray-500">
               {profile.phone_verified ? '✅ Verified' : '⚠️ Not verified'}
