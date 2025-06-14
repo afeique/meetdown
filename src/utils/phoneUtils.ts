@@ -16,9 +16,9 @@ export const formatPhoneNumber = (input: string): string => {
   }
   
   // If it starts with 1 and has 11 digits, add +
-  if (cleaned.match(/^1\d{10}$/)) {
-    return `+${cleaned}`;
-  }
+  // if (cleaned.match(/^1\d{10}$/)) {
+  //   return `+${cleaned}`;
+  // }
   
   // If it already starts with +, return as is
   if (cleaned.startsWith('+')) {
