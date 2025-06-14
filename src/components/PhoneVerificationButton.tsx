@@ -35,7 +35,7 @@ const PhoneVerificationButton: React.FC<PhoneVerificationButtonProps> = ({
         className="flex items-center gap-2"
       >
         <Phone size={16} />
-        Verify Phone
+        Send Verification SMS
       </Button>
       
       <PhoneVerificationModal
