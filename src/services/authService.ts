@@ -1,6 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { formatSinglePhoneNumber } from '@/utils/phoneUtils';
+import { formatPhoneNumber } from '@/utils/phoneUtils';
 
 interface SignUpData {
   emailOrPhone: string;
@@ -18,6 +18,32 @@ interface SignInData {
   password: string;
   inputType: 'email' | 'phone';
 }
+
+const formatPhoneForAuth = (phoneInput: string) => {
+  // Remove all non-digit characters except +
+  const cleaned = phoneInput.replace(/[^\d+]/g, '');
+  
+  // If it doesn't start with +, add +1 for US numbers
+  if (cleaned.match(/^\d{10}$/)) {
+    return formatPhoneNumber('+1', cleaned);
+  }
+  
+  // If it starts with 1 and has 11 digits, add +
+  if (cleaned.match(/^1\d{10}$/)) {
+    return formatPhoneNumber(`+1`, cleaned.slice(1));
+  }
+  
+  // If it already starts with +, format it properly
+  if (cleaned.startsWith('+')) {
+    const countryCode = cleaned.match(/^\+\d{1,3}/)?.[0] || '+1';
+    const phoneNumber = cleaned.slice(countryCode.length);
+    return formatPhoneNumber(countryCode, phoneNumber);
+  }
+  
+  // For other formats, add + if not present
+  const defaultCountryCode = '+1';
+  return formatPhoneNumber(defaultCountryCode, cleaned);
+};
 
 export const signUpUser = async (data: SignUpData) => {
   const { emailOrPhone, password, firstName, lastName, inputType, dateOfBirth, email, phone } = data;
@@ -48,7 +74,7 @@ export const signUpUser = async (data: SignUpData) => {
     return { data: authData, isEmail: true };
   } else {
     console.log('Attempting phone signup for:', emailOrPhone);
-    const formattedPhone = formatSinglePhoneNumber(emailOrPhone);
+    const formattedPhone = formatPhoneForAuth(emailOrPhone);
     
     const { data: authData, error } = await supabase.auth.signUp({
       phone: formattedPhone,
@@ -89,7 +115,7 @@ export const signInUser = async (data: SignInData) => {
     }
   } else {
     console.log('Attempting phone signin for:', emailOrPhone);
-    const formattedPhone = formatSinglePhoneNumber(emailOrPhone);
+    const formattedPhone = formatPhoneForAuth(emailOrPhone);
     
     const { error } = await supabase.auth.signInWithPassword({
       phone: formattedPhone,

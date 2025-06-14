@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
-import { formatSinglePhoneNumber } from '@/utils/phoneUtils';
+import { formatPhoneNumber } from '@/utils/phoneUtils';
 import { Phone, ArrowLeft } from 'lucide-react';
 
 interface PhoneVerificationFormProps {
@@ -28,6 +28,32 @@ const PhoneVerificationForm: React.FC<PhoneVerificationFormProps> = ({
   const [loading, setLoading] = useState(false);
   const [resendCooldown, setResendCooldown] = useState(0);
 
+  const formatPhoneForSubmission = (phoneInput: string) => {
+    // Remove all non-digit characters except +
+    const cleaned = phoneInput.replace(/[^\d+]/g, '');
+    
+    // If it doesn't start with +, add +1 for US numbers
+    if (cleaned.match(/^\d{10}$/)) {
+      return formatPhoneNumber('+1', cleaned);
+    }
+    
+    // If it starts with 1 and has 11 digits, add +
+    if (cleaned.match(/^1\d{10}$/)) {
+      return formatPhoneNumber(`+1`, cleaned.slice(1));
+    }
+    
+    // If it already starts with +, format it properly
+    if (cleaned.startsWith('+')) {
+      const countryCode = cleaned.match(/^\+\d{1,3}/)?.[0] || '+1';
+      const phoneNumber = cleaned.slice(countryCode.length);
+      return formatPhoneNumber(countryCode, phoneNumber);
+    }
+    
+    // For other formats, add + if not present
+    const defaultCountryCode = '+1';
+    return formatPhoneNumber(defaultCountryCode, cleaned);
+  };
+
   const handleSendCode = async () => {
     if (!user || !phone.trim()) {
       toast({
@@ -40,7 +66,7 @@ const PhoneVerificationForm: React.FC<PhoneVerificationFormProps> = ({
 
     setLoading(true);
     try {
-      const formattedPhone = formatSinglePhoneNumber(phone);
+      const formattedPhone = formatPhoneForSubmission(phone);
       
       const { error } = await supabase.functions.invoke('send-phone-verification', {
         body: { phone: formattedPhone },
@@ -70,7 +96,7 @@ const PhoneVerificationForm: React.FC<PhoneVerificationFormProps> = ({
     
     setLoading(true);
     try {
-      const formattedPhone = formatSinglePhoneNumber(phone);
+      const formattedPhone = formatPhoneForSubmission(phone);
       
       const { error } = await supabase.functions.invoke('send-phone-verification', {
         body: { phone: formattedPhone },
@@ -119,7 +145,7 @@ const PhoneVerificationForm: React.FC<PhoneVerificationFormProps> = ({
 
     setLoading(true);
     try {
-      const formattedPhone = formatSinglePhoneNumber(phone);
+      const formattedPhone = formatPhoneForSubmission(phone);
       
       const { error } = await supabase.functions.invoke('verify-phone', {
         body: { 
@@ -197,7 +223,7 @@ const PhoneVerificationForm: React.FC<PhoneVerificationFormProps> = ({
             <div className="space-y-4">
               <div className="text-center">
                 <Label className="text-sm text-gray-600">
-                  Enter the 6-digit code sent to {formatSinglePhoneNumber(phone)}
+                  Enter the 6-digit code sent to {formatPhoneForSubmission(phone)}
                 </Label>
               </div>
               
