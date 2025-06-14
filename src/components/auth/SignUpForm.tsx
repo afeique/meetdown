@@ -40,7 +40,12 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ onBack }) => {
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    const validation = validateSignUpForm(formData);
+    const validation = validateSignUpForm(
+      formData.email,
+      formData.password,
+      formData.dateOfBirth,
+      formData.ageVerified
+    );
     if (!validation.isValid) {
       if (validation.error) {
         toast({
