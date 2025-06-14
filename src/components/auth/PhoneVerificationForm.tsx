@@ -29,29 +29,11 @@ const PhoneVerificationForm: React.FC<PhoneVerificationFormProps> = ({
   const [resendCooldown, setResendCooldown] = useState(0);
 
   const formatPhoneForSubmission = (phoneInput: string) => {
-    // Remove all non-digit characters except +
-    const cleaned = phoneInput.replace(/[^\d+]/g, '');
+    // Remove all non-digit characters
+    const cleaned = phoneInput.replace(/[^\d]/g, '');
     
-    // If it doesn't start with +, add +1 for US numbers
-    if (cleaned.match(/^\d{10}$/)) {
-      return formatPhoneNumber('+1', cleaned);
-    }
-    
-    // If it starts with 1 and has 11 digits, add +
-    if (cleaned.match(/^1\d{10}$/)) {
-      return formatPhoneNumber(`+1`, cleaned.slice(1));
-    }
-    
-    // If it already starts with +, format it properly
-    if (cleaned.startsWith('+')) {
-      const countryCode = cleaned.match(/^\+\d{1,3}/)?.[0] || '+1';
-      const phoneNumber = cleaned.slice(countryCode.length);
-      return formatPhoneNumber(countryCode, phoneNumber);
-    }
-    
-    // For other formats, add + if not present
-    const defaultCountryCode = '+1';
-    return formatPhoneNumber(defaultCountryCode, cleaned);
+    // Always assume US (+1) country code
+    return formatPhoneNumber(cleaned);
   };
 
   const handleSendCode = async () => {

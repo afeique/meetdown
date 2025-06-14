@@ -21,7 +21,6 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ onBack }) => {
     firstName: '',
     lastName: '',
     email: '',
-    countryCode: '+1',
     phoneNumber: '',
     password: '',
     dateOfBirth: undefined as Date | undefined,
@@ -66,7 +65,6 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ onBack }) => {
           data: {
             first_name: formData.firstName,
             last_name: formData.lastName,
-            country_code: formData.countryCode,
             phone_number: formData.phoneNumber.replace(/\D/g, ''), // Store only digits
             date_of_birth: formData.dateOfBirth?.toISOString().split('T')[0],
           },
@@ -111,10 +109,8 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ onBack }) => {
 
           <ContactFields
             email={formData.email}
-            countryCode={formData.countryCode}
             phoneNumber={formData.phoneNumber}
             setEmail={(value) => setFormData(prev => ({ ...prev, email: value }))}
-            setCountryCode={(value) => setFormData(prev => ({ ...prev, countryCode: value }))}
             setPhoneNumber={(value) => setFormData(prev => ({ ...prev, phoneNumber: value }))}
             password={formData.password}
             setPassword={(value) => setFormData(prev => ({ ...prev, password: value }))}

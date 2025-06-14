@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -7,6 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { useToast } from '@/hooks/use-toast';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
 import PhoneInput from '@/components/ui/phone-input';
+import { formatPhoneNumber } from '@/utils/phoneUtils';
 
 interface PhoneVerificationModalProps {
   isOpen: boolean;
@@ -24,23 +26,13 @@ const PhoneVerificationModal: React.FC<PhoneVerificationModalProps> = ({
   const { user } = useAuth();
   const { toast } = useToast();
   
-  // Parse initial phone into country code and number
+  // Parse initial phone (remove +1 if present since we assume it)
   const parseInitialPhone = (phone: string) => {
-    if (!phone) return { countryCode: '+1', phoneNumber: '' };
-    
-    // Check for various country codes
-    if (phone.startsWith('+1')) return { countryCode: '+1', phoneNumber: phone.slice(2) };
-    if (phone.startsWith('+44')) return { countryCode: '+44', phoneNumber: phone.slice(3) };
-    if (phone.startsWith('+33')) return { countryCode: '+33', phoneNumber: phone.slice(3) };
-    if (phone.startsWith('+49')) return { countryCode: '+49', phoneNumber: phone.slice(3) };
-    
-    return { countryCode: '+1', phoneNumber: phone };
+    if (!phone) return '';
+    return phone.startsWith('+1') ? phone.slice(2) : phone;
   };
 
-  const { countryCode: initialCountryCode, phoneNumber: initialPhoneNumber } = parseInitialPhone(initialPhone);
-  
-  const [countryCode, setCountryCode] = useState(initialCountryCode);
-  const [phoneNumber, setPhoneNumber] = useState(initialPhoneNumber);
+  const [phoneNumber, setPhoneNumber] = useState(parseInitialPhone(initialPhone));
   const [verificationCode, setVerificationCode] = useState('');
   const [step, setStep] = useState<'phone' | 'verify'>('phone');
   const [loading, setLoading] = useState(false);
@@ -48,16 +40,11 @@ const PhoneVerificationModal: React.FC<PhoneVerificationModalProps> = ({
 
   const getFullPhoneNumber = () => {
     const cleanNumber = phoneNumber.replace(/\D/g, '');
-    return countryCode + cleanNumber;
+    return '+1' + cleanNumber;
   };
 
   const getFormattedPhoneNumber = () => {
-    const cleanNumber = phoneNumber.replace(/\D/g, '');
-    if (cleanNumber.length === 10) {
-      const formatted = cleanNumber.replace(/(\d{3})(\d{3})(\d{4})/, '($1) $2-$3');
-      return `${countryCode} ${formatted}`;
-    }
-    return `${countryCode} ${phoneNumber}`;
+    return formatPhoneNumber(phoneNumber);
   };
 
   const handleSendCode = async () => {
@@ -203,9 +190,7 @@ const PhoneVerificationModal: React.FC<PhoneVerificationModalProps> = ({
           {step === 'phone' ? (
             <>
               <PhoneInput
-                countryCode={countryCode}
                 phoneNumber={phoneNumber}
-                onCountryCodeChange={setCountryCode}
                 onPhoneNumberChange={setPhoneNumber}
                 label="Phone Number"
                 placeholder="(555) 123-4567"
