@@ -139,7 +139,7 @@ const ProfileFormSection = ({
                 type="date"
                 value={formData.date_of_birth}
                 onChange={onInputChange}
-                className="pl-10"
+                className="pl-10 [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-inner-spin-button]:hidden [&::-webkit-outer-spin-button]:hidden"
               />
             </div>
           </div>
