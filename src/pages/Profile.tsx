@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -7,6 +6,7 @@ import InterestTags from '@/components/InterestTags';
 import ProfileEditForm from '@/components/ProfileEditForm';
 import ProfileDisplay from '@/components/ProfileDisplay';
 import ProfileHeader from '@/components/ProfileHeader';
+import Footer from '@/components/Footer';
 
 interface Profile {
   id: string;
