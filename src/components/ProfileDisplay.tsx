@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -5,6 +6,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { User, Phone } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { formatDisplayName } from '@/lib/nameUtils';
+import { formatPhoneDisplay } from '@/utils/phoneDisplay';
 import PhoneVerificationModal from './PhoneVerificationModal';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -110,7 +112,7 @@ const ProfileDisplay = ({ profile }: ProfileDisplayProps) => {
           {profile?.phone && (
             <div>
               <label className="text-sm font-medium text-gray-600">Phone</label>
-              <p className="text-gray-800">{profile.phone}</p>
+              <p className="text-gray-800">{formatPhoneDisplay(profile.phone)}</p>
               <div className="flex items-center gap-3 mt-2">
                 <p className="text-xs text-gray-500">
                   {profile.phone_verified ? '✅ Verified' : '⚠️ Not verified'}
