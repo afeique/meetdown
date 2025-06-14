@@ -5,27 +5,24 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
 import { formatPhoneNumber } from '@/utils/phoneUtils';
+import { Phone, ArrowLeft } from 'lucide-react';
 
-interface PhoneVerificationModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onSuccess: () => void;
-  initialPhone?: string;
+interface PhoneVerificationFormProps {
+  onBack?: () => void;
+  onSuccess?: () => void;
 }
 
-const PhoneVerificationModal: React.FC<PhoneVerificationModalProps> = ({
-  isOpen,
-  onClose,
+const PhoneVerificationForm: React.FC<PhoneVerificationFormProps> = ({
+  onBack,
   onSuccess,
-  initialPhone = '',
 }) => {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [phone, setPhone] = useState(initialPhone);
+  const [phone, setPhone] = useState('');
   const [verificationCode, setVerificationCode] = useState('');
   const [step, setStep] = useState<'phone' | 'verify'>('phone');
   const [loading, setLoading] = useState(false);
@@ -45,7 +42,7 @@ const PhoneVerificationModal: React.FC<PhoneVerificationModalProps> = ({
     try {
       const formattedPhone = formatPhoneNumber(phone);
       
-      const { data, error } = await supabase.functions.invoke('send-phone-verification', {
+      const { error } = await supabase.functions.invoke('send-phone-verification', {
         body: { phone: formattedPhone },
       });
 
@@ -138,11 +135,7 @@ const PhoneVerificationModal: React.FC<PhoneVerificationModalProps> = ({
         description: "Your phone number has been successfully verified.",
       });
       
-      onSuccess();
-      onClose();
-      setStep('phone');
-      setVerificationCode('');
-      setResendCooldown(0);
+      onSuccess?.();
     } catch (error: any) {
       toast({
         title: "Verification failed",
@@ -154,64 +147,75 @@ const PhoneVerificationModal: React.FC<PhoneVerificationModalProps> = ({
     }
   };
 
-  const handleClose = () => {
-    onClose();
-    setStep('phone');
-    setVerificationCode('');
-    setResendCooldown(0);
-  };
-
   return (
-    <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>
-            {step === 'phone' ? 'Verify Phone Number' : 'Enter Verification Code'}
-          </DialogTitle>
-        </DialogHeader>
-
-        <div className="space-y-4">
-          {step === 'phone' ? (
-            <>
-              <div className="space-y-2">
-                <Label htmlFor="phone">Phone Number</Label>
-                <Input
-                  id="phone"
-                  type="tel"
-                  placeholder="+1 (555) 123-4567"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  className="w-full"
-                />
-              </div>
+    <Card className="backdrop-blur-sm bg-white/80 shadow-xl border-0">
+      <CardHeader className="text-center space-y-2 pb-6">
+        <CardTitle className="text-2xl font-semibold text-gray-800 flex items-center justify-center gap-2">
+          <Phone className="h-6 w-6" />
+          {step === 'phone' ? 'Verify Phone Number' : 'Enter Verification Code'}
+        </CardTitle>
+      </CardHeader>
+      
+      <CardContent className="space-y-6">
+        {step === 'phone' ? (
+          <>
+            <div className="space-y-2">
+              <Label htmlFor="phone">Phone Number</Label>
+              <Input
+                id="phone"
+                type="tel"
+                placeholder="+1 (555) 123-4567"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                className="w-full"
+              />
+            </div>
+            
+            <div className="space-y-3">
               <Button
                 onClick={handleSendCode}
                 disabled={loading || !phone.trim()}
-                className="w-full"
+                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
               >
                 {loading ? 'Sending...' : 'Send Verification Code'}
               </Button>
-            </>
-          ) : (
-            <>
-              <div className="space-y-2">
-                <Label>Enter the 6-digit code sent to {formatPhoneNumber(phone)}</Label>
-                <div className="flex justify-center">
-                  <InputOTP
-                    maxLength={6}
-                    value={verificationCode}
-                    onChange={setVerificationCode}
-                  >
-                    <InputOTPGroup>
-                      <InputOTPSlot index={0} />
-                      <InputOTPSlot index={1} />
-                      <InputOTPSlot index={2} />
-                      <InputOTPSlot index={3} />
-                      <InputOTPSlot index={4} />
-                      <InputOTPSlot index={5} />
-                    </InputOTPGroup>
-                  </InputOTP>
-                </div>
+              
+              {onBack && (
+                <Button
+                  variant="outline"
+                  onClick={onBack}
+                  className="w-full flex items-center gap-2"
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                  Back to Login
+                </Button>
+              )}
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="space-y-4">
+              <div className="text-center">
+                <Label className="text-sm text-gray-600">
+                  Enter the 6-digit code sent to {formatPhoneNumber(phone)}
+                </Label>
+              </div>
+              
+              <div className="flex justify-center">
+                <InputOTP
+                  maxLength={6}
+                  value={verificationCode}
+                  onChange={setVerificationCode}
+                >
+                  <InputOTPGroup>
+                    <InputOTPSlot index={0} />
+                    <InputOTPSlot index={1} />
+                    <InputOTPSlot index={2} />
+                    <InputOTPSlot index={3} />
+                    <InputOTPSlot index={4} />
+                    <InputOTPSlot index={5} />
+                  </InputOTPGroup>
+                </InputOTP>
               </div>
               
               <div className="text-center">
@@ -227,29 +231,29 @@ const PhoneVerificationModal: React.FC<PhoneVerificationModalProps> = ({
                   }
                 </Button>
               </div>
+            </div>
 
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  onClick={() => setStep('phone')}
-                  className="flex-1"
-                >
-                  Back
-                </Button>
-                <Button
-                  onClick={handleVerifyCode}
-                  disabled={loading || verificationCode.length !== 6}
-                  className="flex-1"
-                >
-                  {loading ? 'Verifying...' : 'Verify'}
-                </Button>
-              </div>
-            </>
-          )}
-        </div>
-      </DialogContent>
-    </Dialog>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                onClick={() => setStep('phone')}
+                className="flex-1"
+              >
+                Back
+              </Button>
+              <Button
+                onClick={handleVerifyCode}
+                disabled={loading || verificationCode.length !== 6}
+                className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+              >
+                {loading ? 'Verifying...' : 'Verify'}
+              </Button>
+            </div>
+          </>
+        )}
+      </CardContent>
+    </Card>
   );
 };
 
-export default PhoneVerificationModal;
+export default PhoneVerificationForm;
