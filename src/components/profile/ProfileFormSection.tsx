@@ -100,19 +100,19 @@ const ProfileFormSection = ({
           </div>
 
           <div className="space-y-2">
-            <Label className="flex items-center gap-2">
-              Phone Number
-              {profile?.phone_verified ? (
-                <div title="Phone verified">
-                  <CheckCircle className="w-4 h-4 text-green-500" />
-                </div>
-              ) : (
-                <div title="Phone not verified">
-                  <AlertCircle className="w-4 h-4 text-yellow-500" />
-                </div>
-              )}
-            </Label>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center">
+              <Label className="flex items-center gap-2">
+                Phone Number
+                {profile?.phone_verified ? (
+                  <div title="Phone verified">
+                    <CheckCircle className="w-4 h-4 text-green-500" />
+                  </div>
+                ) : (
+                  <div title="Phone not verified">
+                    <AlertCircle className="w-4 h-4 text-yellow-500" />
+                  </div>
+                )}
+              </Label>
               <PhoneInput
                 phoneNumber={formatPhoneForDisplay(formData.phone)}
                 onPhoneNumberChange={onPhoneChange}
@@ -124,12 +124,12 @@ const ProfileFormSection = ({
                 fullPhoneNumber={getFullPhoneNumber()}
                 onVerificationSuccess={onPhoneVerificationSuccess}
               />
+              {!profile?.phone_verified && formData.phone && (
+                <p className="text-xs text-yellow-600">
+                  Click "Verify Phone" to verify your phone number.
+                </p>
+              )}
             </div>
-            {!profile?.phone_verified && formData.phone && (
-              <p className="text-xs text-yellow-600">
-                Click "Verify Phone" to verify your phone number.
-              </p>
-            )}
           </div>
 
           <div className="space-y-2">
