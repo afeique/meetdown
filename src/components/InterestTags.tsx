@@ -198,27 +198,6 @@ const InterestTags = () => {
         </p>
       </CardHeader>
       <CardContent className="space-y-6">
-        {/* Add New Interest */}
-        <div className="space-y-2">
-          <h3 className="font-medium text-gray-700">Add New Interest</h3>
-          <div className="flex gap-2">
-            <Input
-              value={newInterest}
-              onChange={(e) => setNewInterest(e.target.value)}
-              onKeyPress={handleKeyPress}
-              placeholder="Enter an interest (e.g., hiking, photography, cooking)"
-              className="flex-1"
-            />
-            <Button
-              onClick={addInterest}
-              disabled={adding || !newInterest.trim()}
-              className="flex items-center gap-1"
-            >
-              <Plus size={16} />
-              {adding ? 'Adding...' : 'Add'}
-            </Button>
-          </div>
-        </div>
 
         {/* Current Interests */}
         {userInterests.length > 0 && (
@@ -249,6 +228,29 @@ const InterestTags = () => {
             No interests added yet. Add some interests to help others find you!
           </div>
         )}
+
+        {/* Add New Interest */}
+        <div className="space-y-2">
+          <h3 className="font-medium text-gray-700">Add New Interest</h3>
+          <div className="flex gap-2">
+            <Input
+              value={newInterest}
+              onChange={(e) => setNewInterest(e.target.value)}
+              onKeyPress={handleKeyPress}
+              placeholder="Enter an interest (e.g., hiking, photography, cooking)"
+              className="flex-1"
+            />
+            <Button
+              onClick={addInterest}
+              disabled={adding || !newInterest.trim()}
+              className="flex items-center gap-1"
+            >
+              <Plus size={16} />
+              {adding ? 'Adding...' : 'Add'}
+            </Button>
+          </div>
+        </div>
+        
       </CardContent>
     </Card>
   );

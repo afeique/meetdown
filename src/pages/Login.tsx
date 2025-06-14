@@ -41,12 +41,14 @@ const Login = () => {
           <AuthForm onSuccess={() => navigate('/', { replace: true })} />
 
           {/* Bottom Text */}
+          {/* Obsoleted by Footer
           <div className="text-center mt-6">
             <p className="text-xs text-gray-500">
               By signing up or signing in, you agree to our Terms of Service and Privacy Policy
             </p>
           </div>
         </div>
+        */}
       </div>
       
       <Footer />
