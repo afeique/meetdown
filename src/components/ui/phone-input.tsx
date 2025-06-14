@@ -33,7 +33,7 @@ const PhoneInput = ({
       value = value.slice(0, 10);
     }
     
-    // Format the phone number as user types
+    // Format the phone number as user types - WITHOUT adding +
     if (value.length >= 6) {
       value = value.replace(/(\d{3})(\d{3})(\d{1,4})/, '($1) $2-$3');
     } else if (value.length >= 3) {
