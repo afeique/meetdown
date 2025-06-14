@@ -93,43 +93,41 @@ const ProfileFormSection = ({
               placeholder="john.doe@example.com"
             />
             {!profile?.email_verified && formData.email && (
-              <p className="text-xs text-yellow-600">
+              <Label htmlFor="email" className="text-xs text-yellow-600">
                 Email verification required. You'll need to verify your email after updating.
-              </p>
+              </Label>
             )}
           </div>
 
           <div className="space-y-2">
-            <div className="flex items-center">
-              <Label className="flex items-center gap-2">
-                Phone Number
-                {profile?.phone_verified ? (
-                  <div title="Phone verified">
-                    <CheckCircle className="w-4 h-4 text-green-500" />
-                  </div>
-                ) : (
-                  <div title="Phone not verified">
-                    <AlertCircle className="w-4 h-4 text-yellow-500" />
-                  </div>
-                )}
-              </Label>
-              <PhoneInput
-                phoneNumber={formatPhoneForDisplay(formData.phone)}
-                onPhoneNumberChange={onPhoneChange}
-                label=""
-                placeholder="(555) 555-5555"
-              />
-              <PhoneVerificationButton
-                isVerified={profile?.phone_verified || false}
-                fullPhoneNumber={getFullPhoneNumber()}
-                onVerificationSuccess={onPhoneVerificationSuccess}
-              />
-              {!profile?.phone_verified && formData.phone && (
-                <p className="text-xs text-yellow-600">
-                  Click "Verify Phone" to verify your phone number.
-                </p>
+            <Label className="flex items-center gap-2">
+              Phone Number
+              {profile?.phone_verified ? (
+                <div title="Phone verified">
+                  <CheckCircle className="w-4 h-4 text-green-500" />
+                </div>
+              ) : (
+                <div title="Phone not verified">
+                  <AlertCircle className="w-4 h-4 text-yellow-500" />
+                </div>
               )}
-            </div>
+            </Label>
+            <PhoneInput
+              phoneNumber={formatPhoneForDisplay(formData.phone)}
+              onPhoneNumberChange={onPhoneChange}
+              label=""
+              placeholder="(555) 555-5555"
+            />
+            <PhoneVerificationButton
+              isVerified={profile?.phone_verified || false}
+              fullPhoneNumber={getFullPhoneNumber()}
+              onVerificationSuccess={onPhoneVerificationSuccess}
+            />
+            {!profile?.phone_verified && formData.phone && (
+              <p className="text-xs text-yellow-600">
+                Click "Verify Phone" to verify your phone number.
+              </p>
+            )}
           </div>
 
           <div className="space-y-2">
