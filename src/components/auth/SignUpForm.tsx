@@ -40,9 +40,15 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ onBack }) => {
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    const validationErrors = validateSignUpForm(formData);
-    if (Object.keys(validationErrors).length > 0) {
-      setErrors(validationErrors);
+    const validation = validateSignUpForm(formData);
+    if (!validation.isValid) {
+      if (validation.error) {
+        toast({
+          title: validation.error.title,
+          description: validation.error.description,
+          variant: "destructive",
+        });
+      }
       return;
     }
 
@@ -96,7 +102,6 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ onBack }) => {
             lastName={formData.lastName}
             setFirstName={(value) => setFormData(prev => ({ ...prev, firstName: value }))}
             setLastName={(value) => setFormData(prev => ({ ...prev, lastName: value }))}
-            errors={errors}
           />
 
           <ContactFields
@@ -116,14 +121,6 @@ const SignUpForm: React.FC<SignUpFormProps> = ({ onBack }) => {
             ageVerified={formData.ageVerified}
             setAgeVerified={(value) => setFormData(prev => ({ ...prev, ageVerified: value }))}
           />
-
-          {Object.keys(errors).length > 0 && (
-            <div className="text-red-500 text-sm space-y-1">
-              {Object.values(errors).map((error, index) => (
-                <p key={index}>• {error}</p>
-              ))}
-            </div>
-          )}
 
           <div className="space-y-3">
             <Button

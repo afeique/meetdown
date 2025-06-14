@@ -15,6 +15,8 @@ interface Profile {
   bio: string | null;
   avatar_url: string | null;
   phone: string | null;
+  country_code: string | null;
+  phone_number: string | null;
   date_of_birth: string | null;
   email_verified: boolean;
   phone_verified: boolean;
@@ -34,6 +36,12 @@ const ProfileDisplay = ({ profile }: ProfileDisplayProps) => {
     setIsPhoneModalOpen(false);
   };
 
+  // Get full phone number for verification modal
+  const getFullPhoneNumber = () => {
+    if (!profile?.country_code || !profile?.phone_number) return '';
+    return profile.country_code + profile.phone_number;
+  };
+
   return (
     <>
       {/* Profile Display */}
@@ -49,7 +57,7 @@ const ProfileDisplay = ({ profile }: ProfileDisplayProps) => {
             onVerifyPhone={() => setIsPhoneModalOpen(true)} 
           />
           
-          {profile?.phone && (
+          {(profile?.country_code && profile?.phone_number) && (
             <SmsNotificationToggle 
               isPhoneVerified={profile.phone_verified}
               initialEnabled={profile.sms_notifications_enabled}
@@ -64,7 +72,7 @@ const ProfileDisplay = ({ profile }: ProfileDisplayProps) => {
         isOpen={isPhoneModalOpen}
         onClose={() => setIsPhoneModalOpen(false)}
         onSuccess={handlePhoneVerificationSuccess}
-        initialPhone={profile?.phone || ''}
+        initialPhone={getFullPhoneNumber()}
       />
     </>
   );

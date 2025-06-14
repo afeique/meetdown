@@ -29,7 +29,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ onSuccess }) => {
       
       <CardContent>
         {isSignUp ? (
-          <SignUpForm onSuccess={onSuccess} onToggleMode={toggleMode} />
+          <SignUpForm onBack={toggleMode} />
         ) : (
           <SignInForm onSuccess={onSuccess} onToggleMode={toggleMode} />
         )}
