@@ -9,8 +9,7 @@ interface CountryCodeSelectProps {
 
 const CountryCodeSelect = ({ value, onValueChange, disabled }: CountryCodeSelectProps) => {
   const countryCodes = [
-    { code: '+1', country: 'United States', flag: '🇺🇸' },
-    { code: '+1', country: 'Canada', flag: '🇨🇦' },
+    { code: '+1', country: 'United States / Canada', flag: '🇺🇸🇨🇦' },
     { code: '+44', country: 'United Kingdom', flag: '🇬🇧' },
     { code: '+33', country: 'France', flag: '🇫🇷' },
     { code: '+49', country: 'Germany', flag: '🇩🇪' },
