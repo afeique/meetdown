@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -112,7 +111,7 @@ const ProfileFormSection = ({
                 </div>
               )}
             </Label>
-            <div className="flex gap-2">
+            <div className="flex items-end gap-2">
               <div className="flex-1">
                 <PhoneInput
                   phoneNumber={formatPhoneForDisplay(formData.phone)}
