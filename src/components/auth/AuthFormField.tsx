@@ -1,7 +1,7 @@
 
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { getInputType, getPlaceholderText } from '@/utils/inputValidation';
+import { getInputType } from '@/utils/inputValidation';
 
 interface AuthFormFieldProps {
   emailOrPhone: string;
@@ -17,26 +17,25 @@ const AuthFormField: React.FC<AuthFormFieldProps> = ({
   setPassword,
 }) => {
   const inputType = getInputType(emailOrPhone);
-  const placeholderText = getPlaceholderText(inputType);
 
   return (
     <>
       <div className="space-y-2">
-        <Label htmlFor="emailOrPhone" className="text-sm font-medium text-gray-700">
-          Email or Phone Number
+        <Label htmlFor="email" className="text-sm font-medium text-gray-700">
+          Email Address
         </Label>
         <Input
-          id="emailOrPhone"
-          type="text"
-          placeholder={placeholderText}
+          id="email"
+          type="email"
+          placeholder="Enter your email address"
           value={emailOrPhone}
           onChange={(e) => setEmailOrPhone(e.target.value)}
           className="border-gray-200 focus:border-blue-500 focus:ring-blue-500"
           required
         />
-        {emailOrPhone && inputType !== 'unknown' && (
+        {emailOrPhone && inputType === 'email' && (
           <p className="text-xs text-gray-500 mt-1">
-            Detected: {inputType === 'email' ? 'Email address' : 'Phone number'}
+            Valid email address
           </p>
         )}
       </div>

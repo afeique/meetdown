@@ -38,8 +38,8 @@ const SignInForm: React.FC<SignInFormProps> = ({ onSuccess, onToggleMode }) => {
 
       if (inputType === 'unknown') {
         toast({
-          title: "Invalid Contact Information",
-          description: "Please enter a valid email address or phone number.",
+          title: "Invalid Email Address",
+          description: "Please enter a valid email address.",
           variant: "destructive",
         });
         setLoading(false);
@@ -49,7 +49,7 @@ const SignInForm: React.FC<SignInFormProps> = ({ onSuccess, onToggleMode }) => {
       await signInUser({
         emailOrPhone,
         password,
-        inputType: inputType as 'email' | 'phone',
+        inputType: 'email',
       });
 
       console.log('Signin successful');
