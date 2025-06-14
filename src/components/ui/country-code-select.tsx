@@ -22,7 +22,7 @@ const CountryCodeSelect = ({ value, onValueChange, disabled }: CountryCodeSelect
 
   return (
     <Select value={value} onValueChange={onValueChange} disabled={disabled}>
-      <SelectTrigger className="w-[140px]">
+      <SelectTrigger className="w-[100px]">
         <SelectValue placeholder="Code" />
       </SelectTrigger>
       <SelectContent>
@@ -31,7 +31,6 @@ const CountryCodeSelect = ({ value, onValueChange, disabled }: CountryCodeSelect
             <div className="flex items-center gap-2">
               <span>{country.flag}</span>
               <span>{country.code}</span>
-              <span className="text-xs text-gray-500">{country.country}</span>
             </div>
           </SelectItem>
         ))}
