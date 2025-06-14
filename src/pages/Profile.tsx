@@ -6,8 +6,10 @@ import { useToast } from '@/hooks/use-toast';
 import InterestTags from '@/components/InterestTags';
 import ProfileEditForm from '@/components/ProfileEditForm';
 import ProfileDisplay from '@/components/ProfileDisplay';
-import ProfileHeader from '@/components/ProfileHeader';
+import TopBar from '@/components/TopBar';
 import Footer from '@/components/Footer';
+import { Button } from '@/components/ui/button';
+import { Edit } from 'lucide-react';
 
 interface Profile {
   id: string;
@@ -67,12 +69,24 @@ const Profile = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-blue-50 via-white to-purple-50">
-      <ProfileHeader 
-        isEditing={isEditing} 
-        onToggleEdit={() => setIsEditing(!isEditing)} 
+      <TopBar 
+        showBackButton={true} 
+        title={isEditing ? 'Edit Profile' : 'My Profile'} 
       />
 
       <div className="flex-1 container mx-auto px-6 py-8 max-w-2xl">
+        <div className="flex justify-end mb-6">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setIsEditing(!isEditing)}
+            className="flex items-center gap-2"
+          >
+            <Edit size={16} />
+            {isEditing ? 'View Profile' : 'Edit Profile'}
+          </Button>
+        </div>
+
         {isEditing ? (
           <ProfileEditForm />
         ) : (

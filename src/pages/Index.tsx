@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -12,8 +11,7 @@ import { MapPin, Plus } from 'lucide-react';
 import CreateEventForm from '@/components/CreateEventForm';
 import LocationBar from '@/components/LocationBar';
 import EventFilters, { EventFilters as EventFiltersType } from '@/components/EventFilters';
-import LogoutButton from '@/components/LogoutButton';
-import UserProfileHeader from '@/components/UserProfileHeader';
+import TopBar from '@/components/TopBar';
 import Footer from '@/components/Footer';
 import { useNavigate } from 'react-router-dom';
 
@@ -62,33 +60,7 @@ const Index = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
-      {/* Header */}
-      <div className="bg-white shadow-sm border-b">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center gap-4">
-              <img 
-                src="/logo.png" 
-                alt="meetdown" 
-                className="h-8 cursor-pointer hover:opacity-80 transition-opacity"
-                onClick={() => navigate('/')}
-              />
-              <UserProfileHeader />
-            </div>
-            <div className="flex items-center gap-3">
-              <Button
-                variant="outline"
-                onClick={() => window.location.href = '/my-events'}
-                className="flex items-center gap-2"
-              >
-                <MapPin className="h-4 w-4" />
-                My Events
-              </Button>
-              <LogoutButton />
-            </div>
-          </div>
-        </div>
-      </div>
+      <TopBar />
 
       <div className="flex-1 container mx-auto px-4 py-6">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
