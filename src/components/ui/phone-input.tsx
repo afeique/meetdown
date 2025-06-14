@@ -22,19 +22,43 @@ const PhoneInput = ({
   label = "Phone Number",
   required = false,
   disabled = false,
-  placeholder = "(555) 123-4567"
+  placeholder = "(555) 555-5555"
 }: PhoneInputProps) => {
   const handlePhoneNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // Format the phone number as user types
+    // Get only digits from the input
     let value = e.target.value.replace(/\D/g, '');
     
+    // Limit to 10 digits
+    if (value.length > 10) {
+      value = value.slice(0, 10);
+    }
+    
+    // Format the phone number as user types
     if (value.length >= 6) {
-      value = value.replace(/(\d{3})(\d{3})(\d{0,4})/, '($1) $2-$3');
+      value = value.replace(/(\d{3})(\d{3})(\d{1,4})/, '($1) $2-$3');
     } else if (value.length >= 3) {
       value = value.replace(/(\d{3})(\d{0,3})/, '($1) $2');
+    } else if (value.length > 0) {
+      value = value.replace(/(\d{1,3})/, '($1');
+      if (value.length === 4) {
+        value = value + ')';
+      }
     }
     
     onPhoneNumberChange(value);
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    // Allow backspace, delete, tab, escape, enter, and arrow keys
+    if ([8, 9, 27, 13, 37, 38, 39, 40, 46].includes(e.keyCode)) {
+      return;
+    }
+    
+    // Allow only digits, parentheses, spaces, and dashes
+    const char = String.fromCharCode(e.keyCode);
+    if (!/[\d\(\)\s\-]/.test(char)) {
+      e.preventDefault();
+    }
   };
 
   return (
@@ -54,9 +78,10 @@ const PhoneInput = ({
           placeholder={placeholder}
           value={phoneNumber}
           onChange={handlePhoneNumberChange}
+          onKeyDown={handleKeyPress}
           disabled={disabled}
           className="flex-1 border-gray-200 focus:border-blue-500 focus:ring-blue-500"
-          maxLength={14}
+          maxLength={14} // (555) 555-5555 = 14 characters
         />
       </div>
     </div>
