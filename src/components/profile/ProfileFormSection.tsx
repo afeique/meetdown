@@ -1,9 +1,8 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Upload, Save, AlertCircle, CheckCircle } from 'lucide-react';
+import { Upload, Save, AlertCircle, CheckCircle, CalendarIcon } from 'lucide-react';
 import PhoneInput from '@/components/ui/phone-input';
 import PhoneVerificationButton from '../PhoneVerificationButton';
 import { formatPhoneForDisplay } from '@/utils/phoneUtils';
@@ -132,13 +131,17 @@ const ProfileFormSection = ({
 
           <div className="space-y-2">
             <Label htmlFor="date_of_birth">Date of Birth</Label>
-            <Input
-              id="date_of_birth"
-              name="date_of_birth"
-              type="date"
-              value={formData.date_of_birth}
-              onChange={onInputChange}
-            />
+            <div className="relative">
+              <CalendarIcon className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+              <Input
+                id="date_of_birth"
+                name="date_of_birth"
+                type="date"
+                value={formData.date_of_birth}
+                onChange={onInputChange}
+                className="pl-10"
+              />
+            </div>
           </div>
 
           <Button
