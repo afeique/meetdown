@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { formatDisplayName } from '@/lib/nameUtils';
 import { CheckCircle, AlertCircle } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 interface UserProfile {
   first_name: string | null;
@@ -16,6 +17,7 @@ interface UserProfile {
 
 const UserProfileHeader = () => {
   const { user, userProfile } = useAuth();
+  const navigate = useNavigate();
   const [fullProfile, setFullProfile] = useState<UserProfile | null>(null);
 
   useEffect(() => {
@@ -51,8 +53,15 @@ const UserProfileHeader = () => {
     return 'User';
   };
 
+  const handleClick = () => {
+    navigate('/profile');
+  };
+
   return (
-    <div className="flex items-center gap-3">
+    <div 
+      className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity"
+      onClick={handleClick}
+    >
       <Avatar className="h-8 w-8">
         <AvatarImage src={fullProfile?.avatar_url || undefined} />
         <AvatarFallback className="bg-gradient-to-br from-purple-500 to-blue-500 text-white text-sm font-semibold">
