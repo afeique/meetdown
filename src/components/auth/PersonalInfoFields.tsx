@@ -53,6 +53,7 @@ const PersonalInfoFields: React.FC<PersonalInfoFieldsProps> = ({
               captionLayout="dropdown-buttons"
               fromYear={1900}
               toYear={today.getFullYear()}
+              className="p-3 pointer-events-auto"
             />
           </PopoverContent>
         </Popover>
