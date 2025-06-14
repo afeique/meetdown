@@ -33,19 +33,20 @@ const PhoneInput = ({
       value = value.slice(0, 10);
     }
     
-    // Format the phone number as user types - WITHOUT adding +
+    // Format the phone number as user types
+    let formattedValue = '';
     if (value.length >= 6) {
-      value = value.replace(/(\d{3})(\d{3})(\d{1,4})/, '($1) $2-$3');
+      formattedValue = `(${value.slice(0, 3)}) ${value.slice(3, 6)}-${value.slice(6, 10)}`;
     } else if (value.length >= 3) {
-      value = value.replace(/(\d{3})(\d{0,3})/, '($1) $2');
+      formattedValue = `(${value.slice(0, 3)}) ${value.slice(3)}`;
     } else if (value.length > 0) {
-      value = value.replace(/(\d{1,3})/, '($1');
-      if (value.length === 4) {
-        value = value + ')';
+      formattedValue = `(${value}`;
+      if (value.length === 3) {
+        formattedValue = `(${value}) `;
       }
     }
     
-    onPhoneNumberChange(value);
+    onPhoneNumberChange(formattedValue);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
