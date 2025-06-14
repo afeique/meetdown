@@ -31,10 +31,14 @@ const formatPhoneDisplay = (countryCode: string | null, phoneNumber: string | nu
   
   if (digits.length === 10) {
     const formatted = digits.replace(/(\d{3})(\d{3})(\d{4})/, '($1) $2-$3');
-    return `${countryCode} ${formatted}`;
+    // Don't add extra + if country code already has it
+    const cleanCountryCode = countryCode.startsWith('+') ? countryCode : `+${countryCode}`;
+    return `${cleanCountryCode} ${formatted}`;
   }
   
-  return `${countryCode} ${phoneNumber}`;
+  // For other lengths, just combine country code and phone number
+  const cleanCountryCode = countryCode.startsWith('+') ? countryCode : `+${countryCode}`;
+  return `${cleanCountryCode} ${phoneNumber}`;
 };
 
 const ProfileInfo = ({ profile, onVerifyPhone }: ProfileInfoProps) => {
