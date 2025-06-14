@@ -6,13 +6,13 @@ import PhoneVerificationModal from './PhoneVerificationModal';
 
 interface PhoneVerificationButtonProps {
   isVerified: boolean;
-  phone?: string;
+  fullPhoneNumber?: string;
   onVerificationSuccess: () => void;
 }
 
 const PhoneVerificationButton: React.FC<PhoneVerificationButtonProps> = ({
   isVerified,
-  phone,
+  fullPhoneNumber,
   onVerificationSuccess,
 }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -42,7 +42,7 @@ const PhoneVerificationButton: React.FC<PhoneVerificationButtonProps> = ({
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSuccess={onVerificationSuccess}
-        initialPhone={phone || ''}
+        initialPhone={fullPhoneNumber || ''}
       />
     </>
   );

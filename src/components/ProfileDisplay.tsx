@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import PhoneVerificationModal from './PhoneVerificationModal';
@@ -14,7 +13,6 @@ interface Profile {
   email: string | null;
   bio: string | null;
   avatar_url: string | null;
-  phone: string | null;
   country_code: string | null;
   phone_number: string | null;
   date_of_birth: string | null;
