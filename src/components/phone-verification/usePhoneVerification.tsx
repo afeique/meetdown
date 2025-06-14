@@ -26,6 +26,7 @@ export const usePhoneVerification = () => {
 
   const getFullPhoneNumber = (phoneNumber: string) => {
     const cleanNumber = extractDigitsOnly(phoneNumber);
+    console.log('Formatted phone number for verification:', '+1' + cleanNumber);
     return '+1' + cleanNumber;
   };
 
@@ -42,12 +43,18 @@ export const usePhoneVerification = () => {
     setLoading(true);
     try {
       const fullPhone = getFullPhoneNumber(phoneNumber);
+      console.log('Sending verification code to:', fullPhone);
       
       const { data, error } = await supabase.functions.invoke('send-phone-verification', {
         body: { phone: fullPhone },
       });
 
-      if (error) throw error;
+      console.log('Send verification response:', { data, error });
+
+      if (error) {
+        console.error('Error sending verification:', error);
+        throw error;
+      }
 
       startResendCooldown();
       toast({
@@ -56,6 +63,7 @@ export const usePhoneVerification = () => {
       });
       return true;
     } catch (error: any) {
+      console.error('Send code error:', error);
       toast({
         title: "Error sending verification code",
         description: error.message || "Failed to send verification code",
@@ -73,12 +81,18 @@ export const usePhoneVerification = () => {
     setLoading(true);
     try {
       const fullPhone = getFullPhoneNumber(phoneNumber);
+      console.log('Resending verification code to:', fullPhone);
       
       const { error } = await supabase.functions.invoke('send-phone-verification', {
         body: { phone: fullPhone },
       });
 
-      if (error) throw error;
+      console.log('Resend verification response error:', error);
+
+      if (error) {
+        console.error('Error resending verification:', error);
+        throw error;
+      }
 
       startResendCooldown();
       toast({
@@ -87,6 +101,7 @@ export const usePhoneVerification = () => {
       });
       return true;
     } catch (error: any) {
+      console.error('Resend code error:', error);
       toast({
         title: "Error resending code",
         description: error.message || "Failed to resend verification code",
@@ -111,6 +126,7 @@ export const usePhoneVerification = () => {
     setLoading(true);
     try {
       const fullPhone = getFullPhoneNumber(phoneNumber);
+      console.log('Verifying code for phone:', fullPhone, 'with code:', verificationCode);
       
       const { error } = await supabase.functions.invoke('verify-phone', {
         body: { 
@@ -119,7 +135,12 @@ export const usePhoneVerification = () => {
         },
       });
 
-      if (error) throw error;
+      console.log('Verify code response error:', error);
+
+      if (error) {
+        console.error('Error verifying code:', error);
+        throw error;
+      }
 
       toast({
         title: "Phone verified!",
@@ -128,6 +149,7 @@ export const usePhoneVerification = () => {
       
       return true;
     } catch (error: any) {
+      console.error('Verify code error:', error);
       toast({
         title: "Verification failed",
         description: error.message || "Invalid verification code",

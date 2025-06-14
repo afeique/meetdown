@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { formatPhoneForDisplay, extractDigitsOnly } from '@/utils/phoneUtils';
 import { usePhoneVerification } from './phone-verification/usePhoneVerification';
 import PhoneInputStep from './phone-verification/PhoneInputStep';
@@ -40,6 +40,7 @@ const PhoneVerificationModal: React.FC<PhoneVerificationModalProps> = ({
   } = usePhoneVerification();
 
   const handleSendCode = async () => {
+    console.log('Attempting to send code for phone:', phoneNumber);
     const success = await sendCode(phoneNumber);
     if (success) {
       setStep('verify');
@@ -47,10 +48,12 @@ const PhoneVerificationModal: React.FC<PhoneVerificationModalProps> = ({
   };
 
   const handleResendCode = async () => {
+    console.log('Attempting to resend code for phone:', phoneNumber);
     await resendCode(phoneNumber);
   };
 
   const handleVerifyCode = async () => {
+    console.log('Attempting to verify code:', verificationCode, 'for phone:', phoneNumber);
     const success = await verifyCode(phoneNumber, verificationCode);
     if (success) {
       onSuccess();
@@ -73,6 +76,12 @@ const PhoneVerificationModal: React.FC<PhoneVerificationModalProps> = ({
           <DialogTitle>
             {step === 'phone' ? 'Verify Phone Number' : 'Enter Verification Code'}
           </DialogTitle>
+          <DialogDescription>
+            {step === 'phone' 
+              ? 'Enter your phone number to receive a verification code via SMS'
+              : 'Enter the 6-digit code sent to your phone'
+            }
+          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
