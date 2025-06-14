@@ -28,14 +28,14 @@ const PhoneVerificationButton: React.FC<PhoneVerificationButtonProps> = ({
 
   return (
     <>
-      <Label htmlFor="phone_verification">Verify Phone</Label>
       <Button
         variant="outline"
         size="sm"
         onClick={() => setIsModalOpen(true)}
         className="flex items-center gap-2"
       >
-        Send SMS Verification
+        <Phone size={16} />
+        Send Verification SMS
       </Button>
       
       <PhoneVerificationModal
