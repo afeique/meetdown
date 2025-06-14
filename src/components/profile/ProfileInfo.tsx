@@ -1,5 +1,5 @@
-
 import { formatDisplayName } from '@/lib/nameUtils';
+import { formatPhoneNumber } from '@/utils/phoneUtils';
 import { Button } from '@/components/ui/button';
 import { Phone } from 'lucide-react';
 
@@ -22,24 +22,6 @@ interface ProfileInfoProps {
   profile: Profile | null;
   onVerifyPhone: () => void;
 }
-
-const formatPhoneDisplay = (countryCode: string | null, phoneNumber: string | null): string => {
-  if (!countryCode || !phoneNumber) return '';
-  
-  // Remove any formatting from phone number and add it back
-  const digits = phoneNumber.replace(/\D/g, '');
-  
-  if (digits.length === 10) {
-    const formatted = digits.replace(/(\d{3})(\d{3})(\d{4})/, '($1) $2-$3');
-    // Don't add extra + if country code already has it
-    const cleanCountryCode = countryCode.startsWith('+') ? countryCode : `+${countryCode}`;
-    return `${cleanCountryCode} ${formatted}`;
-  }
-  
-  // For other lengths, just combine country code and phone number
-  const cleanCountryCode = countryCode.startsWith('+') ? countryCode : `+${countryCode}`;
-  return `${cleanCountryCode} ${phoneNumber}`;
-};
 
 const ProfileInfo = ({ profile, onVerifyPhone }: ProfileInfoProps) => {
   return (
@@ -66,7 +48,7 @@ const ProfileInfo = ({ profile, onVerifyPhone }: ProfileInfoProps) => {
       {(profile?.country_code && profile?.phone_number) && (
         <div>
           <label className="text-sm font-medium text-gray-600">Phone</label>
-          <p className="text-gray-800">{formatPhoneDisplay(profile.country_code, profile.phone_number)}</p>
+          <p className="text-gray-800">{formatPhoneNumber(profile.country_code, profile.phone_number)}</p>
           <div className="flex items-center gap-3 mt-2">
             <p className="text-xs text-gray-500">
               {profile.phone_verified ? '✅ Verified' : '⚠️ Not verified'}

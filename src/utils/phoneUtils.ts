@@ -6,25 +6,15 @@ export const isPhone = (input: string): boolean => {
   return /^(\+?1?)?[0-9]{10,14}$/.test(digitsOnly) && digitsOnly.length >= 10;
 };
 
-export const formatPhoneNumber = (input: string): string => {
-  // Remove all non-digit characters except +
-  const cleaned = input.replace(/[^\d+]/g, '');
+export const formatPhoneNumber = (countryCode: string, phoneNumber: string): string => {
+  if (!countryCode || !phoneNumber) return '';
   
-  // If it doesn't start with +, add +1 for US numbers
-  if (cleaned.match(/^\d{10}$/)) {
-    return `+1${cleaned}`;
-  }
+  // Clean the country code (ensure it has + prefix)
+  const cleanCountryCode = countryCode.startsWith('+') ? countryCode : `+${countryCode}`;
   
-  // If it starts with 1 and has 11 digits, add +
-  if (cleaned.match(/^1\d{10}$/)) {
-    return `+${cleaned}`;
-  }
+  // Clean the phone number (remove all non-digits)
+  const cleanPhoneNumber = phoneNumber.replace(/\D/g, '');
   
-  // If it already starts with +, return as is
-  if (cleaned.startsWith('+')) {
-    return cleaned;
-  }
-  
-  // For other formats, add + if not present
-  // return cleaned.startsWith('+') ? cleaned : `+${cleaned}`;
+  // Return formatted as "+[country code] [phone number]"
+  return `${cleanCountryCode} ${cleanPhoneNumber}`;
 };
