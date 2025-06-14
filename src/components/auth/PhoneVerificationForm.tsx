@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
-import { formatPhoneNumber } from '@/utils/phoneUtils';
+import { formatSinglePhoneNumber } from '@/utils/phoneUtils';
 import { Phone, ArrowLeft } from 'lucide-react';
 
 interface PhoneVerificationFormProps {
@@ -40,7 +40,7 @@ const PhoneVerificationForm: React.FC<PhoneVerificationFormProps> = ({
 
     setLoading(true);
     try {
-      const formattedPhone = formatPhoneNumber(phone);
+      const formattedPhone = formatSinglePhoneNumber(phone);
       
       const { error } = await supabase.functions.invoke('send-phone-verification', {
         body: { phone: formattedPhone },
@@ -70,7 +70,7 @@ const PhoneVerificationForm: React.FC<PhoneVerificationFormProps> = ({
     
     setLoading(true);
     try {
-      const formattedPhone = formatPhoneNumber(phone);
+      const formattedPhone = formatSinglePhoneNumber(phone);
       
       const { error } = await supabase.functions.invoke('send-phone-verification', {
         body: { phone: formattedPhone },
@@ -119,7 +119,7 @@ const PhoneVerificationForm: React.FC<PhoneVerificationFormProps> = ({
 
     setLoading(true);
     try {
-      const formattedPhone = formatPhoneNumber(phone);
+      const formattedPhone = formatSinglePhoneNumber(phone);
       
       const { error } = await supabase.functions.invoke('verify-phone', {
         body: { 
@@ -197,7 +197,7 @@ const PhoneVerificationForm: React.FC<PhoneVerificationFormProps> = ({
             <div className="space-y-4">
               <div className="text-center">
                 <Label className="text-sm text-gray-600">
-                  Enter the 6-digit code sent to {formatPhoneNumber(phone)}
+                  Enter the 6-digit code sent to {formatSinglePhoneNumber(phone)}
                 </Label>
               </div>
               

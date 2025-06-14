@@ -1,5 +1,6 @@
+
 import { supabase } from '@/integrations/supabase/client';
-import { formatPhoneNumber } from '@/utils/phoneUtils';
+import { formatSinglePhoneNumber } from '@/utils/phoneUtils';
 
 interface SignUpData {
   emailOrPhone: string;
@@ -47,7 +48,7 @@ export const signUpUser = async (data: SignUpData) => {
     return { data: authData, isEmail: true };
   } else {
     console.log('Attempting phone signup for:', emailOrPhone);
-    const formattedPhone = formatPhoneNumber(emailOrPhone);
+    const formattedPhone = formatSinglePhoneNumber(emailOrPhone);
     
     const { data: authData, error } = await supabase.auth.signUp({
       phone: formattedPhone,
@@ -88,7 +89,7 @@ export const signInUser = async (data: SignInData) => {
     }
   } else {
     console.log('Attempting phone signin for:', emailOrPhone);
-    const formattedPhone = formatPhoneNumber(emailOrPhone);
+    const formattedPhone = formatSinglePhoneNumber(emailOrPhone);
     
     const { error } = await supabase.auth.signInWithPassword({
       phone: formattedPhone,

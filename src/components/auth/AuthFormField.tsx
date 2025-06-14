@@ -2,7 +2,6 @@
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { getInputType, getPlaceholderText } from '@/utils/inputValidation';
-import { formatPhoneNumber } from '@/utils/phoneUtils';
 
 interface AuthFormFieldProps {
   emailOrPhone: string;
@@ -38,7 +37,6 @@ const AuthFormField: React.FC<AuthFormFieldProps> = ({
         {emailOrPhone && inputType !== 'unknown' && (
           <p className="text-xs text-gray-500 mt-1">
             Detected: {inputType === 'email' ? 'Email address' : 'Phone number'}
-            {inputType === 'phone' && ` (will be formatted as: ${formatPhoneNumber(emailOrPhone)})`}
           </p>
         )}
       </div>
