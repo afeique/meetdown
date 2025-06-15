@@ -1,17 +1,14 @@
+
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Upload, Save, AlertCircle, CheckCircle, CalendarIcon } from 'lucide-react';
-import PhoneInput from '@/components/ui/phone-input';
-import PhoneVerificationButton from '../PhoneVerificationButton';
-import { formatPhoneForDisplay } from '@/utils/phoneUtils';
 
 interface ProfileFormData {
   first_name: string;
   last_name: string;
   email: string;
-  phone: string;
   bio: string;
   date_of_birth: string;
 }
@@ -20,14 +17,10 @@ interface ProfileFormSectionProps {
   formData: ProfileFormData;
   profile: {
     email_verified: boolean;
-    phone_verified: boolean;
   } | null;
   saving: boolean;
   onInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
-  onPhoneChange: (value: string) => void;
   onSubmit: (e: React.FormEvent) => void;
-  onPhoneVerificationSuccess: () => void;
-  getFullPhoneNumber: () => string;
 }
 
 const ProfileFormSection = ({
@@ -35,10 +28,7 @@ const ProfileFormSection = ({
   profile,
   saving,
   onInputChange,
-  onPhoneChange,
-  onSubmit,
-  onPhoneVerificationSuccess,
-  getFullPhoneNumber
+  onSubmit
 }: ProfileFormSectionProps) => {
   return (
     <Card>
@@ -99,37 +89,6 @@ const ProfileFormSection = ({
           </div>
 
           <div className="space-y-2">
-            <Label className="flex items-center gap-2">
-              Phone Number
-              {profile?.phone_verified ? (
-                <div title="Phone verified">
-                  <CheckCircle className="w-4 h-4 text-green-500" />
-                </div>
-              ) : (
-                <div title="Phone not verified">
-                  <AlertCircle className="w-4 h-4 text-yellow-500" />
-                </div>
-              )}
-            </Label>
-            <PhoneInput
-              phoneNumber={formatPhoneForDisplay(formData.phone)}
-              onPhoneNumberChange={onPhoneChange}
-              label=""
-              placeholder="(555) 555-5555"
-            />
-            <PhoneVerificationButton
-              isVerified={profile?.phone_verified || false}
-              fullPhoneNumber={getFullPhoneNumber()}
-              onVerificationSuccess={onPhoneVerificationSuccess}
-            />
-            {!profile?.phone_verified && formData.phone && (
-              <p className="text-xs text-yellow-600">
-                Click "Verify Phone" to verify your phone number.
-              </p>
-            )}
-          </div>
-
-          <div className="space-y-2">
             <Label htmlFor="date_of_birth">Date of Birth</Label>
             <div className="relative">
               <CalendarIcon className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
@@ -139,7 +98,7 @@ const ProfileFormSection = ({
                 type="date"
                 value={formData.date_of_birth}
                 onChange={onInputChange}
-                className="pl-10 [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-inner-spin-button]:hidden [&::-webkit-outer-spin-button]:hidden"
+                className="pl-10"
               />
             </div>
           </div>

@@ -4,7 +4,6 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { getInputType } from '@/utils/inputValidation';
-import { extractDigitsOnly } from '@/utils/phoneUtils';
 import ProfilePictureSection from './profile/ProfilePictureSection';
 import ProfileFormSection from './profile/ProfileFormSection';
 
@@ -13,12 +12,10 @@ interface ProfileData {
   first_name: string | null;
   last_name: string | null;
   email: string | null;
-  phone: string | null;
   bio: string | null;
   avatar_url: string | null;
   date_of_birth: string | null;
   email_verified: boolean;
-  phone_verified: boolean;
 }
 
 const ProfileEditForm = () => {
@@ -31,7 +28,6 @@ const ProfileEditForm = () => {
     first_name: '',
     last_name: '',
     email: '',
-    phone: '',
     bio: '',
     date_of_birth: ''
   });
@@ -57,7 +53,6 @@ const ProfileEditForm = () => {
         first_name: data.first_name || '',
         last_name: data.last_name || '',
         email: data.email || '',
-        phone: data.phone || '',
         bio: data.bio || '',
         date_of_birth: data.date_of_birth || ''
       });
@@ -78,12 +73,6 @@ const ProfileEditForm = () => {
       ...prev,
       [name]: value
     }));
-  };
-
-  const handlePhoneChange = (value: string) => {
-    // Extract only digits for storage
-    const digitsOnly = extractDigitsOnly(value);
-    setFormData(prev => ({ ...prev, phone: digitsOnly }));
   };
 
   const handleAvatarUpdate = (avatarUrl: string) => {
@@ -135,16 +124,6 @@ const ProfileEditForm = () => {
     }
   };
 
-  const handlePhoneVerificationSuccess = async () => {
-    await fetchProfile();
-    await refreshProfile();
-  };
-
-  const getFullPhoneNumber = () => {
-    if (!formData.phone) return '';
-    return '+1' + formData.phone;
-  };
-
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -166,10 +145,7 @@ const ProfileEditForm = () => {
         profile={profile}
         saving={saving}
         onInputChange={handleInputChange}
-        onPhoneChange={handlePhoneChange}
         onSubmit={handleSubmit}
-        onPhoneVerificationSuccess={handlePhoneVerificationSuccess}
-        getFullPhoneNumber={getFullPhoneNumber}
       />
     </div>
   );

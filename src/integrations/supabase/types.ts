@@ -197,36 +197,6 @@ export type Database = {
         }
         Relationships: []
       }
-      phone_verification_tokens: {
-        Row: {
-          created_at: string
-          expires_at: string
-          id: string
-          phone: string
-          token: string
-          user_id: string
-          verified: boolean
-        }
-        Insert: {
-          created_at?: string
-          expires_at?: string
-          id?: string
-          phone: string
-          token: string
-          user_id: string
-          verified?: boolean
-        }
-        Update: {
-          created_at?: string
-          expires_at?: string
-          id?: string
-          phone?: string
-          token?: string
-          user_id?: string
-          verified?: boolean
-        }
-        Relationships: []
-      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -242,9 +212,6 @@ export type Database = {
           last_longitude: number | null
           last_name: string | null
           last_zip_postal_code: string | null
-          phone: string | null
-          phone_verified: boolean | null
-          sms_notifications_enabled: boolean | null
           updated_at: string
         }
         Insert: {
@@ -261,9 +228,6 @@ export type Database = {
           last_longitude?: number | null
           last_name?: string | null
           last_zip_postal_code?: string | null
-          phone?: string | null
-          phone_verified?: boolean | null
-          sms_notifications_enabled?: boolean | null
           updated_at?: string
         }
         Update: {
@@ -280,9 +244,6 @@ export type Database = {
           last_longitude?: number | null
           last_name?: string | null
           last_zip_postal_code?: string | null
-          phone?: string | null
-          phone_verified?: boolean | null
-          sms_notifications_enabled?: boolean | null
           updated_at?: string
         }
         Relationships: []
@@ -364,10 +325,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      is_valid_us_canada_phone: {
-        Args: { phone_input: string }
-        Returns: boolean
-      }
+      [_ in never]: never
     }
     Enums: {
       [_ in never]: never

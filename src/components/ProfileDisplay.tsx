@@ -1,11 +1,7 @@
 
-import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import PhoneVerificationModal from './PhoneVerificationModal';
 import ProfileInfo from './profile/ProfileInfo';
-import SmsNotificationToggle from './profile/SmsNotificationToggle';
 import SocialSection from './profile/SocialSection';
-import { useAuth } from '@/contexts/AuthContext';
 
 interface Profile {
   id: string;
@@ -14,11 +10,8 @@ interface Profile {
   email: string | null;
   bio: string | null;
   avatar_url: string | null;
-  phone: string | null;
   date_of_birth: string | null;
   email_verified: boolean;
-  phone_verified: boolean;
-  sms_notifications_enabled: boolean | null;
 }
 
 interface ProfileDisplayProps {
@@ -26,20 +19,6 @@ interface ProfileDisplayProps {
 }
 
 const ProfileDisplay = ({ profile }: ProfileDisplayProps) => {
-  const { refreshProfile } = useAuth();
-  const [isPhoneModalOpen, setIsPhoneModalOpen] = useState(false);
-
-  const handlePhoneVerificationSuccess = async () => {
-    await refreshProfile();
-    setIsPhoneModalOpen(false);
-  };
-
-  // Get full phone number for verification modal (always +1)
-  const getFullPhoneNumber = () => {
-    if (!profile?.phone) return '';
-    return '+1' + profile.phone;
-  };
-
   return (
     <>
       {/* Profile Display */}
@@ -50,28 +29,11 @@ const ProfileDisplay = ({ profile }: ProfileDisplayProps) => {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <ProfileInfo 
-            profile={profile} 
-            onVerifyPhone={() => setIsPhoneModalOpen(true)} 
-          />
-          
-          {profile?.phone && (
-            <SmsNotificationToggle 
-              isPhoneVerified={profile.phone_verified}
-              initialEnabled={profile.sms_notifications_enabled}
-            />
-          )}
+          <ProfileInfo profile={profile} />
         </CardContent>
       </Card>
 
       <SocialSection />
-
-      <PhoneVerificationModal
-        isOpen={isPhoneModalOpen}
-        onClose={() => setIsPhoneModalOpen(false)}
-        onSuccess={handlePhoneVerificationSuccess}
-        initialPhone={getFullPhoneNumber()}
-      />
     </>
   );
 };
