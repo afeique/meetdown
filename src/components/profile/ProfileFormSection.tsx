@@ -37,6 +37,54 @@ const ProfileFormSection = ({
 }: ProfileFormSectionProps) => {
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   
+  const formatDateInput = (value: string) => {
+    // Remove all non-numeric characters
+    const numbersOnly = value.replace(/\D/g, '');
+    
+    // Add slashes automatically
+    if (numbersOnly.length >= 5) {
+      return `${numbersOnly.slice(0, 2)}/${numbersOnly.slice(2, 4)}/${numbersOnly.slice(4, 8)}`;
+    } else if (numbersOnly.length >= 3) {
+      return `${numbersOnly.slice(0, 2)}/${numbersOnly.slice(2)}`;
+    } else if (numbersOnly.length >= 1) {
+      return numbersOnly;
+    }
+    return '';
+  };
+
+  const convertToStorageFormat = (mmddyyyy: string) => {
+    // Convert MM/DD/YYYY to YYYY-MM-DD for storage
+    const parts = mmddyyyy.split('/');
+    if (parts.length === 3 && parts[0].length === 2 && parts[1].length === 2 && parts[2].length === 4) {
+      return `${parts[2]}-${parts[0]}-${parts[1]}`;
+    }
+    return mmddyyyy;
+  };
+
+  const convertFromStorageFormat = (yyyymmdd: string) => {
+    // Convert YYYY-MM-DD to MM/DD/YYYY for display
+    if (yyyymmdd && yyyymmdd.includes('-')) {
+      const parts = yyyymmdd.split('-');
+      if (parts.length === 3) {
+        return `${parts[1]}/${parts[2]}/${parts[0]}`;
+      }
+    }
+    return yyyymmdd;
+  };
+
+  const handleDateInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formatted = formatDateInput(e.target.value);
+    const storageFormat = convertToStorageFormat(formatted);
+    
+    const event = {
+      target: {
+        name: 'date_of_birth',
+        value: storageFormat
+      }
+    } as React.ChangeEvent<HTMLInputElement>;
+    onInputChange(event);
+  };
+
   const handleDateSelect = (date: Date | undefined) => {
     if (date) {
       const formattedDate = format(date, 'yyyy-MM-dd');
@@ -52,6 +100,7 @@ const ProfileFormSection = ({
   };
 
   const selectedDate = formData.date_of_birth ? new Date(formData.date_of_birth) : undefined;
+  const displayValue = convertFromStorageFormat(formData.date_of_birth);
 
   return (
     <Card>
@@ -118,10 +167,11 @@ const ProfileFormSection = ({
                 id="date_of_birth"
                 name="date_of_birth"
                 type="text"
-                value={formData.date_of_birth}
-                onChange={onInputChange}
-                placeholder="YYYY-MM-DD"
+                value={displayValue}
+                onChange={handleDateInputChange}
+                placeholder="MM/DD/YYYY"
                 className="flex-1"
+                maxLength={10}
               />
               <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
                 <PopoverTrigger asChild>
