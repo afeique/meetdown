@@ -1,8 +1,14 @@
+
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Upload, Save, AlertCircle, CheckCircle, CalendarIcon } from 'lucide-react';
+import { useState } from 'react';
+import { format } from 'date-fns';
+import { cn } from '@/lib/utils';
 
 interface ProfileFormData {
   first_name: string;
@@ -29,6 +35,24 @@ const ProfileFormSection = ({
   onInputChange,
   onSubmit
 }: ProfileFormSectionProps) => {
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+  
+  const handleDateSelect = (date: Date | undefined) => {
+    if (date) {
+      const formattedDate = format(date, 'yyyy-MM-dd');
+      const event = {
+        target: {
+          name: 'date_of_birth',
+          value: formattedDate
+        }
+      } as React.ChangeEvent<HTMLInputElement>;
+      onInputChange(event);
+    }
+    setIsCalendarOpen(false);
+  };
+
+  const selectedDate = formData.date_of_birth ? new Date(formData.date_of_birth) : undefined;
+
   return (
     <Card>
       <CardHeader>
@@ -89,16 +113,40 @@ const ProfileFormSection = ({
 
           <div className="space-y-2">
             <Label htmlFor="date_of_birth">Date of Birth</Label>
-            <div className="relative">
-              <CalendarIcon className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+            <div className="flex gap-2">
               <Input
                 id="date_of_birth"
                 name="date_of_birth"
-                type="date"
+                type="text"
                 value={formData.date_of_birth}
                 onChange={onInputChange}
-                className="pl-10"
+                placeholder="YYYY-MM-DD"
+                className="flex-1"
               />
+              <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    type="button"
+                    className="shrink-0"
+                  >
+                    <CalendarIcon className="h-4 w-4" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={selectedDate}
+                    onSelect={handleDateSelect}
+                    disabled={(date) =>
+                      date > new Date() || date < new Date("1900-01-01")
+                    }
+                    initialFocus
+                    className={cn("p-3 pointer-events-auto")}
+                  />
+                </PopoverContent>
+              </Popover>
             </div>
           </div>
 
