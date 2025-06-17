@@ -4,6 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { getInputType } from '@/utils/inputValidation';
+import { useCustomEmailVerification } from '@/hooks/useCustomEmailVerification';
 import ProfilePictureSection from './profile/ProfilePictureSection';
 import ProfileFormSection from './profile/ProfileFormSection';
 
@@ -21,6 +22,7 @@ interface ProfileData {
 const ProfileEditForm = () => {
   const { user, refreshProfile } = useAuth();
   const { toast } = useToast();
+  const { sendVerificationEmail } = useCustomEmailVerification();
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -93,6 +95,10 @@ const ProfileEditForm = () => {
         }
       }
 
+      // Check if email has changed
+      const emailChanged = profile?.email !== formData.email && formData.email.trim();
+      const originalEmail = profile?.email;
+
       const updateData = {
         ...formData,
         updated_at: new Date().toISOString()
@@ -113,6 +119,28 @@ const ProfileEditForm = () => {
         title: "Profile updated!",
         description: "Your profile has been successfully updated.",
       });
+
+      // Send verification email if email was changed
+      if (emailChanged) {
+        console.log('Email changed from', originalEmail, 'to', formData.email);
+        try {
+          await sendVerificationEmail(formData.email, formData.first_name);
+          toast({
+            title: "Verification email sent!",
+            description: `A verification email has been sent to ${formData.email}. Please check your inbox and click the verification link.`,
+            duration: 8000,
+          });
+        } catch (emailError: any) {
+          console.error('Error sending verification email:', emailError);
+          // Don't throw here - profile was still updated successfully
+          toast({
+            title: "Profile updated, but verification email failed",
+            description: "Your profile was updated, but we couldn't send the verification email. You can try again later.",
+            variant: "destructive",
+            duration: 8000,
+          });
+        }
+      }
     } catch (error: any) {
       toast({
         title: "Error updating profile",
