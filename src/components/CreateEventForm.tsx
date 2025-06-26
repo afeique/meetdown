@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,6 +9,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Plus, Calendar, MapPin, Users, DollarSign, Clock, Tag } from 'lucide-react';
 import BannerGenerator from './BannerGenerator';
 import ImageUpload from './ImageUpload';
+import ImageLibrary from './ImageLibrary';
 
 interface CreateEventFormProps {
   onEventCreated: () => void;
@@ -195,11 +195,19 @@ const CreateEventForm = ({ onEventCreated }: CreateEventFormProps) => {
           {formData.title && (
             <div className="space-y-4">
               <label className="text-sm font-medium">Event Banner</label>
-              <Tabs defaultValue="ai" className="w-full">
-                <TabsList className="grid w-full grid-cols-2">
+              <Tabs defaultValue="library" className="w-full">
+                <TabsList className="grid w-full grid-cols-3">
+                  <TabsTrigger value="library">Image Library</TabsTrigger>
                   <TabsTrigger value="ai">AI Generated</TabsTrigger>
                   <TabsTrigger value="upload">Upload Image</TabsTrigger>
                 </TabsList>
+                
+                <TabsContent value="library" className="space-y-4">
+                  <ImageLibrary
+                    onImageSelected={setBannerUrl}
+                    currentImage={bannerUrl}
+                  />
+                </TabsContent>
                 
                 <TabsContent value="ai" className="space-y-4">
                   <BannerGenerator
