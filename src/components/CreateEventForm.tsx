@@ -7,10 +7,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Plus, Calendar, MapPin, Users, DollarSign, Clock } from 'lucide-react';
+import { Plus, Calendar, MapPin, Users, DollarSign, Clock, Tag } from 'lucide-react';
 import BannerGenerator from './BannerGenerator';
 import ImageUpload from './ImageUpload';
-import TagSelector from './TagSelector';
 
 interface CreateEventFormProps {
   onEventCreated: () => void;
@@ -20,7 +19,7 @@ const CreateEventForm = ({ onEventCreated }: CreateEventFormProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [bannerUrl, setBannerUrl] = useState('');
-  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [tagInput, setTagInput] = useState('');
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -32,6 +31,14 @@ const CreateEventForm = ({ onEventCreated }: CreateEventFormProps) => {
     requiresReservation: false,
   });
   const { toast } = useToast();
+
+  const parseTagsFromInput = (input: string): string[] => {
+    return input
+      .split(/[,;]/)
+      .map(tag => tag.trim())
+      .filter(tag => tag.length > 0)
+      .map(tag => tag.toLowerCase());
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -64,20 +71,48 @@ const CreateEventForm = ({ onEventCreated }: CreateEventFormProps) => {
 
       if (eventError) throw eventError;
 
-      // Add tags to the event if any are selected
-      if (selectedTags.length > 0 && eventData) {
-        const tagInserts = selectedTags.map(tagId => ({
-          event_id: eventData.id,
-          tag_id: tagId
-        }));
+      // Process tags if any are entered
+      const tagNames = parseTagsFromInput(tagInput);
+      if (tagNames.length > 0 && eventData) {
+        // Find existing tags or create new ones
+        const { data: existingTags } = await supabase
+          .from('activity_tags')
+          .select('id, name')
+          .in('name', tagNames);
 
-        const { error: tagsError } = await supabase
-          .from('event_tags')
-          .insert(tagInserts);
+        const existingTagNames = existingTags?.map(tag => tag.name.toLowerCase()) || [];
+        const newTagNames = tagNames.filter(name => !existingTagNames.includes(name));
 
-        if (tagsError) {
-          console.error('Error adding tags:', tagsError);
-          // Don't throw error, just log it - event was still created
+        // Create new tags
+        let allTagIds = existingTags?.map(tag => tag.id) || [];
+        
+        if (newTagNames.length > 0) {
+          const { data: newTags, error: newTagsError } = await supabase
+            .from('activity_tags')
+            .insert(newTagNames.map(name => ({ name, category: 'Other' })))
+            .select('id');
+
+          if (newTagsError) {
+            console.error('Error creating new tags:', newTagsError);
+          } else {
+            allTagIds = [...allTagIds, ...(newTags?.map(tag => tag.id) || [])];
+          }
+        }
+
+        // Link tags to event
+        if (allTagIds.length > 0) {
+          const tagInserts = allTagIds.map(tagId => ({
+            event_id: eventData.id,
+            tag_id: tagId
+          }));
+
+          const { error: tagsError } = await supabase
+            .from('event_tags')
+            .insert(tagInserts);
+
+          if (tagsError) {
+            console.error('Error adding tags to event:', tagsError);
+          }
         }
       }
 
@@ -98,7 +133,7 @@ const CreateEventForm = ({ onEventCreated }: CreateEventFormProps) => {
         requiresReservation: false,
       });
       setBannerUrl('');
-      setSelectedTags([]);
+      setTagInput('');
       setIsOpen(false);
       onEventCreated();
     } catch (error: any) {
@@ -269,10 +304,27 @@ const CreateEventForm = ({ onEventCreated }: CreateEventFormProps) => {
 
           {/* Tags Section */}
           <div className="space-y-2">
-            <TagSelector
-              selectedTags={selectedTags}
-              onTagsChange={setSelectedTags}
+            <label className="text-sm font-medium flex items-center gap-1">
+              <Tag className="h-4 w-4" />
+              Tags
+            </label>
+            <Input
+              placeholder="Enter tags separated by commas or semicolons (e.g., hiking, outdoors; fitness)"
+              value={tagInput}
+              onChange={(e) => setTagInput(e.target.value)}
             />
+            {tagInput && (
+              <div className="flex flex-wrap gap-2 mt-2">
+                {parseTagsFromInput(tagInput).map((tag, index) => (
+                  <span
+                    key={index}
+                    className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full"
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
 
           <div className="flex gap-2 pt-4">
