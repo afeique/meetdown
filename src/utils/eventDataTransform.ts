@@ -19,7 +19,6 @@ export const transformEventData = (
     title: event.title,
     description: event.description || '',
     date: eventDate.toLocaleDateString('en-US', { 
-      year: 'numeric', 
       month: 'long', 
       day: 'numeric' 
     }),
