@@ -10,6 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 import UserProfileHeader from '@/components/UserProfileHeader';
 import MyEventsCreateForm from '@/components/MyEventsCreateForm';
 import EventEditForm from '@/components/EventEditForm';
+import { transformEventData } from '@/utils/eventDataTransform';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -32,6 +33,12 @@ interface Event {
   attendees?: number;
 }
 
+interface DateTimePreferences {
+  dateFormat: 'month-day' | 'full-date' | 'short-date';
+  timeFormat: '12-hour' | '24-hour';
+  showTimezone: boolean;
+}
+
 const MyEvents = () => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
@@ -39,6 +46,11 @@ const MyEvents = () => {
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingEvent, setEditingEvent] = useState<Event | null>(null);
+  const [dateTimePrefs, setDateTimePrefs] = useState<DateTimePreferences>({
+    dateFormat: 'month-day',
+    timeFormat: '12-hour',
+    showTimezone: true
+  });
 
   const handleLogout = async () => {
     try {
@@ -57,6 +69,30 @@ const MyEvents = () => {
   };
 
   useEffect(() => {
+    const fetchUserPreferences = async () => {
+      if (!user) return;
+
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('date_time_preferences')
+          .eq('id', user.id)
+          .single();
+
+        if (error) throw error;
+
+        if (data?.date_time_preferences) {
+          setDateTimePrefs(data.date_time_preferences);
+        }
+      } catch (error: any) {
+        console.error('Error fetching user preferences:', error);
+      }
+    };
+
+    fetchUserPreferences();
+  }, [user]);
+
+  useEffect(() => {
     const fetchMyEvents = async () => {
       if (!user) return;
 
@@ -70,7 +106,7 @@ const MyEvents = () => {
 
         if (eventsError) throw eventsError;
 
-        // Fetch attendee counts for each event
+        // Fetch attendee counts for each event and transform with user preferences
         const eventsWithAttendees = await Promise.all(
           (eventsData || []).map(async (event) => {
             const { count } = await supabase
@@ -78,8 +114,14 @@ const MyEvents = () => {
               .select('*', { count: 'exact', head: true })
               .eq('event_id', event.id);
 
-            return {
+            // Transform the event data with user's date/time preferences
+            const transformedEvent = transformEventData({
               ...event,
+              event_registrations: []
+            }, undefined, user.id, dateTimePrefs);
+
+            return {
+              ...transformedEvent,
               attendees: count || 0,
             };
           })
@@ -99,7 +141,7 @@ const MyEvents = () => {
     };
 
     fetchMyEvents();
-  }, [user, toast]);
+  }, [user, toast, dateTimePrefs]);
 
   const handleDeleteEvent = async (eventId: string) => {
     try {

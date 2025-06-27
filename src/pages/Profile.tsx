@@ -6,6 +6,7 @@ import { useToast } from '@/hooks/use-toast';
 import InterestTags from '@/components/InterestTags';
 import ProfileEditForm from '@/components/ProfileEditForm';
 import ProfileDisplay from '@/components/ProfileDisplay';
+import DateTimePreferences from '@/components/profile/DateTimePreferences';
 import TopBar from '@/components/TopBar';
 import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
@@ -85,11 +86,16 @@ const Profile = () => {
         </div>
 
         {isEditing ? (
-          <ProfileEditForm />
+          <div className="space-y-6">
+            <ProfileEditForm />
+            <DateTimePreferences />
+          </div>
         ) : (
           <>
             <ProfileDisplay profile={profile} />
-            <InterestTags />
+            <div className="mt-6">
+              <InterestTags />
+            </div>
           </>
         )}
       </div>
