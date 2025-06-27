@@ -28,8 +28,8 @@ const LocationAutocomplete = ({ location, onLocationChange, required = false }: 
 
         await loader.load();
         
-        if (inputRef.current) {
-          autocompleteRef.current = new google.maps.places.Autocomplete(
+        if (inputRef.current && window.google) {
+          autocompleteRef.current = new window.google.maps.places.Autocomplete(
             inputRef.current,
             {
               types: ['establishment', 'geocode'],
@@ -55,8 +55,8 @@ const LocationAutocomplete = ({ location, onLocationChange, required = false }: 
     initializeAutocomplete();
 
     return () => {
-      if (autocompleteRef.current) {
-        google.maps.event.clearInstanceListeners(autocompleteRef.current);
+      if (autocompleteRef.current && window.google) {
+        window.google.maps.event.clearInstanceListeners(autocompleteRef.current);
       }
     };
   }, [onLocationChange]);
