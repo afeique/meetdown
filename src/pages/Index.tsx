@@ -7,6 +7,7 @@ import EventsFeed from '@/components/EventsFeed';
 import PersonalizedEventsFeed from '@/components/PersonalizedEventsFeed';
 import FollowingEventsFeed from '@/components/FollowingEventsFeed';
 import EventFiltersComponent, { EventFilters } from '@/components/EventFilters';
+import CreateEventForm from '@/components/CreateEventForm';
 import { useLocation } from '@/contexts/LocationContext';
 
 const Index = () => {
@@ -23,6 +24,11 @@ const Index = () => {
     console.log('Location updated in Index:', newLocation);
   };
 
+  const handleEventCreated = () => {
+    // Optionally refresh the feeds or show a success message
+    console.log('Event created, feeds may need to refresh');
+  };
+
   const selectedTagNames = filters.selectedTags;
 
   return (
@@ -31,6 +37,10 @@ const Index = () => {
       <LocationBar onLocationChange={handleLocationChange} />
       
       <div className="container mx-auto px-4 py-6 max-w-2xl">
+        <div className="mb-6">
+          <CreateEventForm onEventCreated={handleEventCreated} />
+        </div>
+
         <EventFiltersComponent 
           filters={filters}
           onFiltersChange={setFilters}
