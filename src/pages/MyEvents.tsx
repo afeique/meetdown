@@ -82,7 +82,7 @@ const MyEvents = () => {
         if (error) throw error;
 
         if (data?.date_time_preferences) {
-          setDateTimePrefs(data.date_time_preferences);
+          setDateTimePrefs(data.date_time_preferences as DateTimePreferences);
         }
       } catch (error: any) {
         console.error('Error fetching user preferences:', error);

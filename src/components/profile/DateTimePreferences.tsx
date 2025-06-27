@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -44,7 +43,7 @@ const DateTimePreferences = () => {
       if (error) throw error;
 
       if (data?.date_time_preferences) {
-        setPreferences(data.date_time_preferences);
+        setPreferences(data.date_time_preferences as DateTimePreferences);
       }
     } catch (error: any) {
       console.error('Error fetching preferences:', error);
@@ -61,7 +60,7 @@ const DateTimePreferences = () => {
       const { error } = await supabase
         .from('profiles')
         .update({
-          date_time_preferences: preferences,
+          date_time_preferences: preferences as any,
           updated_at: new Date().toISOString()
         })
         .eq('id', user.id);
