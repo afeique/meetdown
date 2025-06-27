@@ -11,6 +11,7 @@ import UserProfileHeader from '@/components/UserProfileHeader';
 import MyEventsCreateForm from '@/components/MyEventsCreateForm';
 import EventEditForm from '@/components/EventEditForm';
 import { transformEventData } from '@/utils/eventDataTransform';
+import { useEventRegistration } from '@/hooks/useEventRegistration';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -31,6 +32,7 @@ interface Event {
   banner_url?: string;
   creator_id: string;
   attendees?: number;
+  is_registered?: boolean;
 }
 
 interface DateTimePreferences {
@@ -51,6 +53,13 @@ const MyEvents = () => {
     timeFormat: '12-hour',
     showTimezone: true
   });
+
+  // Add event registration hooks
+  const { handleJoinEvent, handleLeaveEvent } = useEventRegistration(
+    events, 
+    setEvents, 
+    user?.id
+  );
 
   const handleLogout = async () => {
     try {
@@ -84,7 +93,7 @@ const MyEvents = () => {
         if (data?.date_time_preferences) {
           // Safely parse the preferences with validation
           try {
-            const prefs = data.date_time_preferences as any;
+            const prefs = data.date_time_preferences as unknown as DateTimePreferences;
             if (prefs && typeof prefs === 'object' && !Array.isArray(prefs)) {
               setDateTimePrefs({
                 dateFormat: prefs.dateFormat || 'month-day',
@@ -118,7 +127,7 @@ const MyEvents = () => {
 
         if (eventsError) throw eventsError;
 
-        // Fetch attendee counts for each event and transform with user preferences
+        // Fetch attendee counts and registration status for each event
         const eventsWithAttendees = await Promise.all(
           (eventsData || []).map(async (event) => {
             const { count } = await supabase
@@ -126,15 +135,24 @@ const MyEvents = () => {
               .select('*', { count: 'exact', head: true })
               .eq('event_id', event.id);
 
+            // Check if current user is registered for this event
+            const { data: userRegistration } = await supabase
+              .from('event_registrations')
+              .select('id')
+              .eq('event_id', event.id)
+              .eq('user_id', user.id)
+              .single();
+
             // Transform the event data with user's date/time preferences
             const transformedEvent = transformEventData({
               ...event,
-              event_registrations: []
+              event_registrations: userRegistration ? [{ user_id: user.id }] : []
             }, undefined, user.id, dateTimePrefs);
 
             return {
               ...transformedEvent,
               attendees: count || 0,
+              is_registered: !!userRegistration,
             };
           })
         );
@@ -304,6 +322,8 @@ const MyEvents = () => {
                   <div key={event.id} className="relative">
                     <EventCard
                       event={event}
+                      onJoin={handleJoinEvent}
+                      onLeave={handleLeaveEvent}
                     />
                     <div className="absolute top-2 right-2 z-10 flex gap-2">
                       <Button
