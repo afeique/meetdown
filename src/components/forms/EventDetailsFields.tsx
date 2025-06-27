@@ -1,6 +1,7 @@
 
 import { Input } from '@/components/ui/input';
-import { Calendar, Clock, MapPin, Users, DollarSign } from 'lucide-react';
+import { Calendar, Clock, Users, DollarSign } from 'lucide-react';
+import LocationAutocomplete from './LocationAutocomplete';
 
 interface EventDetailsFieldsProps {
   date: string;
@@ -60,18 +61,11 @@ const EventDetailsFields = ({
         </div>
       </div>
 
-      <div className="space-y-2">
-        <label className="text-sm font-medium flex items-center gap-1">
-          <MapPin className="h-4 w-4" />
-          Location
-        </label>
-        <Input
-          placeholder="Enter event location"
-          value={location}
-          onChange={(e) => onLocationChange(e.target.value)}
-          required
-        />
-      </div>
+      <LocationAutocomplete
+        location={location}
+        onLocationChange={onLocationChange}
+        required={true}
+      />
 
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
