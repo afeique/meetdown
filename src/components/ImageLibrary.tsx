@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -62,7 +61,7 @@ const ImageLibrary = ({ onImageSelected, currentImage, isOpen, onOpenChange }: I
     },
     {
       id: '7',
-      url: 'https://images.unsplash.com/photo-1571019613914-85c3f2b1b2a1?w=800&h=400&fit=crop',
+      url: 'https://images.unsplash.com/photo-1517963879433-6ad2b056d712?w=800&h=400&fit=crop',
       alt: 'Group fitness class',
       category: 'Fitness'
     },
