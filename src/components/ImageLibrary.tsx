@@ -53,14 +53,14 @@ const ImageLibrary = ({ onImageSelected, currentImage }: ImageLibraryProps) => {
     },
     {
       id: '7',
-      url: 'https://images.unsplash.com/photo-1517486808906-6ca8b3f04846?w=800&h=400&fit=crop',
-      alt: 'Yoga and wellness',
-      category: 'Health'
+      url: 'https://images.unsplash.com/photo-1541534741688-6078c6bfb5c5?w=800&h=400&fit=crop',
+      alt: 'People exercising in gym',
+      category: 'Fitness'
     },
     {
       id: '8',
-      url: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=800&h=400&fit=crop',
-      alt: 'Healthy food',
+      url: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=800&h=400&fit=crop',
+      alt: 'Fresh pizza with ingredients',
       category: 'Food'
     },
     {
