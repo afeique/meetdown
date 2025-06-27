@@ -1,3 +1,4 @@
+
 import { Calendar, MapPin, Users, Tag, Clock } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -72,9 +73,9 @@ const EventCard = ({ event, onJoin, onLeave }: EventCardProps) => {
         {/* Cover charge display centered under the title */}
         {(event.cover_charge !== undefined && event.cover_charge > 0) && (
           <div className="flex justify-center">
-            <div className="text-sm text-green-600 font-medium">
-              <span>${event.cover_charge}</span>
-            </div>
+            <Badge variant="secondary" className="text-xs bg-green-100 text-green-800 w-fit">
+              ${event.cover_charge}
+            </Badge>
           </div>
         )}
       </CardHeader>
