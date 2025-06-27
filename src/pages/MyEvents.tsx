@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -83,7 +82,19 @@ const MyEvents = () => {
         if (error) throw error;
 
         if (data?.date_time_preferences) {
-          setDateTimePrefs(data.date_time_preferences as unknown as DateTimePreferences);
+          // Safely parse the preferences with validation
+          try {
+            const prefs = data.date_time_preferences as any;
+            if (prefs && typeof prefs === 'object' && !Array.isArray(prefs)) {
+              setDateTimePrefs({
+                dateFormat: prefs.dateFormat || 'month-day',
+                timeFormat: prefs.timeFormat || '12-hour',
+                showTimezone: prefs.showTimezone !== undefined ? prefs.showTimezone : true
+              });
+            }
+          } catch (parseError) {
+            console.error('Error parsing date time preferences:', parseError);
+          }
         }
       } catch (error: any) {
         console.error('Error fetching user preferences:', error);

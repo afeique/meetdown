@@ -44,7 +44,19 @@ const DateTimePreferences = () => {
       if (error) throw error;
 
       if (data?.date_time_preferences) {
-        setPreferences(data.date_time_preferences as unknown as DateTimePreferences);
+        // Safely parse the preferences with validation
+        try {
+          const prefs = data.date_time_preferences as any;
+          if (prefs && typeof prefs === 'object' && !Array.isArray(prefs)) {
+            setPreferences({
+              dateFormat: prefs.dateFormat || 'month-day',
+              timeFormat: prefs.timeFormat || '12-hour',
+              showTimezone: prefs.showTimezone !== undefined ? prefs.showTimezone : true
+            });
+          }
+        } catch (parseError) {
+          console.error('Error parsing date time preferences:', parseError);
+        }
       }
     } catch (error: any) {
       console.error('Error fetching preferences:', error);
@@ -61,7 +73,7 @@ const DateTimePreferences = () => {
       const { error } = await supabase
         .from('profiles')
         .update({
-          date_time_preferences: preferences as any,
+          date_time_preferences: preferences,
           updated_at: new Date().toISOString()
         })
         .eq('id', user.id);
