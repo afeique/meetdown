@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, Wand2, ImageIcon } from 'lucide-react';
+import { Loader2, Wand2, ImageIcon, Save } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -16,6 +16,7 @@ interface ProfilePictureGeneratorProps {
 const ProfilePictureGenerator = ({ onProfilePictureGenerated, currentAvatar }: ProfilePictureGeneratorProps) => {
   const [prompt, setPrompt] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [generatedImage, setGeneratedImage] = useState<string | null>(currentAvatar || null);
   const { toast } = useToast();
   const { user } = useAuth();
@@ -54,10 +55,9 @@ const ProfilePictureGenerator = ({ onProfilePictureGenerated, currentAvatar }: P
 
       if (data?.imageUrl) {
         setGeneratedImage(data.imageUrl);
-        onProfilePictureGenerated(data.imageUrl);
         toast({
           title: "Profile picture generated!",
-          description: "Your AI-generated profile picture is ready.",
+          description: "Your AI-generated profile picture is ready. Click 'Save Picture' to use it.",
         });
       } else {
         throw new Error('No image URL returned');
@@ -71,6 +71,36 @@ const ProfilePictureGenerator = ({ onProfilePictureGenerated, currentAvatar }: P
       });
     } finally {
       setIsGenerating(false);
+    }
+  };
+
+  const saveProfilePicture = async () => {
+    if (!generatedImage || !user) return;
+
+    setIsSaving(true);
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ avatar_url: generatedImage })
+        .eq('id', user.id);
+
+      if (error) throw error;
+
+      onProfilePictureGenerated(generatedImage);
+      
+      toast({
+        title: "Profile picture saved!",
+        description: "Your AI-generated profile picture has been set as your profile picture.",
+      });
+    } catch (error: any) {
+      console.error('Error saving profile picture:', error);
+      toast({
+        title: "Save failed",
+        description: error.message || "Failed to save profile picture. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -122,6 +152,24 @@ const ProfilePictureGenerator = ({ onProfilePictureGenerated, currentAvatar }: P
                 className="w-32 h-32 object-cover rounded-full border mx-auto"
               />
             </div>
+            
+            <Button 
+              onClick={saveProfilePicture} 
+              disabled={isSaving}
+              className="w-full bg-green-600 hover:bg-green-700"
+            >
+              {isSaving ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Saving Picture...
+                </>
+              ) : (
+                <>
+                  <Save className="mr-2 h-4 w-4" />
+                  Save Picture
+                </>
+              )}
+            </Button>
           </div>
         )}
       </CardContent>
