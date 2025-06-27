@@ -1,5 +1,5 @@
-
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
@@ -16,6 +16,7 @@ interface CreateEventFormProps {
 }
 
 const CreateEventForm = ({ onEventCreated }: CreateEventFormProps) => {
+  const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [bannerUrl, setBannerUrl] = useState('');
@@ -136,6 +137,9 @@ const CreateEventForm = ({ onEventCreated }: CreateEventFormProps) => {
       setTagInput('');
       setIsOpen(false);
       onEventCreated();
+      
+      // Redirect to My Events page to show the newly created event
+      navigate('/my-events');
     } catch (error: any) {
       console.error('Error creating event:', error);
       toast({
