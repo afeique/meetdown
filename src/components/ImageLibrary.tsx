@@ -22,7 +22,7 @@ const ImageLibrary = ({ onImageSelected, currentImage, isOpen, onOpenChange }: I
   const [selectedImage, setSelectedImage] = useState<string | null>(currentImage || null);
   const { toast } = useToast();
 
-  // Expanded library with 40+ high-quality stock images
+  // Updated library with fixed URLs and no duplicates
   const imageLibrary = [
     {
       id: '1',
@@ -62,20 +62,20 @@ const ImageLibrary = ({ onImageSelected, currentImage, isOpen, onOpenChange }: I
     },
     {
       id: '7',
-      url: 'https://images.unsplash.com/photo-1541534741688-6078c6bfb5c5?w=800&h=400&fit=crop',
-      alt: 'People exercising in gym',
+      url: 'https://images.unsplash.com/photo-1571019613914-85c3f2b1b2a1?w=800&h=400&fit=crop',
+      alt: 'Group fitness class',
       category: 'Fitness'
     },
     {
       id: '8',
-      url: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=800&h=400&fit=crop',
-      alt: 'Fresh pizza with ingredients',
+      url: 'https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=800&h=400&fit=crop',
+      alt: 'Delicious pizza',
       category: 'Food'
     },
     {
       id: '9',
-      url: 'https://images.unsplash.com/photo-1571019613914-85c3f2b1b2a1?w=800&h=400&fit=crop',
-      alt: 'Group workout',
+      url: 'https://images.unsplash.com/photo-1594736797933-d0501ba2fe65?w=800&h=400&fit=crop',
+      alt: 'Basketball court',
       category: 'Sports'
     },
     {
@@ -152,8 +152,8 @@ const ImageLibrary = ({ onImageSelected, currentImage, isOpen, onOpenChange }: I
     },
     {
       id: '22',
-      url: 'https://images.unsplash.com/photo-1544207240-3d1fb9a6df72?w=800&h=400&fit=crop',
-      alt: 'Books and reading',
+      url: 'https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?w=800&h=400&fit=crop',
+      alt: 'Books and learning',
       category: 'Education'
     },
     {
@@ -248,8 +248,8 @@ const ImageLibrary = ({ onImageSelected, currentImage, isOpen, onOpenChange }: I
     },
     {
       id: '38',
-      url: 'https://images.unsplash.com/photo-1571019613914-85c3f2b1b2a1?w=800&h=400&fit=crop',
-      alt: 'Outdoor activities',
+      url: 'https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&h=400&fit=crop',
+      alt: 'Hiking trail in mountains',
       category: 'Outdoor'
     },
     {
@@ -260,7 +260,7 @@ const ImageLibrary = ({ onImageSelected, currentImage, isOpen, onOpenChange }: I
     },
     {
       id: '40',
-      url: 'https://images.unsplash.com/photo-1511988617509-a57c8a288659?w=800&h=400&fit=crop',
+      url: 'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=800&h=400&fit=crop',
       alt: 'Learning environment',
       category: 'Learning'
     }
