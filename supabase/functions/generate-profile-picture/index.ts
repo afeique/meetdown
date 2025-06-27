@@ -30,7 +30,7 @@ serve(async (req) => {
 
     console.log('Generating profile picture with prompt:', prompt)
 
-    // Generate image using OpenAI
+    // Generate image using OpenAI DALL-E 3
     const response = await fetch('https://api.openai.com/v1/images/generations', {
       method: 'POST',
       headers: {
