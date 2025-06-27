@@ -62,21 +62,26 @@ const EventCard = ({ event, onJoin, onLeave }: EventCardProps) => {
         <CardTitle className="text-lg font-semibold text-gray-800">
           {event.title}
         </CardTitle>
+        {/* FREE badge moved here, beneath the title */}
+        {event.cover_charge === 0 && (
+          <Badge variant="secondary" className="text-xs bg-green-100 text-green-800 w-fit">
+            FREE
+          </Badge>
+        )}
       </CardHeader>
       <CardContent className="space-y-3">
         <p className="text-gray-600 text-sm">{event.description}</p>
         
-        <div className="flex items-center gap-4 text-sm text-gray-500">
+        {/* Separate date and time into different columns */}
+        <div className="grid grid-cols-2 gap-4 text-sm text-gray-500">
           <div className="flex items-center gap-1">
             <Calendar size={16} />
-            <span>{event.date} at {event.time}</span>
+            <span>{event.date}</span>
           </div>
-          {event.distance && (
-            <div className="flex items-center gap-1">
-              <MapPin size={16} />
-              <span>{event.distance} away</span>
-            </div>
-          )}
+          <div className="flex items-center gap-1">
+            <Clock size={16} />
+            <span>{event.time}</span>
+          </div>
         </div>
         
         <div className="flex items-center gap-4 text-sm text-gray-500">
@@ -92,10 +97,11 @@ const EventCard = ({ event, onJoin, onLeave }: EventCardProps) => {
             </div>
           )}
           
-          {event.cover_charge === 0 && (
-            <Badge variant="secondary" className="text-xs bg-green-100 text-green-800">
-              FREE
-            </Badge>
+          {event.distance && (
+            <div className="flex items-center gap-1">
+              <MapPin size={16} />
+              <span>{event.distance} away</span>
+            </div>
           )}
         </div>
         
