@@ -23,7 +23,12 @@ const Going = () => {
   );
 
   // Filter events to only show those the user is registered for
-  const registeredEvents = events.filter(event => event.is_registered);
+  const registeredEvents = events.filter(event => {
+    console.log('Event:', event.title, 'is_registered:', event.is_registered);
+    return event.is_registered === true;
+  });
+
+  console.log('Total events:', events.length, 'Registered events:', registeredEvents.length);
 
   if (loading) {
     return (
