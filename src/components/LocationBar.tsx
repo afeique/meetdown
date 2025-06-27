@@ -32,6 +32,30 @@ const LocationBar = ({ onLocationChange }: LocationBarProps) => {
     return response.json();
   };
 
+  const reverseGeocode = async (lat: number, lng: number): Promise<string> => {
+    try {
+      // Try the primary reverse geocoding service
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`,
+        {
+          headers: {
+            'User-Agent': 'MeetdownApp/1.0'
+          }
+        }
+      );
+      
+      if (response.ok) {
+        const data = await response.json();
+        return data.display_name || `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+      }
+    } catch (error) {
+      console.log('Primary reverse geocoding failed, using coordinates');
+    }
+    
+    // Fallback to coordinates if reverse geocoding fails
+    return `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+  };
+
   const handleLocationSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -105,36 +129,47 @@ const LocationBar = ({ onLocationChange }: LocationBarProps) => {
         try {
           const { latitude, longitude } = position.coords;
           
-          // Reverse geocode to get address
-          const response = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
-          );
+          // Use our improved reverse geocoding function
+          const address = await reverseGeocode(latitude, longitude);
           
-          if (response.ok) {
-            const data = await response.json();
-            const newLocation = {
-              lat: latitude,
-              lng: longitude,
-              address: data.display_name || `${latitude}, ${longitude}`
-            };
+          const newLocation = {
+            lat: latitude,
+            lng: longitude,
+            address: address
+          };
 
-            setLocation(data.display_name || '');
-            
-            if (onLocationChange) {
-              onLocationChange(newLocation);
-            }
-
-            toast({
-              title: "Location detected",
-              description: "Using your current location for search.",
-            });
+          setLocation(address);
+          
+          if (onLocationChange) {
+            onLocationChange(newLocation);
           }
-        } catch (error) {
-          console.error('Error getting current location:', error);
+
           toast({
-            title: "Location error",
-            description: "Unable to get your current location.",
-            variant: "destructive",
+            title: "Location detected",
+            description: "Using your current location for search.",
+          });
+
+          console.log('Current location detected:', newLocation);
+          
+        } catch (error) {
+          console.error('Error processing current location:', error);
+          
+          // Even if reverse geocoding fails, we can still use the coordinates
+          const fallbackLocation = {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+            address: `${position.coords.latitude.toFixed(4)}, ${position.coords.longitude.toFixed(4)}`
+          };
+          
+          setLocation(fallbackLocation.address);
+          
+          if (onLocationChange) {
+            onLocationChange(fallbackLocation);
+          }
+
+          toast({
+            title: "Location detected",
+            description: "Using your current coordinates for search.",
           });
         } finally {
           setIsSearching(false);
@@ -142,12 +177,31 @@ const LocationBar = ({ onLocationChange }: LocationBarProps) => {
       },
       (error) => {
         console.error('Geolocation error:', error);
+        let errorMessage = "Unable to get your current location.";
+        
+        switch (error.code) {
+          case error.PERMISSION_DENIED:
+            errorMessage = "Location access was denied. Please allow location access in your browser settings.";
+            break;
+          case error.POSITION_UNAVAILABLE:
+            errorMessage = "Your location is currently unavailable.";
+            break;
+          case error.TIMEOUT:
+            errorMessage = "Location request timed out. Please try again.";
+            break;
+        }
+        
         toast({
-          title: "Location access denied",
-          description: "Please allow location access or enter an address manually.",
+          title: "Location access error",
+          description: errorMessage,
           variant: "destructive",
         });
         setIsSearching(false);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 60000
       }
     );
   };
