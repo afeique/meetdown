@@ -3,6 +3,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { MapPin } from 'lucide-react';
 import { Loader } from '@googlemaps/js-api-loader';
+import { supabase } from '@/integrations/supabase/client';
 
 interface LocationAutocompleteProps {
   location: string;
@@ -19,9 +20,25 @@ const LocationAutocomplete = ({ location, onLocationChange, required = false }: 
   useEffect(() => {
     const initializeAutocomplete = async () => {
       try {
-        // You'll need to add your Google Maps API key to Supabase secrets
+        // Get the Google Maps API key from Supabase secrets
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+          console.log('No session found, using fallback input');
+          setApiError(true);
+          return;
+        }
+
+        // Call edge function to get API key (since we can't access secrets directly in frontend)
+        const { data: apiKeyData, error: apiKeyError } = await supabase.functions.invoke('get-google-maps-key');
+        
+        if (apiKeyError || !apiKeyData?.apiKey) {
+          console.log('Could not retrieve Google Maps API key:', apiKeyError);
+          setApiError(true);
+          return;
+        }
+
         const loader = new Loader({
-          apiKey: process.env.REACT_APP_GOOGLE_MAPS_API_KEY || '',
+          apiKey: apiKeyData.apiKey,
           version: 'weekly',
           libraries: ['places']
         });
@@ -62,7 +79,7 @@ const LocationAutocomplete = ({ location, onLocationChange, required = false }: 
   }, [onLocationChange]);
 
   // Fallback to regular input if Google Maps fails to load
-  if (apiError || !process.env.REACT_APP_GOOGLE_MAPS_API_KEY) {
+  if (apiError) {
     return (
       <div className="space-y-2">
         <label className="text-sm font-medium flex items-center gap-1">
@@ -75,11 +92,9 @@ const LocationAutocomplete = ({ location, onLocationChange, required = false }: 
           onChange={(e) => onLocationChange(e.target.value)}
           required={required}
         />
-        {apiError && (
-          <p className="text-xs text-amber-600">
-            Location autocomplete unavailable. Please enter address manually.
-          </p>
-        )}
+        <p className="text-xs text-amber-600">
+          Location autocomplete unavailable. Please enter address manually.
+        </p>
       </div>
     );
   }
