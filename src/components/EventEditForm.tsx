@@ -5,10 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { X } from 'lucide-react';
-import EventBasicInfoFields from './forms/EventBasicInfoFields';
-import EventBannerSection from './forms/EventBannerSection';
-import EventDetailsFields from './forms/EventDetailsFields';
-import EventTagsSection from './forms/EventTagsSection';
+import EventFormContent from './forms/EventFormContent';
 import { parseTagsFromInput } from '@/utils/tagUtils';
 
 interface Event {
@@ -168,6 +165,10 @@ const EventEditForm = ({ event, onEventUpdated, onCancel }: EventEditFormProps) 
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
+  const handleCancel = () => {
+    onCancel();
+  };
+
   return (
     <Card className="w-full">
       <CardHeader>
@@ -183,59 +184,17 @@ const EventEditForm = ({ event, onEventUpdated, onCancel }: EventEditFormProps) 
         </div>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <EventBasicInfoFields
-            title={formData.title}
-            description={formData.description}
-            onTitleChange={(value) => handleInputChange('title', value)}
-            onDescriptionChange={(value) => handleInputChange('description', value)}
-          />
-
-          <EventBannerSection
-            bannerUrl={bannerUrl}
-            eventTitle={formData.title}
-            onBannerChange={setBannerUrl}
-          />
-
-          <EventDetailsFields
-            date={formData.date}
-            time={formData.time}
-            location={formData.location}
-            maxAttendees={formData.maxAttendees}
-            coverCharge={formData.coverCharge}
-            requiresReservation={formData.requiresReservation}
-            onDateChange={(value) => handleInputChange('date', value)}
-            onTimeChange={(value) => handleInputChange('time', value)}
-            onLocationChange={(value) => handleInputChange('location', value)}
-            onMaxAttendeesChange={(value) => handleInputChange('maxAttendees', value)}
-            onCoverChargeChange={(value) => handleInputChange('coverCharge', value)}
-            onRequiresReservationChange={(value) => handleInputChange('requiresReservation', value)}
-          />
-
-          <EventTagsSection
-            tagInput={tagInput}
-            onTagInputChange={setTagInput}
-            parseTagsFromInput={parseTagsFromInput}
-          />
-
-          <div className="flex gap-2 pt-4">
-            <Button 
-              type="button" 
-              variant="outline" 
-              onClick={onCancel}
-              className="flex-1"
-            >
-              Cancel
-            </Button>
-            <Button 
-              type="submit" 
-              disabled={isSubmitting}
-              className="flex-1 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
-            >
-              {isSubmitting ? 'Updating...' : 'Update Event'}
-            </Button>
-          </div>
-        </form>
+        <EventFormContent
+          formData={formData}
+          bannerUrl={bannerUrl}
+          tagInput={tagInput}
+          isSubmitting={isSubmitting}
+          onInputChange={handleInputChange}
+          onBannerChange={setBannerUrl}
+          onTagInputChange={setTagInput}
+          onSubmit={handleSubmit}
+          onCancel={handleCancel}
+        />
       </CardContent>
     </Card>
   );
