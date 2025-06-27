@@ -12,28 +12,13 @@ import MyEventsCreateForm from '@/components/MyEventsCreateForm';
 import EventEditForm from '@/components/EventEditForm';
 import { transformEventData } from '@/utils/eventDataTransform';
 import { useEventRegistration } from '@/hooks/useEventRegistration';
+import { Event } from '@/utils/eventFilters';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-
-interface Event {
-  id: string;
-  title: string;
-  description: string;
-  date: string;
-  time: string;
-  location: string;
-  max_attendees: number;
-  cover_charge: number;
-  requires_reservation: boolean;
-  banner_url?: string;
-  creator_id: string;
-  attendees?: number;
-  is_registered?: boolean;
-}
 
 interface DateTimePreferences {
   dateFormat: 'month-day' | 'full-date' | 'short-date';
