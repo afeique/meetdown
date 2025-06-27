@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -46,7 +45,7 @@ const DateTimePreferences = () => {
       if (data?.date_time_preferences) {
         // Safely parse the preferences with validation
         try {
-          const prefs = data.date_time_preferences as any;
+          const prefs = data.date_time_preferences as unknown as DateTimePreferences;
           if (prefs && typeof prefs === 'object' && !Array.isArray(prefs)) {
             setPreferences({
               dateFormat: prefs.dateFormat || 'month-day',
@@ -73,7 +72,7 @@ const DateTimePreferences = () => {
       const { error } = await supabase
         .from('profiles')
         .update({
-          date_time_preferences: preferences,
+          date_time_preferences: preferences as any,
           updated_at: new Date().toISOString()
         })
         .eq('id', user.id);
