@@ -4,12 +4,18 @@ import { useAuth } from '@/contexts/AuthContext';
 import EventCard from '@/components/EventCard';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Calendar, Plus } from 'lucide-react';
+import { ArrowLeft, Calendar, Plus, ChevronDown, MapPin, User, LogOut } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import UserProfileHeader from '@/components/UserProfileHeader';
 import MyEventsCreateForm from '@/components/MyEventsCreateForm';
 import EventEditForm from '@/components/EventEditForm';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 interface Event {
   id: string;
@@ -27,12 +33,28 @@ interface Event {
 }
 
 const MyEvents = () => {
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingEvent, setEditingEvent] = useState<Event | null>(null);
+
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      toast({
+        title: "Logged out successfully",
+        description: "See you soon!",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error logging out",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
 
   useEffect(() => {
     const fetchMyEvents = async () => {
@@ -152,7 +174,45 @@ const MyEvents = () => {
                 <p className="text-gray-600">Events you've created</p>
               </div>
             </div>
-            <UserProfileHeader />
+            
+            <div className="flex items-center gap-3">
+              <DropdownMenu>
+                <DropdownMenuTrigger className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+                  <UserProfileHeader />
+                  <ChevronDown className="h-4 w-4 text-gray-500" />
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48 bg-white">
+                  <DropdownMenuItem 
+                    onClick={() => navigate('/going')}
+                    className="flex items-center gap-2 cursor-pointer"
+                  >
+                    <Calendar className="h-4 w-4" />
+                    Going
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
+                    onClick={() => navigate('/my-events')}
+                    className="flex items-center gap-2 cursor-pointer"
+                  >
+                    <MapPin className="h-4 w-4" />
+                    My Events
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
+                    onClick={() => navigate('/profile')}
+                    className="flex items-center gap-2 cursor-pointer"
+                  >
+                    <User className="h-4 w-4" />
+                    Profile
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
+                    onClick={handleLogout}
+                    className="flex items-center gap-2 cursor-pointer"
+                  >
+                    <LogOut className="h-4 w-4" />
+                    Logout
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           </div>
         </div>
       </div>
