@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import TopBar from '@/components/TopBar';
 import EventCard from '@/components/EventCard';
 import { useAuth } from '@/contexts/AuthContext';
@@ -22,6 +22,9 @@ const Going = () => {
     user?.id
   );
 
+  // Use local state to track if we've initially loaded to prevent flickering
+  const [hasLoaded, setHasLoaded] = useState(false);
+
   // Filter events to only show those the user is registered for
   const registeredEvents = events.filter(event => {
     console.log('Event:', event.title, 'is_registered:', event.is_registered);
@@ -30,7 +33,15 @@ const Going = () => {
 
   console.log('Total events:', events.length, 'Registered events:', registeredEvents.length);
 
-  if (loading) {
+  // Mark as loaded once we have events or loading is complete
+  useEffect(() => {
+    if (!loading || events.length > 0) {
+      setHasLoaded(true);
+    }
+  }, [loading, events.length]);
+
+  // Only show loading on initial load, not on subsequent refetches
+  if (!hasLoaded && loading) {
     return (
       <div className="min-h-screen bg-gray-50">
         <TopBar showBackButton={true} title="Going" />
@@ -68,7 +79,7 @@ const Going = () => {
           ))}
         </div>
         
-        {registeredEvents.length === 0 && (
+        {registeredEvents.length === 0 && hasLoaded && (
           <div className="text-center py-12">
             <p className="text-gray-500 text-lg mb-4">
               You haven't registered for any events yet.
