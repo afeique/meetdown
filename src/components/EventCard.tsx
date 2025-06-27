@@ -1,4 +1,5 @@
 
+
 import { Calendar, MapPin, Users, Tag, Clock } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -65,9 +66,9 @@ const EventCard = ({ event, onJoin, onLeave }: EventCardProps) => {
         {/* FREE badge centered under the title */}
         {event.cover_charge === 0 && (
           <div className="flex justify-center">
-            <Badge variant="secondary" className="text-xs bg-green-100 text-green-800 w-fit">
+            <div className="text-xs font-semibold text-white px-2.5 py-0.5 rounded-full bg-gradient-to-r from-purple-600 to-blue-600 w-fit">
               FREE
-            </Badge>
+            </div>
           </div>
         )}
         {/* Cover charge display centered under the title */}
@@ -151,3 +152,4 @@ const EventCard = ({ event, onJoin, onLeave }: EventCardProps) => {
 };
 
 export default EventCard;
+
