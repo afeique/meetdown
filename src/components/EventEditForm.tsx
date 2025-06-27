@@ -9,6 +9,7 @@ import EventBasicInfoFields from './forms/EventBasicInfoFields';
 import EventBannerSection from './forms/EventBannerSection';
 import EventDetailsFields from './forms/EventDetailsFields';
 import EventTagsSection from './forms/EventTagsSection';
+import { parseTagsFromInput } from '@/utils/tagUtils';
 
 interface Event {
   id: string;
@@ -68,14 +69,6 @@ const EventEditForm = ({ event, onEventUpdated, onCancel }: EventEditFormProps) 
 
     loadEventTags();
   }, [event.id]);
-
-  const parseTagsFromInput = (input: string): string[] => {
-    return input
-      .split(/[,;]/)
-      .map(tag => tag.trim())
-      .filter(tag => tag.length > 0)
-      .map(tag => tag.toLowerCase());
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
