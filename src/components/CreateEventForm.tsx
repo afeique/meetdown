@@ -191,42 +191,40 @@ const CreateEventForm = ({ onEventCreated }: CreateEventFormProps) => {
             />
           </div>
 
-          {/* Banner Section */}
-          {formData.title && (
-            <div className="space-y-4">
-              <label className="text-sm font-medium">Event Banner</label>
-              <Tabs defaultValue="library" className="w-full">
-                <TabsList className="grid w-full grid-cols-3">
-                  <TabsTrigger value="library">Image Library</TabsTrigger>
-                  <TabsTrigger value="ai">AI Generated</TabsTrigger>
-                  <TabsTrigger value="upload">Upload Image</TabsTrigger>
-                </TabsList>
-                
-                <TabsContent value="library" className="space-y-4">
-                  <ImageLibrary
-                    onImageSelected={setBannerUrl}
-                    currentImage={bannerUrl}
-                  />
-                </TabsContent>
-                
-                <TabsContent value="ai" className="space-y-4">
-                  <BannerGenerator
-                    eventTitle={formData.title}
-                    onBannerGenerated={setBannerUrl}
-                    currentBanner={bannerUrl}
-                  />
-                </TabsContent>
-                
-                <TabsContent value="upload" className="space-y-4">
-                  <ImageUpload
-                    onImageUploaded={setBannerUrl}
-                    currentImage={bannerUrl}
-                    maxSizeMB={5}
-                  />
-                </TabsContent>
-              </Tabs>
-            </div>
-          )}
+          {/* Banner Section - Always visible and moved to top */}
+          <div className="space-y-4">
+            <label className="text-sm font-medium">Event Banner</label>
+            <Tabs defaultValue="library" className="w-full">
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="library">Image Library</TabsTrigger>
+                <TabsTrigger value="ai">AI Generated</TabsTrigger>
+                <TabsTrigger value="upload">Upload Image</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="library" className="space-y-4">
+                <ImageLibrary
+                  onImageSelected={setBannerUrl}
+                  currentImage={bannerUrl}
+                />
+              </TabsContent>
+              
+              <TabsContent value="ai" className="space-y-4">
+                <BannerGenerator
+                  eventTitle={formData.title || "Untitled Event"}
+                  onBannerGenerated={setBannerUrl}
+                  currentBanner={bannerUrl}
+                />
+              </TabsContent>
+              
+              <TabsContent value="upload" className="space-y-4">
+                <ImageUpload
+                  onImageUploaded={setBannerUrl}
+                  currentImage={bannerUrl}
+                  maxSizeMB={5}
+                />
+              </TabsContent>
+            </Tabs>
+          </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
