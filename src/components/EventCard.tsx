@@ -70,6 +70,15 @@ const EventCard = ({ event, onJoin, onLeave }: EventCardProps) => {
             </Badge>
           </div>
         )}
+        {/* Cover charge display centered under the title */}
+        {(event.cover_charge !== undefined && event.cover_charge > 0) && (
+          <div className="flex justify-center">
+            <div className="flex items-center gap-1 text-sm text-green-600 font-medium">
+              <DollarSign size={16} />
+              <span>${event.cover_charge}</span>
+            </div>
+          </div>
+        )}
       </CardHeader>
       <CardContent className="space-y-3">
         <p className="text-gray-600 text-sm">{event.description}</p>
@@ -91,13 +100,6 @@ const EventCard = ({ event, onJoin, onLeave }: EventCardProps) => {
             <Users size={16} />
             <span>{event.attendees || 0}/{event.max_attendees} attendees</span>
           </div>
-          
-          {(event.cover_charge !== undefined && event.cover_charge > 0) && (
-            <div className="flex items-center gap-1 text-green-600">
-              <DollarSign size={16} />
-              <span>${event.cover_charge}</span>
-            </div>
-          )}
         </div>
         
         <div className="flex items-center gap-1 text-sm text-gray-600">
