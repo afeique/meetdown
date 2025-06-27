@@ -9,6 +9,7 @@ import Index from '@/pages/Index';
 import Login from '@/pages/Login';
 import Profile from '@/pages/Profile';
 import MyEvents from '@/pages/MyEvents';
+import Going from '@/pages/Going';
 import Verify from '@/pages/Verify';
 import Followers from '@/pages/Followers';
 import NotFound from '@/pages/NotFound';
@@ -43,6 +44,11 @@ function App() {
                 <Route path="/my-events" element={
                   <ProtectedRoute>
                     <MyEvents />
+                  </ProtectedRoute>
+                } />
+                <Route path="/going" element={
+                  <ProtectedRoute>
+                    <Going />
                   </ProtectedRoute>
                 } />
                 <Route path="/followers" element={

@@ -9,7 +9,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { MapPin, User, LogOut, ChevronDown } from 'lucide-react';
+import { MapPin, User, LogOut, ChevronDown, Calendar } from 'lucide-react';
 
 interface TopBarProps {
   showBackButton?: boolean;
@@ -68,6 +68,13 @@ const TopBar = ({ showBackButton = false, title }: TopBarProps) => {
                 <ChevronDown className="h-4 w-4 text-gray-500" />
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48 bg-white">
+                <DropdownMenuItem 
+                  onClick={() => navigate('/going')}
+                  className="flex items-center gap-2 cursor-pointer"
+                >
+                  <Calendar className="h-4 w-4" />
+                  Going
+                </DropdownMenuItem>
                 <DropdownMenuItem 
                   onClick={() => navigate('/my-events')}
                   className="flex items-center gap-2 cursor-pointer"
