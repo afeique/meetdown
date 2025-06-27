@@ -1,15 +1,15 @@
+
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Plus, Calendar, MapPin, Users, DollarSign, Clock, Tag } from 'lucide-react';
-import BannerGenerator from './BannerGenerator';
-import ImageUpload from './ImageUpload';
-import ImageLibrary from './ImageLibrary';
+import { Plus } from 'lucide-react';
+import EventBasicInfoFields from './forms/EventBasicInfoFields';
+import EventBannerSection from './forms/EventBannerSection';
+import EventDetailsFields from './forms/EventDetailsFields';
+import EventTagsSection from './forms/EventTagsSection';
+import CreateEventFormActions from './forms/CreateEventFormActions';
 
 interface CreateEventFormProps {
   onEventCreated: () => void;
@@ -171,185 +171,44 @@ const CreateEventForm = ({ onEventCreated }: CreateEventFormProps) => {
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Event Title</label>
-            <Input
-              placeholder="Enter event title"
-              value={formData.title}
-              onChange={(e) => handleInputChange('title', e.target.value)}
-              required
-            />
-          </div>
+          <EventBasicInfoFields
+            title={formData.title}
+            description={formData.description}
+            onTitleChange={(value) => handleInputChange('title', value)}
+            onDescriptionChange={(value) => handleInputChange('description', value)}
+          />
 
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Description</label>
-            <Textarea
-              placeholder="Describe your event"
-              value={formData.description}
-              onChange={(e) => handleInputChange('description', e.target.value)}
-              rows={3}
-            />
-          </div>
+          <EventBannerSection
+            bannerUrl={bannerUrl}
+            eventTitle={formData.title}
+            onBannerChange={setBannerUrl}
+          />
 
-          {/* Banner Section - Always visible and moved to top */}
-          <div className="space-y-4">
-            <label className="text-sm font-medium">Event Banner</label>
-            <Tabs defaultValue="library" className="w-full">
-              <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="library">Image Library</TabsTrigger>
-                <TabsTrigger value="ai">AI Generated</TabsTrigger>
-                <TabsTrigger value="upload">Upload Image</TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="library" className="space-y-4">
-                <ImageLibrary
-                  onImageSelected={setBannerUrl}
-                  currentImage={bannerUrl}
-                />
-              </TabsContent>
-              
-              <TabsContent value="ai" className="space-y-4">
-                <BannerGenerator
-                  eventTitle={formData.title || "Untitled Event"}
-                  onBannerGenerated={setBannerUrl}
-                  currentBanner={bannerUrl}
-                />
-              </TabsContent>
-              
-              <TabsContent value="upload" className="space-y-4">
-                <ImageUpload
-                  onImageUploaded={setBannerUrl}
-                  currentImage={bannerUrl}
-                  maxSizeMB={5}
-                />
-              </TabsContent>
-            </Tabs>
-          </div>
+          <EventDetailsFields
+            date={formData.date}
+            time={formData.time}
+            location={formData.location}
+            maxAttendees={formData.maxAttendees}
+            coverCharge={formData.coverCharge}
+            requiresReservation={formData.requiresReservation}
+            onDateChange={(value) => handleInputChange('date', value)}
+            onTimeChange={(value) => handleInputChange('time', value)}
+            onLocationChange={(value) => handleInputChange('location', value)}
+            onMaxAttendeesChange={(value) => handleInputChange('maxAttendees', value)}
+            onCoverChargeChange={(value) => handleInputChange('coverCharge', value)}
+            onRequiresReservationChange={(value) => handleInputChange('requiresReservation', value)}
+          />
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium flex items-center gap-1">
-                <Calendar className="h-4 w-4" />
-                Date
-              </label>
-              <Input
-                type="date"
-                value={formData.date}
-                onChange={(e) => handleInputChange('date', e.target.value)}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium flex items-center gap-1">
-                <Clock className="h-4 w-4" />
-                Time
-              </label>
-              <Input
-                type="time"
-                value={formData.time}
-                onChange={(e) => handleInputChange('time', e.target.value)}
-                required
-              />
-            </div>
-          </div>
+          <EventTagsSection
+            tagInput={tagInput}
+            onTagInputChange={setTagInput}
+            parseTagsFromInput={parseTagsFromInput}
+          />
 
-          <div className="space-y-2">
-            <label className="text-sm font-medium flex items-center gap-1">
-              <MapPin className="h-4 w-4" />
-              Location
-            </label>
-            <Input
-              placeholder="Enter event location"
-              value={formData.location}
-              onChange={(e) => handleInputChange('location', e.target.value)}
-              required
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium flex items-center gap-1">
-                <Users className="h-4 w-4" />
-                Max Attendees
-              </label>
-              <Input
-                type="number"
-                min="1"
-                value={formData.maxAttendees}
-                onChange={(e) => handleInputChange('maxAttendees', parseInt(e.target.value))}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium flex items-center gap-1">
-                <DollarSign className="h-4 w-4" />
-                Cover Charge ($)
-              </label>
-              <Input
-                type="number"
-                min="0"
-                step="0.01"
-                value={formData.coverCharge}
-                onChange={(e) => handleInputChange('coverCharge', parseFloat(e.target.value) || 0)}
-              />
-            </div>
-          </div>
-
-          <div className="flex items-center space-x-2">
-            <input
-              type="checkbox"
-              id="requiresReservation"
-              checked={formData.requiresReservation}
-              onChange={(e) => handleInputChange('requiresReservation', e.target.checked)}
-              className="h-4 w-4"
-            />
-            <label htmlFor="requiresReservation" className="text-sm font-medium">
-              Requires Reservation
-            </label>
-          </div>
-
-          {/* Tags Section */}
-          <div className="space-y-2">
-            <label className="text-sm font-medium flex items-center gap-1">
-              <Tag className="h-4 w-4" />
-              Tags
-            </label>
-            <Input
-              placeholder="Enter tags separated by commas or semicolons (e.g., hiking, outdoors; fitness)"
-              value={tagInput}
-              onChange={(e) => setTagInput(e.target.value)}
-            />
-            {tagInput && (
-              <div className="flex flex-wrap gap-2 mt-2">
-                {parseTagsFromInput(tagInput).map((tag, index) => (
-                  <span
-                    key={index}
-                    className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full"
-                  >
-                    {tag}
-                  </span>
-                ))}
-              </div>
-            )}
-          </div>
-
-          <div className="flex gap-2 pt-4">
-            <Button 
-              type="button" 
-              variant="outline" 
-              onClick={() => setIsOpen(false)}
-              className="flex-1"
-            >
-              Cancel
-            </Button>
-            <Button 
-              type="submit" 
-              disabled={isSubmitting}
-              className="flex-1 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
-            >
-              {isSubmitting ? 'Creating...' : 'Create Event'}
-            </Button>
-          </div>
+          <CreateEventFormActions
+            isSubmitting={isSubmitting}
+            onCancel={() => setIsOpen(false)}
+          />
         </form>
       </CardContent>
     </Card>
