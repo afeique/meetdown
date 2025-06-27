@@ -7,19 +7,27 @@ export const transformEventData = (
   userLocation?: { lat: number; lng: number },
   userId?: string
 ): Event => {
+  // Get user's timezone
+  const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  
+  // Create a date object for formatting
+  const eventDate = new Date(event.date);
+  const eventDateTime = new Date(`${event.date}T${event.time}`);
+  
   return {
     id: event.id,
     title: event.title,
     description: event.description || '',
-    date: new Date(event.date).toLocaleDateString('en-US', { 
+    date: eventDate.toLocaleDateString('en-US', { 
       year: 'numeric', 
       month: 'long', 
       day: 'numeric' 
     }),
-    time: new Date(`1970-01-01T${event.time}`).toLocaleTimeString('en-US', {
+    time: eventDateTime.toLocaleTimeString('en-US', {
       hour: 'numeric',
       minute: '2-digit',
-      hour12: true
+      hour12: true,
+      timeZoneName: 'short'
     }),
     location: event.location,
     latitude: event.latitude ? parseFloat(event.latitude) : undefined,
