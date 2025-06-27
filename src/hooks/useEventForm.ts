@@ -78,6 +78,19 @@ export const useEventForm = (onEventCreated: () => void) => {
 
       if (eventError) throw eventError;
 
+      // Automatically register the creator as the first participant
+      const { error: registrationError } = await supabase
+        .from('event_registrations')
+        .insert({
+          event_id: eventData.id,
+          user_id: user.id
+        });
+
+      if (registrationError) {
+        console.error('Error registering creator for event:', registrationError);
+        // Don't throw here as the event was created successfully
+      }
+
       // Process tags if any are entered
       if (tagNames.length > 0 && eventData) {
         // Find existing tags or create new ones
@@ -124,7 +137,7 @@ export const useEventForm = (onEventCreated: () => void) => {
 
       toast({
         title: "Event created!",
-        description: "Your event has been successfully created.",
+        description: "Your event has been successfully created and you've been registered as the first participant.",
       });
 
       resetForm();
