@@ -13,7 +13,7 @@ const ImageLibrary = ({ onImageSelected, currentImage }: ImageLibraryProps) => {
   const [selectedImage, setSelectedImage] = useState<string | null>(currentImage || null);
   const { toast } = useToast();
 
-  // Library of pre-selected images
+  // Library of pre-selected images with verified URLs and unique categories
   const imageLibrary = [
     {
       id: '1',
@@ -25,25 +25,25 @@ const ImageLibrary = ({ onImageSelected, currentImage }: ImageLibraryProps) => {
       id: '2', 
       url: 'https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?w=800&h=400&fit=crop',
       alt: 'Laptop and coffee setup',
-      category: 'Tech'
+      category: 'Technology'
     },
     {
       id: '3',
       url: 'https://images.unsplash.com/photo-1518770660439-4636190af475?w=800&h=400&fit=crop',
       alt: 'Technology and circuits',
-      category: 'Tech'
+      category: 'Development'
     },
     {
       id: '4',
       url: 'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=800&h=400&fit=crop',
       alt: 'Programming code',
-      category: 'Development'
+      category: 'Programming'
     },
     {
       id: '5',
       url: 'https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?w=800&h=400&fit=crop',
       alt: 'Person using MacBook',
-      category: 'Business'
+      category: 'Work'
     },
     {
       id: '6',
@@ -67,7 +67,7 @@ const ImageLibrary = ({ onImageSelected, currentImage }: ImageLibraryProps) => {
       id: '9',
       url: 'https://images.unsplash.com/photo-1571019613914-85c3f2b1b2a1?w=800&h=400&fit=crop',
       alt: 'Group workout',
-      category: 'Fitness'
+      category: 'Sports'
     },
     {
       id: '10',
