@@ -21,6 +21,15 @@ export const useEventRegistration = (
       return;
     }
 
+    // Optimistically update UI first
+    setEvents(
+      events.map(event => 
+        event.id === eventId 
+          ? { ...event, is_registered: true, attendees: (event.attendees || 0) + 1 }
+          : event
+      )
+    );
+
     try {
       const { error } = await supabase
         .from('event_registrations')
@@ -30,15 +39,7 @@ export const useEventRegistration = (
         });
 
       if (error) {
-        console.log('Database registration failed, updating UI only:', error.message);
-        setEvents(
-          events.map(event => 
-            event.id === eventId 
-              ? { ...event, is_registered: true, attendees: (event.attendees || 0) + 1 }
-              : event
-          )
-        );
-        
+        console.log('Database registration failed:', error.message);
         toast({
           title: "Demo: Joined event!",
           description: "You've been registered for this event (demo mode).",
@@ -51,14 +52,6 @@ export const useEventRegistration = (
       }
     } catch (error: any) {
       console.error('Error joining event:', error);
-      setEvents(
-        events.map(event => 
-          event.id === eventId 
-            ? { ...event, is_registered: true, attendees: (event.attendees || 0) + 1 }
-            : event
-        )
-      );
-      
       toast({
         title: "Demo: Joined event!",
         description: "You've been registered for this event (demo mode).",
@@ -69,6 +62,15 @@ export const useEventRegistration = (
   const handleLeaveEvent = async (eventId: string) => {
     if (!userId) return;
 
+    // Optimistically update UI first
+    setEvents(
+      events.map(event => 
+        event.id === eventId 
+          ? { ...event, is_registered: false, attendees: Math.max((event.attendees || 1) - 1, 0) }
+          : event
+      )
+    );
+
     try {
       const { error } = await supabase
         .from('event_registrations')
@@ -77,15 +79,7 @@ export const useEventRegistration = (
         .eq('user_id', userId);
 
       if (error) {
-        console.log('Database unregistration failed, updating UI only:', error.message);
-        setEvents(
-          events.map(event => 
-            event.id === eventId 
-              ? { ...event, is_registered: false, attendees: Math.max((event.attendees || 1) - 1, 0) }
-              : event
-          )
-        );
-        
+        console.log('Database unregistration failed:', error.message);
         toast({
           title: "Demo: Left event",
           description: "You've been unregistered from this event (demo mode).",
@@ -98,14 +92,6 @@ export const useEventRegistration = (
       }
     } catch (error: any) {
       console.error('Error leaving event:', error);
-      setEvents(
-        events.map(event => 
-          event.id === eventId 
-            ? { ...event, is_registered: false, attendees: Math.max((event.attendees || 1) - 1, 0) }
-            : event
-        )
-      );
-      
       toast({
         title: "Demo: Left event",
         description: "You've been unregistered from this event (demo mode).",
