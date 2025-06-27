@@ -9,6 +9,7 @@ import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import UserProfileHeader from '@/components/UserProfileHeader';
 import MyEventsCreateForm from '@/components/MyEventsCreateForm';
+import EventEditForm from '@/components/EventEditForm';
 
 interface Event {
   id: string;
@@ -31,6 +32,7 @@ const MyEvents = () => {
   const { toast } = useToast();
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
+  const [editingEvent, setEditingEvent] = useState<Event | null>(null);
 
   useEffect(() => {
     const fetchMyEvents = async () => {
@@ -102,6 +104,20 @@ const MyEvents = () => {
     }
   };
 
+  const handleEditEvent = (event: Event) => {
+    setEditingEvent(event);
+  };
+
+  const handleEventUpdated = () => {
+    setEditingEvent(null);
+    // Refresh the events list
+    window.location.reload();
+  };
+
+  const handleCancelEdit = () => {
+    setEditingEvent(null);
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -142,39 +158,62 @@ const MyEvents = () => {
       </div>
 
       <div className="container mx-auto px-4 py-6">
-        {/* Add Create Event Form */}
-        <div className="mb-6">
-          <MyEventsCreateForm onEventCreated={() => window.location.reload()} />
-        </div>
-
-        {events.length === 0 ? (
-          <Card className="text-center py-12">
-            <CardContent>
-              <Calendar className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-              <CardTitle className="text-xl mb-2">No events created yet</CardTitle>
-              <p className="text-gray-600 mb-6">
-                Start creating events to build your community and connect with others.
-              </p>
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {events.map((event) => (
-              <div key={event.id} className="relative">
-                <EventCard
-                  event={event}
-                />
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  onClick={() => handleDeleteEvent(event.id)}
-                  className="absolute top-2 right-2 z-10 opacity-80 hover:opacity-100"
-                >
-                  Delete
-                </Button>
-              </div>
-            ))}
+        {/* Show edit form if editing */}
+        {editingEvent ? (
+          <div className="mb-6">
+            <EventEditForm
+              event={editingEvent}
+              onEventUpdated={handleEventUpdated}
+              onCancel={handleCancelEdit}
+            />
           </div>
+        ) : (
+          <>
+            {/* Add Create Event Form */}
+            <div className="mb-6">
+              <MyEventsCreateForm onEventCreated={() => window.location.reload()} />
+            </div>
+
+            {events.length === 0 ? (
+              <Card className="text-center py-12">
+                <CardContent>
+                  <Calendar className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                  <CardTitle className="text-xl mb-2">No events created yet</CardTitle>
+                  <p className="text-gray-600 mb-6">
+                    Start creating events to build your community and connect with others.
+                  </p>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {events.map((event) => (
+                  <div key={event.id} className="relative">
+                    <EventCard
+                      event={event}
+                    />
+                    <div className="absolute top-2 right-2 z-10 flex gap-2">
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        onClick={() => handleEditEvent(event)}
+                        className="opacity-80 hover:opacity-100"
+                      >
+                        Edit
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => handleDeleteEvent(event.id)}
+                        className="opacity-80 hover:opacity-100"
+                      >
+                        Delete
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>
