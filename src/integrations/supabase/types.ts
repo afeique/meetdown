@@ -203,6 +203,7 @@ export type Database = {
           bio: string | null
           created_at: string
           date_of_birth: string | null
+          date_time_preferences: Json | null
           email: string | null
           email_verified: boolean
           first_name: string | null
@@ -219,6 +220,7 @@ export type Database = {
           bio?: string | null
           created_at?: string
           date_of_birth?: string | null
+          date_time_preferences?: Json | null
           email?: string | null
           email_verified?: boolean
           first_name?: string | null
@@ -235,6 +237,7 @@ export type Database = {
           bio?: string | null
           created_at?: string
           date_of_birth?: string | null
+          date_time_preferences?: Json | null
           email?: string | null
           email_verified?: boolean
           first_name?: string | null
