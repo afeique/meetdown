@@ -96,17 +96,11 @@ const EventCard = ({ event, onJoin, onLeave }: EventCardProps) => {
               <span>${event.cover_charge}</span>
             </div>
           )}
-          
-          {event.distance && (
-            <div className="flex items-center gap-1">
-              <MapPin size={16} />
-              <span>{event.distance} away</span>
-            </div>
-          )}
         </div>
         
-        <div className="text-sm text-gray-600">
-          <strong>Location:</strong> {event.location}
+        <div className="flex items-center gap-1 text-sm text-gray-600">
+          <MapPin size={16} />
+          <span>{event.location}</span>
         </div>
 
         {event.requires_reservation && (
