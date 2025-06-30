@@ -103,7 +103,7 @@ const MyEvents = () => {
       if (!user) return;
 
       try {
-        // Fetch events created by the user
+        // Fetch events created by the user - including past events
         const { data: eventsData, error: eventsError } = await supabase
           .from('events')
           .select('*')
