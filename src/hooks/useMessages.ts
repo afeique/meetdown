@@ -1,4 +1,5 @@
 
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -44,9 +45,11 @@ export const useConversations = () => {
           ),
           messages (
             id,
+            conversation_id,
             content,
             created_at,
-            sender_id
+            sender_id,
+            read_at
           )
         `)
         .order('updated_at', { ascending: false });
