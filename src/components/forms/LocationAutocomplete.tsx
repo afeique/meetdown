@@ -20,19 +20,11 @@ const LocationAutocomplete = ({ location, onLocationChange, required = false }: 
   useEffect(() => {
     const initializeAutocomplete = async () => {
       try {
-        // Get the Google Maps API key from Supabase secrets
-        const { data: { session } } = await supabase.auth.getSession();
-        if (!session) {
-          console.log('No session found, using fallback input');
-          setApiError(true);
-          return;
-        }
-
-        // Call edge function to get API key (since we can't access secrets directly in frontend)
+        // Call edge function to get API key directly - no session check needed
         const { data: apiKeyData, error: apiKeyError } = await supabase.functions.invoke('get-google-maps-key');
         
         if (apiKeyError || !apiKeyData?.apiKey) {
-          console.log('Could not retrieve Google Maps API key:', apiKeyError);
+          console.log('Could not retrieve Google Maps API key, using fallback input');
           setApiError(true);
           return;
         }
@@ -92,8 +84,8 @@ const LocationAutocomplete = ({ location, onLocationChange, required = false }: 
           onChange={(e) => onLocationChange(e.target.value)}
           required={required}
         />
-        <p className="text-xs text-amber-600">
-          Location autocomplete unavailable. Please enter address manually.
+        <p className="text-xs text-gray-500">
+          Enter address manually
         </p>
       </div>
     );
@@ -107,7 +99,7 @@ const LocationAutocomplete = ({ location, onLocationChange, required = false }: 
       </label>
       <Input
         ref={inputRef}
-        placeholder="Enter event location"
+        placeholder="Start typing to search for locations..."
         value={location}
         onChange={(e) => onLocationChange(e.target.value)}
         required={required}

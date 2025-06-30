@@ -17,6 +17,7 @@ serve(async (req) => {
     const apiKey = Deno.env.get('GOOGLE_MAPS_API_KEY')
     
     if (!apiKey) {
+      console.log('Google Maps API key not configured')
       return new Response(
         JSON.stringify({ error: 'Google Maps API key not configured' }),
         { 
@@ -33,8 +34,9 @@ serve(async (req) => {
       }
     )
   } catch (error) {
+    console.error('Error in get-google-maps-key function:', error)
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: 'Internal server error' }),
       { 
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
