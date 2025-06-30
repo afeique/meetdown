@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -41,7 +40,7 @@ export const useConversations = () => {
           *,
           conversation_participants!inner (
             user_id,
-            profiles!conversation_participants_user_id_fkey (
+            profiles (
               first_name,
               last_name
             )
