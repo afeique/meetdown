@@ -16,6 +16,7 @@ export const useMyEvents = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [events, setEvents] = useState<Event[]>([]);
+  const [recentPastEvents, setRecentPastEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingEvent, setEditingEvent] = useState<Event | null>(null);
   const [dateTimePrefs, setDateTimePrefs] = useState<DateTimePreferences>({
@@ -64,21 +65,34 @@ export const useMyEvents = () => {
       if (!user) return;
 
       try {
-        // Get today's date in YYYY-MM-DD format
-        const today = new Date();
-        const todayStr = today.toISOString().split('T')[0];
+        const now = new Date();
+        const today = now.toISOString().split('T')[0];
+        const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
 
-        const { data: eventsData, error: eventsError } = await supabase
+        // Fetch upcoming events
+        const { data: upcomingEventsData, error: upcomingError } = await supabase
           .from('events')
           .select('*')
           .eq('creator_id', user.id)
-          .gte('date', todayStr)  // Only get events from today onwards
+          .gte('date', today)
           .order('date', { ascending: true });
 
-        if (eventsError) throw eventsError;
+        if (upcomingError) throw upcomingError;
 
-        const eventsWithAttendees = await Promise.all(
-          (eventsData || []).map(async (event) => {
+        // Fetch recent past events (past week)
+        const { data: pastEventsData, error: pastError } = await supabase
+          .from('events')
+          .select('*')
+          .eq('creator_id', user.id)
+          .gte('date', oneWeekAgo)
+          .lt('date', today)
+          .order('date', { ascending: false });
+
+        if (pastError) throw pastError;
+
+        // Process upcoming events
+        const upcomingEventsWithAttendees = await Promise.all(
+          (upcomingEventsData || []).map(async (event) => {
             const { count } = await supabase
               .from('event_registrations')
               .select('*', { count: 'exact', head: true })
@@ -104,13 +118,42 @@ export const useMyEvents = () => {
           })
         );
 
-        // Filter out events that are actually in the past (considering time)
-        const upcomingEvents = eventsWithAttendees.filter(event => {
+        // Process recent past events
+        const pastEventsWithAttendees = await Promise.all(
+          (pastEventsData || []).map(async (event) => {
+            const { count } = await supabase
+              .from('event_registrations')
+              .select('*', { count: 'exact', head: true })
+              .eq('event_id', event.id);
+
+            const { data: userRegistration } = await supabase
+              .from('event_registrations')
+              .select('id')
+              .eq('event_id', event.id)
+              .eq('user_id', user.id)
+              .single();
+
+            const transformedEvent = transformEventData({
+              ...event,
+              event_registrations: userRegistration ? [{ user_id: user.id }] : []
+            }, undefined, user.id, dateTimePrefs);
+
+            return {
+              ...transformedEvent,
+              attendees: count || 0,
+              is_registered: !!userRegistration,
+            };
+          })
+        );
+
+        // Filter out events that are actually in the past (considering time) for upcoming
+        const filteredUpcomingEvents = upcomingEventsWithAttendees.filter(event => {
           const eventDateTime = parseEventDateTime(event.date, event.time);
-          return eventDateTime && eventDateTime > new Date();
+          return eventDateTime && eventDateTime > now;
         });
 
-        setEvents(upcomingEvents);
+        setEvents(filteredUpcomingEvents);
+        setRecentPastEvents(pastEventsWithAttendees);
       } catch (error: any) {
         console.error('Error fetching events:', error);
         toast({
@@ -242,6 +285,8 @@ export const useMyEvents = () => {
   return {
     events,
     setEvents,
+    recentPastEvents,
+    setRecentPastEvents,
     loading,
     editingEvent,
     handleDeleteEvent,
