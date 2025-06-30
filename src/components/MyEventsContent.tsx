@@ -30,15 +30,21 @@ const MyEventsContent = ({
     user?.id
   );
 
+  console.log('MyEventsContent render:', { 
+    totalEvents: events.length, 
+    upcomingCount: upcomingEvents.length, 
+    pastCount: pastEvents.length 
+  });
+
   return (
     <div className="space-y-8">
       {/* Upcoming Events Section */}
-      {upcomingEvents.length > 0 && (
-        <div>
-          <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
-            <Calendar className="h-5 w-5" />
-            Upcoming Events ({upcomingEvents.length})
-          </h2>
+      <div>
+        <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
+          <Calendar className="h-5 w-5" />
+          Upcoming Events ({upcomingEvents.length})
+        </h2>
+        {upcomingEvents.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {upcomingEvents.map((event) => (
               <div key={event.id} className="relative">
@@ -68,16 +74,18 @@ const MyEventsContent = ({
               </div>
             ))}
           </div>
-        </div>
-      )}
+        ) : (
+          <p className="text-gray-500 text-center py-8">No upcoming events</p>
+        )}
+      </div>
 
-      {/* Past Events Section */}
-      {pastEvents.length > 0 && (
-        <div>
-          <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
-            <Calendar className="h-5 w-5" />
-            Past Events ({pastEvents.length})
-          </h2>
+      {/* Past Events Section - Always show this section */}
+      <div>
+        <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
+          <Calendar className="h-5 w-5" />
+          Past Events ({pastEvents.length})
+        </h2>
+        {pastEvents.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {pastEvents.map((event) => (
               <div key={event.id} className="relative">
@@ -107,8 +115,10 @@ const MyEventsContent = ({
               </div>
             ))}
           </div>
-        </div>
-      )}
+        ) : (
+          <p className="text-gray-500 text-center py-8">No past events</p>
+        )}
+      </div>
     </div>
   );
 };
