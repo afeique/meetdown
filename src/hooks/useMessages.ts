@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -39,11 +40,7 @@ export const useConversations = () => {
         .select(`
           *,
           conversation_participants!inner (
-            user_id,
-            profiles (
-              first_name,
-              last_name
-            )
+            user_id
           ),
           messages (
             id,
@@ -56,11 +53,35 @@ export const useConversations = () => {
 
       if (error) throw error;
 
-      return data?.map(conv => ({
-        ...conv,
-        participants: conv.conversation_participants.filter(p => p.user_id !== user.id),
-        latest_message: conv.messages?.[conv.messages.length - 1]
-      })) || [];
+      // Now fetch participant profiles separately
+      const conversationsWithParticipants = await Promise.all(
+        (data || []).map(async (conv) => {
+          const participantIds = conv.conversation_participants
+            .filter(p => p.user_id !== user.id)
+            .map(p => p.user_id);
+
+          const { data: profiles, error: profilesError } = await supabase
+            .from('profiles')
+            .select('id, first_name, last_name')
+            .in('id', participantIds);
+
+          if (profilesError) throw profilesError;
+
+          return {
+            ...conv,
+            participants: (profiles || []).map(profile => ({
+              user_id: profile.id,
+              profiles: {
+                first_name: profile.first_name,
+                last_name: profile.last_name
+              }
+            })),
+            latest_message: conv.messages?.[conv.messages.length - 1]
+          };
+        })
+      );
+
+      return conversationsWithParticipants;
     },
     enabled: !!user,
   });
