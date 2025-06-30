@@ -114,6 +114,65 @@ export const useMyEvents = () => {
     fetchMyEvents();
   }, [user, toast, dateTimePrefs]);
 
+  const parseEventDateTime = (dateStr: string, timeStr: string): Date | null => {
+    try {
+      // Handle different date formats
+      let eventDate: Date;
+      
+      // Check if it's in YYYY-MM-DD format
+      if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+        const [year, month, day] = dateStr.split('-').map(Number);
+        const [hours, minutes] = timeStr.split(':').map(Number);
+        eventDate = new Date(year, month - 1, day, hours, minutes);
+      } 
+      // Handle "Month Day" format (e.g., "June 15", "June 30")
+      else if (/^[A-Za-z]+ \d{1,2}$/.test(dateStr)) {
+        const currentYear = new Date().getFullYear();
+        const [hours, minutes] = timeStr.split(':').map(Number);
+        
+        // Parse the month name and day
+        const [monthName, dayStr] = dateStr.split(' ');
+        const day = parseInt(dayStr);
+        
+        // Convert month name to number
+        const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+                           'July', 'August', 'September', 'October', 'November', 'December'];
+        const month = monthNames.findIndex(m => m.toLowerCase() === monthName.toLowerCase());
+        
+        if (month === -1) {
+          console.warn('Invalid month name:', monthName);
+          return null;
+        }
+        
+        eventDate = new Date(currentYear, month, day, hours, minutes);
+      }
+      // Try parsing as a general date string
+      else {
+        const [hours, minutes] = timeStr.split(':').map(Number);
+        eventDate = new Date(dateStr);
+        
+        if (isNaN(eventDate.getTime())) {
+          console.warn('Could not parse date:', dateStr);
+          return null;
+        }
+        
+        // Set the time
+        eventDate.setHours(hours, minutes, 0, 0);
+      }
+      
+      // Validate the resulting date
+      if (isNaN(eventDate.getTime())) {
+        console.warn('Invalid date created:', dateStr, timeStr);
+        return null;
+      }
+      
+      return eventDate;
+    } catch (error) {
+      console.error('Error parsing date:', dateStr, timeStr, error);
+      return null;
+    }
+  };
+
   const separateEvents = (events: Event[]) => {
     const now = new Date();
     const pastEvents: Event[] = [];
@@ -128,80 +187,48 @@ export const useMyEvents = () => {
         return;
       }
 
-      try {
-        // Parse the date string properly - event.date should be in YYYY-MM-DD format
-        const [year, month, day] = event.date.split('-').map(Number);
-        const [hours, minutes] = event.time.split(':').map(Number);
-        
-        // Create date object with proper parsing
-        const eventDateTime = new Date(year, month - 1, day, hours, minutes); // month is 0-indexed
-        
-        // Check if the date is valid
-        if (isNaN(eventDateTime.getTime())) {
-          console.warn('Invalid date/time for event:', event.title, event.date, event.time);
-          // Add to upcoming if invalid date/time to be safe
-          upcomingEvents.push(event);
-          return;
-        }
-        
-        console.log('Event:', event.title, 'Date:', event.date, 'Time:', event.time, 'Parsed DateTime:', eventDateTime, 'Now:', now, 'Is Past:', eventDateTime < now);
-        
-        if (eventDateTime < now) {
-          pastEvents.push(event);
-        } else {
-          upcomingEvents.push(event);
-        }
-      } catch (error) {
-        console.error('Error parsing date for event:', event.title, error);
-        // Add to upcoming if error occurs to be safe
+      const eventDateTime = parseEventDateTime(event.date, event.time);
+      
+      if (!eventDateTime) {
+        console.warn('Could not parse event date/time:', event.title, event.date, event.time);
+        // Add to upcoming if we can't parse the date to be safe
+        upcomingEvents.push(event);
+        return;
+      }
+      
+      console.log('Event:', event.title, 'Date:', event.date, 'Time:', event.time, 'Parsed DateTime:', eventDateTime, 'Now:', now, 'Is Past:', eventDateTime < now);
+      
+      if (eventDateTime < now) {
+        pastEvents.push(event);
+      } else {
         upcomingEvents.push(event);
       }
     });
 
     // Sort upcoming events by date/time (soonest first)
     upcomingEvents.sort((a, b) => {
-      try {
-        const [yearA, monthA, dayA] = a.date.split('-').map(Number);
-        const [hoursA, minutesA] = a.time.split(':').map(Number);
-        const dateA = new Date(yearA, monthA - 1, dayA, hoursA, minutesA);
-        
-        const [yearB, monthB, dayB] = b.date.split('-').map(Number);
-        const [hoursB, minutesB] = b.time.split(':').map(Number);
-        const dateB = new Date(yearB, monthB - 1, dayB, hoursB, minutesB);
-        
-        // Handle invalid dates
-        if (isNaN(dateA.getTime()) && isNaN(dateB.getTime())) return 0;
-        if (isNaN(dateA.getTime())) return 1;
-        if (isNaN(dateB.getTime())) return -1;
-        
-        return dateA.getTime() - dateB.getTime();
-      } catch (error) {
-        console.error('Error sorting upcoming events:', error);
-        return 0;
-      }
+      const dateA = parseEventDateTime(a.date, a.time);
+      const dateB = parseEventDateTime(b.date, b.time);
+      
+      // Handle invalid dates
+      if (!dateA && !dateB) return 0;
+      if (!dateA) return 1;
+      if (!dateB) return -1;
+      
+      return dateA.getTime() - dateB.getTime();
     });
 
     // Sort past events by date/time (most recent first)
     pastEvents.sort((a, b) => {
-      try {
-        const [yearA, monthA, dayA] = a.date.split('-').map(Number);
-        const [hoursA, minutesA] = a.time.split(':').map(Number);
-        const dateA = new Date(yearA, monthA - 1, dayA, hoursA, minutesA);
-        
-        const [yearB, monthB, dayB] = b.date.split('-').map(Number);
-        const [hoursB, minutesB] = b.time.split(':').map(Number);
-        const dateB = new Date(yearB, monthB - 1, dayB, hoursB, minutesB);
-        
-        // Handle invalid dates
-        if (isNaN(dateA.getTime()) && isNaN(dateB.getTime())) return 0;
-        if (isNaN(dateA.getTime())) return 1;
-        if (isNaN(dateB.getTime())) return -1;
-        
-        return dateB.getTime() - dateA.getTime();
-      } catch (error) {
-        console.error('Error sorting past events:', error);
-        return 0;
-      }
+      const dateA = parseEventDateTime(a.date, a.time);
+      const dateB = parseEventDateTime(b.date, b.time);
+      
+      // Handle invalid dates
+      if (!dateA && !dateB) return 0;
+      if (!dateA) return 1;
+      if (!dateB) return -1;
+      
+      return dateB.getTime() - dateA.getTime();
     });
 
     console.log('Separated events:', { pastEvents: pastEvents.length, upcomingEvents: upcomingEvents.length });
