@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -158,6 +159,53 @@ const MyEvents = () => {
     fetchMyEvents();
   }, [user, toast, dateTimePrefs]);
 
+  // Sort events by proximity to current date/time
+  const sortEventsByProximity = (events: Event[]) => {
+    const now = new Date();
+    return [...events].sort((a, b) => {
+      const dateA = new Date(`${a.date}T${a.time}`);
+      const dateB = new Date(`${b.date}T${b.time}`);
+      
+      // Calculate absolute difference from now
+      const diffA = Math.abs(dateA.getTime() - now.getTime());
+      const diffB = Math.abs(dateB.getTime() - now.getTime());
+      
+      return diffA - diffB;
+    });
+  };
+
+  // Separate past and upcoming events
+  const separateEvents = (events: Event[]) => {
+    const now = new Date();
+    const pastEvents: Event[] = [];
+    const upcomingEvents: Event[] = [];
+
+    events.forEach(event => {
+      const eventDateTime = new Date(`${event.date}T${event.time}`);
+      if (eventDateTime < now) {
+        pastEvents.push(event);
+      } else {
+        upcomingEvents.push(event);
+      }
+    });
+
+    // Sort upcoming events by proximity (closest first)
+    upcomingEvents.sort((a, b) => {
+      const dateA = new Date(`${a.date}T${a.time}`);
+      const dateB = new Date(`${b.date}T${b.time}`);
+      return dateA.getTime() - dateB.getTime();
+    });
+
+    // Sort past events by recency (most recent first)
+    pastEvents.sort((a, b) => {
+      const dateA = new Date(`${a.date}T${b.time}`);
+      const dateB = new Date(`${b.date}T${b.time}`);
+      return dateB.getTime() - dateA.getTime();
+    });
+
+    return { pastEvents, upcomingEvents };
+  };
+
   const handleDeleteEvent = async (eventId: string) => {
     try {
       const { error } = await supabase
@@ -207,6 +255,8 @@ const MyEvents = () => {
       </div>
     );
   }
+
+  const { pastEvents, upcomingEvents } = separateEvents(events);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -302,34 +352,84 @@ const MyEvents = () => {
                 </CardContent>
               </Card>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {events.map((event) => (
-                  <div key={event.id} className="relative">
-                    <EventCard
-                      event={event}
-                      onJoin={handleJoinEvent}
-                      onLeave={handleLeaveEvent}
-                    />
-                    <div className="absolute top-2 right-2 z-10 flex gap-2">
-                      <Button
-                        variant="secondary"
-                        size="sm"
-                        onClick={() => handleEditEvent(event)}
-                        className="opacity-80 hover:opacity-100"
-                      >
-                        Edit
-                      </Button>
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => handleDeleteEvent(event.id)}
-                        className="opacity-80 hover:opacity-100"
-                      >
-                        Delete
-                      </Button>
+              <div className="space-y-8">
+                {/* Upcoming Events Section */}
+                {upcomingEvents.length > 0 && (
+                  <div>
+                    <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                      <Calendar className="h-5 w-5" />
+                      Upcoming Events ({upcomingEvents.length})
+                    </h2>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {upcomingEvents.map((event) => (
+                        <div key={event.id} className="relative">
+                          <EventCard
+                            event={event}
+                            onJoin={handleJoinEvent}
+                            onLeave={handleLeaveEvent}
+                          />
+                          <div className="absolute top-2 right-2 z-10 flex gap-2">
+                            <Button
+                              variant="secondary"
+                              size="sm"
+                              onClick={() => handleEditEvent(event)}
+                              className="opacity-80 hover:opacity-100"
+                            >
+                              Edit
+                            </Button>
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              onClick={() => handleDeleteEvent(event.id)}
+                              className="opacity-80 hover:opacity-100"
+                            >
+                              Delete
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   </div>
-                ))}
+                )}
+
+                {/* Past Events Section */}
+                {pastEvents.length > 0 && (
+                  <div>
+                    <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                      <Calendar className="h-5 w-5" />
+                      Past Events ({pastEvents.length})
+                    </h2>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {pastEvents.map((event) => (
+                        <div key={event.id} className="relative">
+                          <EventCard
+                            event={event}
+                            onJoin={handleJoinEvent}
+                            onLeave={handleLeaveEvent}
+                          />
+                          <div className="absolute top-2 right-2 z-10 flex gap-2">
+                            <Button
+                              variant="secondary"
+                              size="sm"
+                              onClick={() => handleEditEvent(event)}
+                              className="opacity-80 hover:opacity-100"
+                            >
+                              Edit
+                            </Button>
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              onClick={() => handleDeleteEvent(event.id)}
+                              className="opacity-80 hover:opacity-100"
+                            >
+                              Delete
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </>
