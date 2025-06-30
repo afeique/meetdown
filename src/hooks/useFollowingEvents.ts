@@ -23,6 +23,9 @@ export const useFollowingEvents = (
     try {
       console.log('Fetching events from users that current user follows...');
       
+      // Get current date to filter out past events
+      const today = new Date().toISOString().split('T')[0];
+      
       // First, get the list of users that the current user follows
       const { data: followingUsers, error: followingError } = await supabase
         .from('user_follows')
@@ -62,6 +65,7 @@ export const useFollowingEvents = (
           )
         `)
         .in('creator_id', followingIds)
+        .gte('date', today)
         .order('date', { ascending: true });
 
       if (error) {

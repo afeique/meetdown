@@ -19,6 +19,9 @@ export const usePersonalizedEvents = (
     try {
       console.log('Fetching personalized events based on user interests...');
       
+      // Get current date to filter out past events
+      const today = new Date().toISOString().split('T')[0];
+      
       // First, get user's interests
       const { data: userInterests, error: interestsError } = await supabase
         .from('user_interests')
@@ -70,6 +73,7 @@ export const usePersonalizedEvents = (
               user_id
             )
           `)
+          .gte('date', today)
           .order('date', { ascending: true });
 
         if (error) {
@@ -104,6 +108,7 @@ export const usePersonalizedEvents = (
           )
         `)
         .in('event_tags.tag_id', tagFilter)
+        .gte('date', today)
         .order('date', { ascending: true });
 
       if (error) {

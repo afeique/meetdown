@@ -17,6 +17,9 @@ export const useEvents = (
     try {
       console.log('Fetching all events from database...');
       
+      // Get current date to filter out past events
+      const today = new Date().toISOString().split('T')[0];
+      
       let query = supabase
         .from('events')
         .select(`
@@ -31,6 +34,7 @@ export const useEvents = (
             user_id
           )
         `)
+        .gte('date', today)
         .order('date', { ascending: true });
 
       // If specific tags are selected, filter by those tags
@@ -60,6 +64,7 @@ export const useEvents = (
               )
             `)
             .in('event_tags.tag_id', tagIds)
+            .gte('date', today)
             .order('date', { ascending: true });
         }
       }
