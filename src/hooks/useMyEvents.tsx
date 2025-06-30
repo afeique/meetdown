@@ -129,8 +129,12 @@ export const useMyEvents = () => {
       }
 
       try {
-        // Create a proper datetime object for comparison
-        const eventDateTime = new Date(`${event.date}T${event.time}`);
+        // Parse the date string properly - event.date should be in YYYY-MM-DD format
+        const [year, month, day] = event.date.split('-').map(Number);
+        const [hours, minutes] = event.time.split(':').map(Number);
+        
+        // Create date object with proper parsing
+        const eventDateTime = new Date(year, month - 1, day, hours, minutes); // month is 0-indexed
         
         // Check if the date is valid
         if (isNaN(eventDateTime.getTime())) {
@@ -140,7 +144,7 @@ export const useMyEvents = () => {
           return;
         }
         
-        console.log('Event:', event.title, 'DateTime:', eventDateTime, 'Now:', now, 'Is Past:', eventDateTime < now);
+        console.log('Event:', event.title, 'Date:', event.date, 'Time:', event.time, 'Parsed DateTime:', eventDateTime, 'Now:', now, 'Is Past:', eventDateTime < now);
         
         if (eventDateTime < now) {
           pastEvents.push(event);
@@ -157,8 +161,13 @@ export const useMyEvents = () => {
     // Sort upcoming events by date/time (soonest first)
     upcomingEvents.sort((a, b) => {
       try {
-        const dateA = new Date(`${a.date}T${a.time}`);
-        const dateB = new Date(`${b.date}T${b.time}`);
+        const [yearA, monthA, dayA] = a.date.split('-').map(Number);
+        const [hoursA, minutesA] = a.time.split(':').map(Number);
+        const dateA = new Date(yearA, monthA - 1, dayA, hoursA, minutesA);
+        
+        const [yearB, monthB, dayB] = b.date.split('-').map(Number);
+        const [hoursB, minutesB] = b.time.split(':').map(Number);
+        const dateB = new Date(yearB, monthB - 1, dayB, hoursB, minutesB);
         
         // Handle invalid dates
         if (isNaN(dateA.getTime()) && isNaN(dateB.getTime())) return 0;
@@ -175,8 +184,13 @@ export const useMyEvents = () => {
     // Sort past events by date/time (most recent first)
     pastEvents.sort((a, b) => {
       try {
-        const dateA = new Date(`${a.date}T${a.time}`);
-        const dateB = new Date(`${b.date}T${b.time}`);
+        const [yearA, monthA, dayA] = a.date.split('-').map(Number);
+        const [hoursA, minutesA] = a.time.split(':').map(Number);
+        const dateA = new Date(yearA, monthA - 1, dayA, hoursA, minutesA);
+        
+        const [yearB, monthB, dayB] = b.date.split('-').map(Number);
+        const [hoursB, minutesB] = b.time.split(':').map(Number);
+        const dateB = new Date(yearB, monthB - 1, dayB, hoursB, minutesB);
         
         // Handle invalid dates
         if (isNaN(dateA.getTime()) && isNaN(dateB.getTime())) return 0;
