@@ -41,7 +41,7 @@ export const useConversations = () => {
           *,
           conversation_participants!inner (
             user_id,
-            profiles!conversation_participants_user_id_fkey (
+            profiles!inner (
               first_name,
               last_name
             )
