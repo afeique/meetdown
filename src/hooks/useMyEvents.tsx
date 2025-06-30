@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -121,7 +120,11 @@ export const useMyEvents = () => {
     const upcomingEvents: Event[] = [];
 
     events.forEach(event => {
+      // Create a proper datetime object for comparison
       const eventDateTime = new Date(`${event.date}T${event.time}`);
+      
+      console.log('Event:', event.title, 'DateTime:', eventDateTime, 'Now:', now, 'Is Past:', eventDateTime < now);
+      
       if (eventDateTime < now) {
         pastEvents.push(event);
       } else {
@@ -129,17 +132,21 @@ export const useMyEvents = () => {
       }
     });
 
+    // Sort upcoming events by date/time (soonest first)
     upcomingEvents.sort((a, b) => {
       const dateA = new Date(`${a.date}T${a.time}`);
       const dateB = new Date(`${b.date}T${b.time}`);
       return dateA.getTime() - dateB.getTime();
     });
 
+    // Sort past events by date/time (most recent first)
     pastEvents.sort((a, b) => {
       const dateA = new Date(`${a.date}T${a.time}`);
       const dateB = new Date(`${b.date}T${b.time}`);
       return dateB.getTime() - dateA.getTime();
     });
+
+    console.log('Separated events:', { pastEvents: pastEvents.length, upcomingEvents: upcomingEvents.length });
 
     return { pastEvents, upcomingEvents };
   };
