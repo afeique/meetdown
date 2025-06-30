@@ -1,5 +1,4 @@
 
-
 import { Calendar, MapPin, Users, Tag, Clock } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -41,8 +40,17 @@ const EventCard = ({ event, onJoin, onLeave }: EventCardProps) => {
 
   const isEventFull = (event.attendees || 0) >= event.max_attendees;
 
+  // Check if event is in the past
+  const isPastEvent = () => {
+    const eventDate = new Date(`${event.date}T${event.time}`);
+    const now = new Date();
+    return eventDate < now;
+  };
+
+  const eventIsPast = isPastEvent();
+
   return (
-    <Card className="hover:shadow-lg transition-shadow overflow-hidden">
+    <Card className={`hover:shadow-lg transition-shadow overflow-hidden ${eventIsPast ? 'opacity-60 grayscale' : ''}`}>
       {/* Banner Image */}
       {event.banner_url && (
         <div className="w-full h-48 overflow-hidden bg-gray-100">
@@ -63,16 +71,27 @@ const EventCard = ({ event, onJoin, onLeave }: EventCardProps) => {
         <CardTitle className="text-lg font-semibold text-gray-800">
           {event.title}
         </CardTitle>
-        {/* FREE badge centered under the title */}
-        {event.cover_charge === 0 && (
+        
+        {/* DONE badge for past events - centered under the title */}
+        {eventIsPast && (
+          <div className="flex justify-center">
+            <div className="text-xs font-semibold text-white px-2.5 py-0.5 rounded-full bg-gray-500 w-fit">
+              DONE
+            </div>
+          </div>
+        )}
+        
+        {/* FREE badge centered under the title (only for non-past events) */}
+        {!eventIsPast && event.cover_charge === 0 && (
           <div className="flex justify-center">
             <div className="text-xs font-semibold text-white px-2.5 py-0.5 rounded-full bg-gradient-to-r from-purple-600 to-blue-600 w-fit">
               FREE
             </div>
           </div>
         )}
-        {/* Cover charge display centered under the title */}
-        {(event.cover_charge !== undefined && event.cover_charge > 0) && (
+        
+        {/* Cover charge display centered under the title (only for non-past events) */}
+        {!eventIsPast && (event.cover_charge !== undefined && event.cover_charge > 0) && (
           <div className="flex justify-center">
             <Badge variant="secondary" className="text-xs bg-green-100 text-green-800 w-fit">
               ${event.cover_charge}
@@ -137,13 +156,15 @@ const EventCard = ({ event, onJoin, onLeave }: EventCardProps) => {
               : 'bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700'
           }`}
           onClick={handleButtonClick}
-          disabled={!event.is_registered && isEventFull}
+          disabled={!event.is_registered && (isEventFull || eventIsPast)}
         >
-          {event.is_registered 
-            ? 'Leave Event' 
-            : isEventFull 
-              ? 'Event Full' 
-              : 'Join Event'
+          {eventIsPast 
+            ? 'Event Completed'
+            : event.is_registered 
+              ? 'Leave Event' 
+              : isEventFull 
+                ? 'Event Full' 
+                : 'Join Event'
           }
         </Button>
       </CardContent>
@@ -152,4 +173,3 @@ const EventCard = ({ event, onJoin, onLeave }: EventCardProps) => {
 };
 
 export default EventCard;
-
