@@ -116,21 +116,16 @@ export const useMyEvents = () => {
 
   const parseEventDateTime = (dateStr: string, timeStr: string): Date | null => {
     try {
-      // Handle different date formats
+      const currentYear = new Date().getFullYear();
       let eventDate: Date;
       
-      // Check if it's in YYYY-MM-DD format
+      // Handle different date formats
       if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+        // YYYY-MM-DD format
         const [year, month, day] = dateStr.split('-').map(Number);
-        const [hours, minutes] = timeStr.split(':').map(Number);
-        eventDate = new Date(year, month - 1, day, hours, minutes);
-      } 
-      // Handle "Month Day" format (e.g., "June 15", "June 30")
-      else if (/^[A-Za-z]+ \d{1,2}$/.test(dateStr)) {
-        const currentYear = new Date().getFullYear();
-        const [hours, minutes] = timeStr.split(':').map(Number);
-        
-        // Parse the month name and day
+        eventDate = new Date(year, month - 1, day);
+      } else if (/^[A-Za-z]+ \d{1,2}$/.test(dateStr)) {
+        // "Month Day" format (e.g., "June 15", "June 30")
         const [monthName, dayStr] = dateStr.split(' ');
         const day = parseInt(dayStr);
         
@@ -144,20 +139,41 @@ export const useMyEvents = () => {
           return null;
         }
         
-        eventDate = new Date(currentYear, month, day, hours, minutes);
-      }
-      // Try parsing as a general date string
-      else {
-        const [hours, minutes] = timeStr.split(':').map(Number);
+        eventDate = new Date(currentYear, month, day);
+      } else {
+        // Try parsing as a general date string
         eventDate = new Date(dateStr);
         
         if (isNaN(eventDate.getTime())) {
           console.warn('Could not parse date:', dateStr);
           return null;
         }
-        
-        // Set the time
-        eventDate.setHours(hours, minutes, 0, 0);
+      }
+      
+      // Parse and set the time
+      if (timeStr) {
+        // Handle time formats like "5:45 PM EDT" or "10:00 AM EST"
+        const timeMatch = timeStr.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)?/i);
+        if (timeMatch) {
+          let hours = parseInt(timeMatch[1]);
+          const minutes = parseInt(timeMatch[2]);
+          const isPM = timeMatch[3] && timeMatch[3].toUpperCase() === 'PM';
+          
+          // Convert to 24-hour format
+          if (isPM && hours !== 12) {
+            hours += 12;
+          } else if (!isPM && hours === 12) {
+            hours = 0;
+          }
+          
+          eventDate.setHours(hours, minutes, 0, 0);
+        } else {
+          // If time parsing fails, default to noon
+          eventDate.setHours(12, 0, 0, 0);
+        }
+      } else {
+        // Default to noon if no time provided
+        eventDate.setHours(12, 0, 0, 0);
       }
       
       // Validate the resulting date
@@ -177,6 +193,8 @@ export const useMyEvents = () => {
     const now = new Date();
     const pastEvents: Event[] = [];
     const upcomingEvents: Event[] = [];
+
+    console.log('Current time:', now);
 
     events.forEach(event => {
       // Validate date and time before creating Date object
