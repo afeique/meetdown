@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -63,10 +64,15 @@ export const useMyEvents = () => {
       if (!user) return;
 
       try {
+        // Get today's date in YYYY-MM-DD format
+        const today = new Date();
+        const todayStr = today.toISOString().split('T')[0];
+
         const { data: eventsData, error: eventsError } = await supabase
           .from('events')
           .select('*')
           .eq('creator_id', user.id)
+          .gte('date', todayStr)  // Only get events from today onwards
           .order('date', { ascending: true });
 
         if (eventsError) throw eventsError;
@@ -98,7 +104,13 @@ export const useMyEvents = () => {
           })
         );
 
-        setEvents(eventsWithAttendees);
+        // Filter out events that are actually in the past (considering time)
+        const upcomingEvents = eventsWithAttendees.filter(event => {
+          const eventDateTime = parseEventDateTime(event.date, event.time);
+          return eventDateTime && eventDateTime > new Date();
+        });
+
+        setEvents(upcomingEvents);
       } catch (error: any) {
         console.error('Error fetching events:', error);
         toast({
@@ -189,71 +201,6 @@ export const useMyEvents = () => {
     }
   };
 
-  const separateEvents = (events: Event[]) => {
-    const now = new Date();
-    const pastEvents: Event[] = [];
-    const upcomingEvents: Event[] = [];
-
-    console.log('Current time:', now);
-
-    events.forEach(event => {
-      // Validate date and time before creating Date object
-      if (!event.date || !event.time) {
-        console.warn('Event missing date or time:', event.title, event.date, event.time);
-        // Add to upcoming if missing date/time to be safe
-        upcomingEvents.push(event);
-        return;
-      }
-
-      const eventDateTime = parseEventDateTime(event.date, event.time);
-      
-      if (!eventDateTime) {
-        console.warn('Could not parse event date/time:', event.title, event.date, event.time);
-        // Add to upcoming if we can't parse the date to be safe
-        upcomingEvents.push(event);
-        return;
-      }
-      
-      console.log('Event:', event.title, 'Date:', event.date, 'Time:', event.time, 'Parsed DateTime:', eventDateTime, 'Now:', now, 'Is Past:', eventDateTime < now);
-      
-      if (eventDateTime < now) {
-        pastEvents.push(event);
-      } else {
-        upcomingEvents.push(event);
-      }
-    });
-
-    // Sort upcoming events by date/time (soonest first)
-    upcomingEvents.sort((a, b) => {
-      const dateA = parseEventDateTime(a.date, a.time);
-      const dateB = parseEventDateTime(b.date, b.time);
-      
-      // Handle invalid dates
-      if (!dateA && !dateB) return 0;
-      if (!dateA) return 1;
-      if (!dateB) return -1;
-      
-      return dateA.getTime() - dateB.getTime();
-    });
-
-    // Sort past events by date/time (most recent first)
-    pastEvents.sort((a, b) => {
-      const dateA = parseEventDateTime(a.date, a.time);
-      const dateB = parseEventDateTime(b.date, b.time);
-      
-      // Handle invalid dates
-      if (!dateA && !dateB) return 0;
-      if (!dateA) return 1;
-      if (!dateB) return -1;
-      
-      return dateB.getTime() - dateA.getTime();
-    });
-
-    console.log('Separated events:', { pastEvents: pastEvents.length, upcomingEvents: upcomingEvents.length });
-
-    return { pastEvents, upcomingEvents };
-  };
-
   const handleDeleteEvent = async (eventId: string) => {
     try {
       const { error } = await supabase
@@ -297,7 +244,6 @@ export const useMyEvents = () => {
     setEvents,
     loading,
     editingEvent,
-    separateEvents,
     handleDeleteEvent,
     handleEditEvent,
     handleEventUpdated,

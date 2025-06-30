@@ -2,22 +2,32 @@
 import MyEventsHeader from '@/components/MyEventsHeader';
 import MyEventsCreateForm from '@/components/MyEventsCreateForm';
 import MyEventsEmptyState from '@/components/MyEventsEmptyState';
-import MyEventsContent from '@/components/MyEventsContent';
 import EventEditForm from '@/components/EventEditForm';
 import { useMyEvents } from '@/hooks/useMyEvents';
+import { Calendar } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import EventCard from '@/components/EventCard';
+import { useEventRegistration } from '@/hooks/useEventRegistration';
+import { useAuth } from '@/contexts/AuthContext';
 
 const MyEvents = () => {
+  const { user } = useAuth();
   const {
     events,
     setEvents,
     loading,
     editingEvent,
-    separateEvents,
     handleDeleteEvent,
     handleEditEvent,
     handleEventUpdated,
     handleCancelEdit
   } = useMyEvents();
+
+  const { handleJoinEvent, handleLeaveEvent } = useEventRegistration(
+    events, 
+    setEvents, 
+    user?.id
+  );
 
   if (loading) {
     return (
@@ -29,8 +39,6 @@ const MyEvents = () => {
       </div>
     );
   }
-
-  const { pastEvents, upcomingEvents } = separateEvents(events);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -54,14 +62,43 @@ const MyEvents = () => {
             {events.length === 0 ? (
               <MyEventsEmptyState />
             ) : (
-              <MyEventsContent
-                events={events}
-                setEvents={setEvents}
-                pastEvents={pastEvents}
-                upcomingEvents={upcomingEvents}
-                onEdit={handleEditEvent}
-                onDelete={handleDeleteEvent}
-              />
+              <div className="space-y-8">
+                <div>
+                  <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                    <Calendar className="h-5 w-5" />
+                    My Upcoming Events ({events.length})
+                  </h2>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {events.map((event) => (
+                      <div key={event.id} className="relative">
+                        <EventCard
+                          event={event}
+                          onJoin={handleJoinEvent}
+                          onLeave={handleLeaveEvent}
+                        />
+                        <div className="absolute top-2 right-2 z-10 flex gap-2">
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                            onClick={() => handleEditEvent(event)}
+                            className="opacity-80 hover:opacity-100"
+                          >
+                            Edit
+                          </Button>
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => handleDeleteEvent(event.id)}
+                            className="opacity-80 hover:opacity-100"
+                          >
+                            Delete
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
             )}
           </>
         )}
