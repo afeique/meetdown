@@ -89,14 +89,18 @@ export const useMessages = (conversationId: string | null) => {
 export const useSendMessage = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { user } = useAuth();
 
   return useMutation({
     mutationFn: async ({ conversationId, content }: { conversationId: string; content: string }) => {
+      if (!user) throw new Error('User not authenticated');
+
       const { data, error } = await supabase
         .from('messages')
         .insert({
           conversation_id: conversationId,
           content,
+          sender_id: user.id,
         })
         .select()
         .single();
