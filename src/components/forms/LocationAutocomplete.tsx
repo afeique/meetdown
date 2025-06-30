@@ -16,16 +16,20 @@ const LocationAutocomplete = ({ location, onLocationChange, required = false }: 
   const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
   const [apiError, setApiError] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const initializeAutocomplete = async () => {
       try {
+        setIsLoading(true);
+        
         // Call edge function to get API key directly - no session check needed
         const { data: apiKeyData, error: apiKeyError } = await supabase.functions.invoke('get-google-maps-key');
         
         if (apiKeyError || !apiKeyData?.apiKey) {
           console.log('Could not retrieve Google Maps API key, using fallback input');
           setApiError(true);
+          setIsLoading(false);
           return;
         }
 
@@ -35,7 +39,15 @@ const LocationAutocomplete = ({ location, onLocationChange, required = false }: 
           libraries: ['places']
         });
 
+        // Add timeout to prevent hanging
+        const timeoutId = setTimeout(() => {
+          console.log('Google Maps API loading timeout, falling back to manual input');
+          setApiError(true);
+          setIsLoading(false);
+        }, 10000); // 10 second timeout
+
         await loader.load();
+        clearTimeout(timeoutId);
         
         if (inputRef.current && window.google) {
           autocompleteRef.current = new window.google.maps.places.Autocomplete(
@@ -55,9 +67,11 @@ const LocationAutocomplete = ({ location, onLocationChange, required = false }: 
         }
         
         setIsLoaded(true);
+        setIsLoading(false);
       } catch (error) {
         console.error('Error loading Google Maps:', error);
         setApiError(true);
+        setIsLoading(false);
       }
     };
 
@@ -99,12 +113,13 @@ const LocationAutocomplete = ({ location, onLocationChange, required = false }: 
       </label>
       <Input
         ref={inputRef}
-        placeholder="Start typing to search for locations..."
+        placeholder={isLoading ? "Loading location search..." : "Start typing to search for locations..."}
         value={location}
         onChange={(e) => onLocationChange(e.target.value)}
         required={required}
+        disabled={isLoading}
       />
-      {!isLoaded && (
+      {isLoading && (
         <p className="text-xs text-gray-500">Loading location suggestions...</p>
       )}
     </div>
