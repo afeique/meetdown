@@ -48,5 +48,5 @@ export const loadGoogleMaps = async (): Promise<void> => {
 };
 
 export const isGoogleMapsAvailable = (): boolean => {
-  return isGoogleMapsLoaded && typeof window.google !== 'undefined' && window.google.maps;
+  return isGoogleMapsLoaded && typeof window.google !== 'undefined' && !!window.google.maps;
 };
