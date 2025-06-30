@@ -1,4 +1,3 @@
-
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from '@/components/ui/toaster';
@@ -12,6 +11,7 @@ import MyEvents from '@/pages/MyEvents';
 import Going from '@/pages/Going';
 import Verify from '@/pages/Verify';
 import Followers from '@/pages/Followers';
+import Messages from '@/pages/Messages';
 import NotFound from '@/pages/NotFound';
 import TermsOfService from '@/pages/TermsOfService';
 import PrivacyPolicy from '@/pages/PrivacyPolicy';
@@ -49,6 +49,11 @@ function App() {
                 <Route path="/going" element={
                   <ProtectedRoute>
                     <Going />
+                  </ProtectedRoute>
+                } />
+                <Route path="/messages" element={
+                  <ProtectedRoute>
+                    <Messages />
                   </ProtectedRoute>
                 } />
                 <Route path="/followers" element={
