@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -196,9 +195,9 @@ const MyEvents = () => {
       return dateA.getTime() - dateB.getTime();
     });
 
-    // Sort past events by recency (most recent first)
+    // Sort past events by recency (most recent first) - FIXED THE BUG HERE
     pastEvents.sort((a, b) => {
-      const dateA = new Date(`${a.date}T${b.time}`);
+      const dateA = new Date(`${a.date}T${a.time}`);
       const dateB = new Date(`${b.date}T${b.time}`);
       return dateB.getTime() - dateA.getTime();
     });
