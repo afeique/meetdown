@@ -1,9 +1,9 @@
-
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { MapPin, Search, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { loadGoogleMaps, isGoogleMapsAvailable } from '@/services/googleMapsService';
 
 interface LocationResult {
   display_name: string;
@@ -18,9 +18,69 @@ interface LocationBarProps {
 const LocationBar = ({ onLocationChange }: LocationBarProps) => {
   const [location, setLocation] = useState('');
   const [isSearching, setIsSearching] = useState(false);
+  const [isInitializing, setIsInitializing] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
   const { toast } = useToast();
 
-  const searchLocation = async (query: string): Promise<LocationResult[]> => {
+  useEffect(() => {
+    const initializeAutocomplete = async () => {
+      if (!inputRef.current) return;
+
+      setIsInitializing(true);
+      
+      try {
+        await loadGoogleMaps();
+        
+        if (isGoogleMapsAvailable() && inputRef.current && !autocompleteRef.current) {
+          autocompleteRef.current = new window.google.maps.places.Autocomplete(
+            inputRef.current,
+            {
+              types: ['(cities)'],
+              fields: ['place_id', 'formatted_address', 'geometry']
+            }
+          );
+
+          autocompleteRef.current.addListener('place_changed', () => {
+            const place = autocompleteRef.current?.getPlace();
+            if (place && place.formatted_address && place.geometry?.location) {
+              const newLocation = {
+                lat: place.geometry.location.lat(),
+                lng: place.geometry.location.lng(),
+                address: place.formatted_address
+              };
+
+              setLocation(place.formatted_address);
+              
+              if (onLocationChange) {
+                onLocationChange(newLocation);
+              }
+
+              toast({
+                title: "Location updated",
+                description: `Searching near: ${place.formatted_address}`,
+              });
+            }
+          });
+        }
+      } catch (error) {
+        console.error('Failed to initialize Google Places Autocomplete:', error);
+      } finally {
+        setIsInitializing(false);
+      }
+    };
+
+    initializeAutocomplete();
+
+    return () => {
+      if (autocompleteRef.current) {
+        window.google?.maps?.event?.clearInstanceListeners(autocompleteRef.current);
+        autocompleteRef.current = null;
+      }
+    };
+  }, [onLocationChange, toast]);
+
+  const searchLocation = async (query: string) => {
     const response = await fetch(
       `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5`
     );
@@ -34,7 +94,6 @@ const LocationBar = ({ onLocationChange }: LocationBarProps) => {
 
   const reverseGeocode = async (lat: number, lng: number): Promise<string> => {
     try {
-      // Try the primary reverse geocoding service
       const response = await fetch(
         `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`,
         {
@@ -52,7 +111,6 @@ const LocationBar = ({ onLocationChange }: LocationBarProps) => {
       console.log('Primary reverse geocoding failed, using coordinates');
     }
     
-    // Fallback to coordinates if reverse geocoding fails
     return `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
   };
 
@@ -129,7 +187,6 @@ const LocationBar = ({ onLocationChange }: LocationBarProps) => {
         try {
           const { latitude, longitude } = position.coords;
           
-          // Use our improved reverse geocoding function
           const address = await reverseGeocode(latitude, longitude);
           
           const newLocation = {
@@ -154,7 +211,6 @@ const LocationBar = ({ onLocationChange }: LocationBarProps) => {
         } catch (error) {
           console.error('Error processing current location:', error);
           
-          // Even if reverse geocoding fails, we can still use the coordinates
           const fallbackLocation = {
             lat: position.coords.latitude,
             lng: position.coords.longitude,
@@ -206,6 +262,8 @@ const LocationBar = ({ onLocationChange }: LocationBarProps) => {
     );
   };
 
+  const isLoading = isSearching || isInitializing;
+
   return (
     <div className="bg-white shadow-sm border-b border-gray-200">
       <div className="container mx-auto px-6 py-4">
@@ -216,22 +274,23 @@ const LocationBar = ({ onLocationChange }: LocationBarProps) => {
           </div>
           <div className="flex-1 flex gap-2">
             <Input
+              ref={inputRef}
               type="text"
-              placeholder="Enter address, zip code, or city..."
+              placeholder={isInitializing ? "Loading location search..." : "Enter address, zip code, or city..."}
               value={location}
               onChange={(e) => setLocation(e.target.value)}
               className="flex-1"
-              disabled={isSearching}
+              disabled={isLoading}
             />
             <Button 
               type="button"
               variant="outline"
               size="sm"
               onClick={handleCurrentLocation}
-              disabled={isSearching}
+              disabled={isLoading}
               className="whitespace-nowrap"
             >
-              {isSearching ? (
+              {isLoading ? (
                 <Loader2 size={16} className="animate-spin" />
               ) : (
                 <MapPin size={16} />
@@ -242,9 +301,9 @@ const LocationBar = ({ onLocationChange }: LocationBarProps) => {
               type="submit" 
               size="sm" 
               className="bg-blue-600 hover:bg-blue-700"
-              disabled={isSearching}
+              disabled={isLoading}
             >
-              {isSearching ? (
+              {isLoading ? (
                 <Loader2 size={16} className="animate-spin mr-1" />
               ) : (
                 <Search size={16} className="mr-1" />
