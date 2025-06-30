@@ -120,30 +120,74 @@ export const useMyEvents = () => {
     const upcomingEvents: Event[] = [];
 
     events.forEach(event => {
-      // Create a proper datetime object for comparison
-      const eventDateTime = new Date(`${event.date}T${event.time}`);
-      
-      console.log('Event:', event.title, 'DateTime:', eventDateTime, 'Now:', now, 'Is Past:', eventDateTime < now);
-      
-      if (eventDateTime < now) {
-        pastEvents.push(event);
-      } else {
+      // Validate date and time before creating Date object
+      if (!event.date || !event.time) {
+        console.warn('Event missing date or time:', event.title, event.date, event.time);
+        // Add to upcoming if missing date/time to be safe
+        upcomingEvents.push(event);
+        return;
+      }
+
+      try {
+        // Create a proper datetime object for comparison
+        const eventDateTime = new Date(`${event.date}T${event.time}`);
+        
+        // Check if the date is valid
+        if (isNaN(eventDateTime.getTime())) {
+          console.warn('Invalid date/time for event:', event.title, event.date, event.time);
+          // Add to upcoming if invalid date/time to be safe
+          upcomingEvents.push(event);
+          return;
+        }
+        
+        console.log('Event:', event.title, 'DateTime:', eventDateTime, 'Now:', now, 'Is Past:', eventDateTime < now);
+        
+        if (eventDateTime < now) {
+          pastEvents.push(event);
+        } else {
+          upcomingEvents.push(event);
+        }
+      } catch (error) {
+        console.error('Error parsing date for event:', event.title, error);
+        // Add to upcoming if error occurs to be safe
         upcomingEvents.push(event);
       }
     });
 
     // Sort upcoming events by date/time (soonest first)
     upcomingEvents.sort((a, b) => {
-      const dateA = new Date(`${a.date}T${a.time}`);
-      const dateB = new Date(`${b.date}T${b.time}`);
-      return dateA.getTime() - dateB.getTime();
+      try {
+        const dateA = new Date(`${a.date}T${a.time}`);
+        const dateB = new Date(`${b.date}T${b.time}`);
+        
+        // Handle invalid dates
+        if (isNaN(dateA.getTime()) && isNaN(dateB.getTime())) return 0;
+        if (isNaN(dateA.getTime())) return 1;
+        if (isNaN(dateB.getTime())) return -1;
+        
+        return dateA.getTime() - dateB.getTime();
+      } catch (error) {
+        console.error('Error sorting upcoming events:', error);
+        return 0;
+      }
     });
 
     // Sort past events by date/time (most recent first)
     pastEvents.sort((a, b) => {
-      const dateA = new Date(`${a.date}T${a.time}`);
-      const dateB = new Date(`${b.date}T${b.time}`);
-      return dateB.getTime() - dateA.getTime();
+      try {
+        const dateA = new Date(`${a.date}T${a.time}`);
+        const dateB = new Date(`${b.date}T${b.time}`);
+        
+        // Handle invalid dates
+        if (isNaN(dateA.getTime()) && isNaN(dateB.getTime())) return 0;
+        if (isNaN(dateA.getTime())) return 1;
+        if (isNaN(dateB.getTime())) return -1;
+        
+        return dateB.getTime() - dateA.getTime();
+      } catch (error) {
+        console.error('Error sorting past events:', error);
+        return 0;
+      }
     });
 
     console.log('Separated events:', { pastEvents: pastEvents.length, upcomingEvents: upcomingEvents.length });
