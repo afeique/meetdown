@@ -17,7 +17,7 @@ interface LocationBarProps {
 
 const LocationBar = ({ onLocationChange }: LocationBarProps) => {
   const [location, setLocation] = useState('');
-  const [suggestions, setSuggestions] = useState<google.maps.places.AutocompletePrediction[]>([]);
+  const [suggestions, setSuggestions] = useState<any[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
   const [isInitializing, setIsInitializing] = useState(false);
@@ -55,10 +55,13 @@ const LocationBar = ({ onLocationChange }: LocationBarProps) => {
 
   // Debounced search for suggestions
   useEffect(() => {
+    console.log('Location changed:', location);
     const timeoutId = setTimeout(async () => {
       if (location.trim().length > 2) {
+        console.log('Searching for suggestions with:', location);
         try {
           const predictions = await getPlaceSuggestions(location);
+          console.log('Got predictions:', predictions);
           setSuggestions(predictions);
           setShowSuggestions(predictions.length > 0);
         } catch (error) {
@@ -67,6 +70,7 @@ const LocationBar = ({ onLocationChange }: LocationBarProps) => {
           setShowSuggestions(false);
         }
       } else {
+        console.log('Input too short, clearing suggestions');
         setSuggestions([]);
         setShowSuggestions(false);
       }
@@ -75,13 +79,13 @@ const LocationBar = ({ onLocationChange }: LocationBarProps) => {
     return () => clearTimeout(timeoutId);
   }, [location]);
 
-  const handleSuggestionClick = async (prediction: google.maps.places.AutocompletePrediction) => {
+  const handleSuggestionClick = async (prediction: any) => {
     setLocation(prediction.description);
     setShowSuggestions(false);
     setIsSearching(true);
 
     try {
-      const placeDetails = await getPlaceDetails(prediction.place_id);
+      const placeDetails = await getPlaceDetails(prediction.place_id, prediction.geometry ? prediction : null);
       
       if (placeDetails && onLocationChange) {
         onLocationChange({
