@@ -3,7 +3,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { MapPin, Search, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { loadGoogleMaps, isGoogleMapsAvailable } from '@/services/googleMapsService';
+import { loadGoogleMaps, isGoogleMapsAvailable, geocodeAddress, reverseGeocode } from '@/services/googleMapsService';
 
 interface LocationResult {
   display_name: string;
@@ -81,6 +81,17 @@ const LocationBar = ({ onLocationChange }: LocationBarProps) => {
   }, [onLocationChange, toast]);
 
   const searchLocation = async (query: string) => {
+    // Try Google Maps Geocoding first
+    const googleResult = await geocodeAddress(query);
+    if (googleResult) {
+      return [{
+        lat: googleResult.lat.toString(),
+        lon: googleResult.lng.toString(),
+        display_name: googleResult.formattedAddress
+      }];
+    }
+
+    // Fallback to Nominatim
     const response = await fetch(
       `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5`
     );
@@ -92,7 +103,14 @@ const LocationBar = ({ onLocationChange }: LocationBarProps) => {
     return response.json();
   };
 
-  const reverseGeocode = async (lat: number, lng: number): Promise<string> => {
+  const reverseGeocodeLocation = async (lat: number, lng: number): Promise<string> => {
+    // Try Google Maps reverse geocoding first
+    const googleResult = await reverseGeocode(lat, lng);
+    if (googleResult) {
+      return googleResult;
+    }
+
+    // Fallback to Nominatim
     try {
       const response = await fetch(
         `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`,
@@ -108,7 +126,7 @@ const LocationBar = ({ onLocationChange }: LocationBarProps) => {
         return data.display_name || `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
       }
     } catch (error) {
-      console.log('Primary reverse geocoding failed, using coordinates');
+      console.log('Reverse geocoding failed, using coordinates');
     }
     
     return `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
@@ -187,7 +205,7 @@ const LocationBar = ({ onLocationChange }: LocationBarProps) => {
         try {
           const { latitude, longitude } = position.coords;
           
-          const address = await reverseGeocode(latitude, longitude);
+          const address = await reverseGeocodeLocation(latitude, longitude);
           
           const newLocation = {
             lat: latitude,

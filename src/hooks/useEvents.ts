@@ -79,9 +79,19 @@ export const useEvents = (
       if (eventsData && eventsData.length > 0) {
         console.log('Successfully fetched events from database');
         
-        const transformedEvents = eventsData.map((event: any) => 
+        let transformedEvents = eventsData.map((event: any) => 
           transformEventData(event, userLocation, userId)
         );
+
+        // Sort by distance if user location is available
+        if (userLocation) {
+          transformedEvents = transformedEvents.sort((a, b) => {
+            const distanceA = a.distance ? parseFloat(a.distance) : Infinity;
+            const distanceB = b.distance ? parseFloat(b.distance) : Infinity;
+            return distanceA - distanceB;
+          });
+        }
+
         setEvents(transformedEvents);
       } else {
         console.log('No events found');

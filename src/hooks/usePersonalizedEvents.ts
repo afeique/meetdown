@@ -82,9 +82,19 @@ export const usePersonalizedEvents = (
         }
 
         if (allEvents && allEvents.length > 0) {
-          const eventsData = allEvents.map((event: any) => 
+          let eventsData = allEvents.map((event: any) => 
             transformEventData(event, userLocation, userId)
           );
+
+          // Sort by distance if user location is available
+          if (userLocation) {
+            eventsData = eventsData.sort((a, b) => {
+              const distanceA = a.distance ? parseFloat(a.distance) : Infinity;
+              const distanceB = b.distance ? parseFloat(b.distance) : Infinity;
+              return distanceA - distanceB;
+            });
+          }
+
           setEvents(eventsData);
         } else {
           setEvents([]);
@@ -119,9 +129,19 @@ export const usePersonalizedEvents = (
       if (personalizedEvents && personalizedEvents.length > 0) {
         console.log('Successfully fetched personalized events from database');
         
-        const eventsData = personalizedEvents.map((event: any) => 
+        let eventsData = personalizedEvents.map((event: any) => 
           transformEventData(event, userLocation, userId)
         );
+
+        // Sort by distance if user location is available
+        if (userLocation) {
+          eventsData = eventsData.sort((a, b) => {
+            const distanceA = a.distance ? parseFloat(a.distance) : Infinity;
+            const distanceB = b.distance ? parseFloat(b.distance) : Infinity;
+            return distanceA - distanceB;
+          });
+        }
+
         setEvents(eventsData);
       } else {
         console.log('No personalized events found');
@@ -139,7 +159,7 @@ export const usePersonalizedEvents = (
     if (userId) {
       fetchPersonalizedEvents();
     }
-  }, [userId, selectedTagNames]);
+  }, [userId, selectedTagNames, userLocation]);
 
   return { events, setEvents, loading, refetch: fetchPersonalizedEvents };
 };
