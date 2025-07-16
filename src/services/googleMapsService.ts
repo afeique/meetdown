@@ -91,54 +91,103 @@ export const geocodeAddress = async (address: string): Promise<{ lat: number; ln
   }
 };
 
-// Places Autocomplete Service for realtime suggestions - Using new API
+// Places Autocomplete Service for realtime suggestions - Using Nominatim as fallback
 export const getPlaceSuggestions = async (input: string): Promise<any[]> => {
   try {
     console.log('getPlaceSuggestions called with input:', input);
-    await loadGoogleMaps();
     
-    if (!isGoogleMapsAvailable()) {
-      console.log('Google Maps not available');
-      return [];
-    }
-
     if (!input.trim()) {
       console.log('Input is empty');
       return [];
     }
 
-    console.log('Using Geocoder as fallback for suggestions...');
-    
-    return new Promise((resolve) => {
-      const geocoder = new window.google.maps.Geocoder();
-      
-      geocoder.geocode(
-        { 
-          address: input,
-          region: 'US' // You can make this configurable
-        },
-        (results, status) => {
-          console.log('Geocoder response:', { results, status });
-          if (status === window.google.maps.GeocoderStatus.OK && results) {
-            // Convert geocoder results to autocomplete-like format
-            const suggestions = results.slice(0, 5).map((result, index) => ({
-              place_id: result.place_id || `geocoder_${index}`,
-              description: result.formatted_address,
-              structured_formatting: {
-                main_text: result.formatted_address.split(',')[0],
-                secondary_text: result.formatted_address.split(',').slice(1).join(',').trim()
-              },
-              geometry: result.geometry
-            }));
-            console.log('Returning suggestions:', suggestions);
-            resolve(suggestions);
-          } else {
-            console.log('No results or error status:', status);
+    // Try Google Maps first if available
+    if (isGoogleMapsAvailable()) {
+      try {
+        console.log('Trying Google Maps Geocoder...');
+        const geocoderPromise = new Promise<any[]>((resolve) => {
+          const geocoder = new window.google.maps.Geocoder();
+          
+          geocoder.geocode(
+            { 
+              address: input,
+              region: 'US'
+            },
+            (results, status) => {
+              console.log('Geocoder response:', { results, status });
+              if (status === window.google.maps.GeocoderStatus.OK && results) {
+                const suggestions = results.slice(0, 5).map((result, index) => ({
+                  place_id: result.place_id || `geocoder_${index}`,
+                  description: result.formatted_address,
+                  structured_formatting: {
+                    main_text: result.formatted_address.split(',')[0],
+                    secondary_text: result.formatted_address.split(',').slice(1).join(',').trim()
+                  },
+                  geometry: result.geometry
+                }));
+                console.log('Returning Google suggestions:', suggestions);
+                resolve(suggestions);
+              } else {
+                console.log('Google Geocoder failed, status:', status);
+                resolve([]);
+              }
+            }
+          );
+        });
+
+        // Add a timeout to prevent hanging
+        const timeoutPromise = new Promise<any[]>((resolve) => {
+          setTimeout(() => {
+            console.log('Google Maps timeout, falling back to Nominatim');
             resolve([]);
-          }
+          }, 2000);
+        });
+
+        const googleResults = await Promise.race([geocoderPromise, timeoutPromise]);
+        if (googleResults.length > 0) {
+          return googleResults;
         }
-      );
-    });
+      } catch (error) {
+        console.error('Google Maps error:', error);
+      }
+    }
+
+    // Fallback to Nominatim
+    console.log('Using Nominatim for suggestions...');
+    const response = await fetch(
+      `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(input)}&limit=5&addressdetails=1`,
+      {
+        headers: {
+          'User-Agent': 'MeetdownApp/1.0'
+        }
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error('Nominatim request failed');
+    }
+
+    const results = await response.json();
+    console.log('Nominatim results:', results);
+
+    const suggestions = results.map((result: any, index: number) => ({
+      place_id: `nominatim_${result.place_id || index}`,
+      description: result.display_name,
+      structured_formatting: {
+        main_text: result.display_name.split(',')[0],
+        secondary_text: result.display_name.split(',').slice(1).join(',').trim()
+      },
+      geometry: {
+        location: {
+          lat: () => parseFloat(result.lat),
+          lng: () => parseFloat(result.lon)
+        }
+      },
+      nominatim_data: result
+    }));
+
+    console.log('Returning Nominatim suggestions:', suggestions);
+    return suggestions;
   } catch (error) {
     console.error('Error getting place suggestions:', error);
     return [];
@@ -148,44 +197,66 @@ export const getPlaceSuggestions = async (input: string): Promise<any[]> => {
 // Get place details from place_id or use geocoder result
 export const getPlaceDetails = async (placeId: string, geocoderResult?: any): Promise<{ lat: number; lng: number; formattedAddress: string } | null> => {
   try {
-    await loadGoogleMaps();
-    
-    if (!isGoogleMapsAvailable()) {
-      return null;
-    }
-
-    // If we have a geocoder result, use it directly
-    if (geocoderResult && geocoderResult.geometry?.location) {
+    // Handle Nominatim results
+    if (placeId.startsWith('nominatim_') && geocoderResult?.nominatim_data) {
+      const data = geocoderResult.nominatim_data;
       return {
-        lat: geocoderResult.geometry.location.lat(),
-        lng: geocoderResult.geometry.location.lng(),
-        formattedAddress: geocoderResult.formatted_address || ''
+        lat: parseFloat(data.lat),
+        lng: parseFloat(data.lon),
+        formattedAddress: data.display_name
       };
     }
 
-    // Fallback to Places Service if we have a real place_id
-    if (placeId && !placeId.startsWith('geocoder_')) {
-      return new Promise((resolve) => {
-        const service = new window.google.maps.places.PlacesService(document.createElement('div'));
-        
-        service.getDetails(
-          {
-            placeId: placeId,
-            fields: ['geometry', 'formatted_address']
-          },
-          (place, status) => {
-            if (status === window.google.maps.places.PlacesServiceStatus.OK && place && place.geometry?.location) {
-              resolve({
-                lat: place.geometry.location.lat(),
-                lng: place.geometry.location.lng(),
-                formattedAddress: place.formatted_address || ''
-              });
-            } else {
-              resolve(null);
+    // Handle direct geometry results (Google Maps or Nominatim)
+    if (geocoderResult && geocoderResult.geometry?.location) {
+      return {
+        lat: typeof geocoderResult.geometry.location.lat === 'function' 
+          ? geocoderResult.geometry.location.lat() 
+          : geocoderResult.geometry.location.lat,
+        lng: typeof geocoderResult.geometry.location.lng === 'function' 
+          ? geocoderResult.geometry.location.lng() 
+          : geocoderResult.geometry.location.lng,
+        formattedAddress: geocoderResult.description || geocoderResult.formatted_address || ''
+      };
+    }
+
+    // Try Google Maps if available
+    if (isGoogleMapsAvailable()) {
+      await loadGoogleMaps();
+
+      // If we have a geocoder result, use it directly
+      if (geocoderResult && geocoderResult.geometry?.location) {
+        return {
+          lat: geocoderResult.geometry.location.lat(),
+          lng: geocoderResult.geometry.location.lng(),
+          formattedAddress: geocoderResult.formatted_address || ''
+        };
+      }
+
+      // Fallback to Places Service if we have a real place_id
+      if (placeId && !placeId.startsWith('geocoder_') && !placeId.startsWith('nominatim_')) {
+        return new Promise((resolve) => {
+          const service = new window.google.maps.places.PlacesService(document.createElement('div'));
+          
+          service.getDetails(
+            {
+              placeId: placeId,
+              fields: ['geometry', 'formatted_address']
+            },
+            (place, status) => {
+              if (status === window.google.maps.places.PlacesServiceStatus.OK && place && place.geometry?.location) {
+                resolve({
+                  lat: place.geometry.location.lat(),
+                  lng: place.geometry.location.lng(),
+                  formattedAddress: place.formatted_address || ''
+                });
+              } else {
+                resolve(null);
+              }
             }
-          }
-        );
-      });
+          );
+        });
+      }
     }
 
     return null;
