@@ -79,6 +79,74 @@ export const geocodeAddress = async (address: string): Promise<{ lat: number; ln
   }
 };
 
+// Places Autocomplete Service for realtime suggestions
+export const getPlaceSuggestions = async (input: string): Promise<google.maps.places.AutocompletePrediction[]> => {
+  try {
+    await loadGoogleMaps();
+    
+    if (!isGoogleMapsAvailable() || !input.trim()) {
+      return [];
+    }
+
+    return new Promise((resolve) => {
+      const service = new window.google.maps.places.AutocompleteService();
+      
+      service.getPlacePredictions(
+        {
+          input: input,
+          types: ['establishment', 'geocode'],
+        },
+        (predictions, status) => {
+          if (status === window.google.maps.places.PlacesServiceStatus.OK && predictions) {
+            resolve(predictions);
+          } else {
+            resolve([]);
+          }
+        }
+      );
+    });
+  } catch (error) {
+    console.error('Error getting place suggestions:', error);
+    return [];
+  }
+};
+
+// Get place details from place_id
+export const getPlaceDetails = async (placeId: string): Promise<{ lat: number; lng: number; formattedAddress: string } | null> => {
+  try {
+    await loadGoogleMaps();
+    
+    if (!isGoogleMapsAvailable()) {
+      return null;
+    }
+
+    return new Promise((resolve) => {
+      const service = new window.google.maps.places.PlacesService(document.createElement('div'));
+      
+      service.getDetails(
+        {
+          placeId: placeId,
+          fields: ['geometry', 'formatted_address']
+        },
+        (place, status) => {
+          if (status === window.google.maps.places.PlacesServiceStatus.OK && place && place.geometry?.location) {
+            resolve({
+              lat: place.geometry.location.lat(),
+              lng: place.geometry.location.lng(),
+              formattedAddress: place.formatted_address || ''
+            });
+          } else {
+            resolve(null);
+          }
+        }
+      );
+    });
+  } catch (error) {
+    console.error('Error getting place details:', error);
+    return null;
+  }
+};
+
 // Reverse geocoding service
 export const reverseGeocode = async (lat: number, lng: number): Promise<string | null> => {
   try {

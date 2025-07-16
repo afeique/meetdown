@@ -1,9 +1,9 @@
 import { useState, useRef, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { MapPin, Search, Loader2 } from 'lucide-react';
+import { MapPin, Search, Loader2, ChevronDown } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { loadGoogleMaps, isGoogleMapsAvailable, geocodeAddress, reverseGeocode } from '@/services/googleMapsService';
+import { loadGoogleMaps, isGoogleMapsAvailable, geocodeAddress, reverseGeocode, getPlaceSuggestions, getPlaceDetails } from '@/services/googleMapsService';
 
 interface LocationResult {
   display_name: string;
@@ -17,68 +17,95 @@ interface LocationBarProps {
 
 const LocationBar = ({ onLocationChange }: LocationBarProps) => {
   const [location, setLocation] = useState('');
+  const [suggestions, setSuggestions] = useState<google.maps.places.AutocompletePrediction[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
   const [isInitializing, setIsInitializing] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
-  const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
+  const suggestionsRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
   useEffect(() => {
-    const initializeAutocomplete = async () => {
-      if (!inputRef.current) return;
-
+    const initializeGoogleMaps = async () => {
       setIsInitializing(true);
-      
       try {
         await loadGoogleMaps();
-        
-        if (isGoogleMapsAvailable() && inputRef.current && !autocompleteRef.current) {
-          autocompleteRef.current = new window.google.maps.places.Autocomplete(
-            inputRef.current,
-            {
-              types: ['(cities)'],
-              fields: ['place_id', 'formatted_address', 'geometry']
-            }
-          );
-
-          autocompleteRef.current.addListener('place_changed', () => {
-            const place = autocompleteRef.current?.getPlace();
-            if (place && place.formatted_address && place.geometry?.location) {
-              const newLocation = {
-                lat: place.geometry.location.lat(),
-                lng: place.geometry.location.lng(),
-                address: place.formatted_address
-              };
-
-              setLocation(place.formatted_address);
-              
-              if (onLocationChange) {
-                onLocationChange(newLocation);
-              }
-
-              toast({
-                title: "Location updated",
-                description: `Searching near: ${place.formatted_address}`,
-              });
-            }
-          });
-        }
       } catch (error) {
-        console.error('Failed to initialize Google Places Autocomplete:', error);
+        console.error('Failed to initialize Google Maps:', error);
       } finally {
         setIsInitializing(false);
       }
     };
 
-    initializeAutocomplete();
+    initializeGoogleMaps();
+  }, []);
 
-    return () => {
-      if (autocompleteRef.current) {
-        window.google?.maps?.event?.clearInstanceListeners(autocompleteRef.current);
-        autocompleteRef.current = null;
+  // Handle clicks outside to close suggestions
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (suggestionsRef.current && !suggestionsRef.current.contains(event.target as Node) &&
+          inputRef.current && !inputRef.current.contains(event.target as Node)) {
+        setShowSuggestions(false);
       }
     };
-  }, [onLocationChange, toast]);
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Debounced search for suggestions
+  useEffect(() => {
+    const timeoutId = setTimeout(async () => {
+      if (location.trim().length > 2) {
+        try {
+          const predictions = await getPlaceSuggestions(location);
+          setSuggestions(predictions);
+          setShowSuggestions(predictions.length > 0);
+        } catch (error) {
+          console.error('Error getting suggestions:', error);
+          setSuggestions([]);
+          setShowSuggestions(false);
+        }
+      } else {
+        setSuggestions([]);
+        setShowSuggestions(false);
+      }
+    }, 300);
+
+    return () => clearTimeout(timeoutId);
+  }, [location]);
+
+  const handleSuggestionClick = async (prediction: google.maps.places.AutocompletePrediction) => {
+    setLocation(prediction.description);
+    setShowSuggestions(false);
+    setIsSearching(true);
+
+    try {
+      const placeDetails = await getPlaceDetails(prediction.place_id);
+      
+      if (placeDetails && onLocationChange) {
+        onLocationChange({
+          lat: placeDetails.lat,
+          lng: placeDetails.lng,
+          address: placeDetails.formattedAddress
+        });
+
+        toast({
+          title: "Location updated",
+          description: `Searching near: ${placeDetails.formattedAddress}`,
+        });
+      }
+    } catch (error) {
+      console.error('Error getting place details:', error);
+      toast({
+        title: "Error",
+        description: "Failed to get location details",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSearching(false);
+    }
+  };
 
   const searchLocation = async (query: string) => {
     // Try Google Maps Geocoding first
@@ -290,16 +317,58 @@ const LocationBar = ({ onLocationChange }: LocationBarProps) => {
             <MapPin size={20} />
             <span className="text-sm font-medium">Location:</span>
           </div>
-          <div className="flex-1 flex gap-2">
-            <Input
-              ref={inputRef}
-              type="text"
-              placeholder={isInitializing ? "Loading location search..." : "Enter address, zip code, or city..."}
-              value={location}
-              onChange={(e) => setLocation(e.target.value)}
-              className="flex-1"
-              disabled={isLoading}
-            />
+          <div className="flex-1 flex gap-2 relative">
+            <div className="flex-1 relative">
+              <Input
+                ref={inputRef}
+                type="text"
+                placeholder={isInitializing ? "Loading location search..." : "Enter address, zip code, or city..."}
+                value={location}
+                onChange={(e) => {
+                  setLocation(e.target.value);
+                  if (e.target.value.length > 2) {
+                    setShowSuggestions(true);
+                  }
+                }}
+                onFocus={() => {
+                  if (suggestions.length > 0) {
+                    setShowSuggestions(true);
+                  }
+                }}
+                className="flex-1"
+                disabled={isLoading}
+              />
+              
+              {/* Suggestions dropdown */}
+              {showSuggestions && suggestions.length > 0 && (
+                <div 
+                  ref={suggestionsRef}
+                  className="absolute top-full left-0 right-0 z-50 bg-white border border-gray-200 rounded-md shadow-lg mt-1 max-h-60 overflow-y-auto"
+                >
+                  {suggestions.map((prediction) => (
+                    <button
+                      key={prediction.place_id}
+                      type="button"
+                      onClick={() => handleSuggestionClick(prediction)}
+                      className="w-full px-4 py-3 text-left hover:bg-gray-50 border-b border-gray-100 last:border-b-0 flex items-start gap-3"
+                    >
+                      <MapPin size={16} className="text-gray-400 mt-0.5 flex-shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-medium text-gray-900 truncate">
+                          {prediction.structured_formatting?.main_text || prediction.description}
+                        </div>
+                        {prediction.structured_formatting?.secondary_text && (
+                          <div className="text-xs text-gray-500 truncate mt-1">
+                            {prediction.structured_formatting.secondary_text}
+                          </div>
+                        )}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+            
             <Button 
               type="button"
               variant="outline"
